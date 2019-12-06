@@ -1,0 +1,178 @@
+syntax = "proto3";
+
+option java_package = "cn.aberic.fabric-client.grpc.proto.ca";
+option java_outer_classname = "CertProto";
+option go_package = "grpc/proto/ca";
+
+package ca;
+
+import "grpc/proto/ca/result.proto";
+import "grpc/proto/ca/enums.proto";
+
+// 密钥生成配置请求结构
+message ReqKeyConfig {
+    // 密钥生成类型：ECDSA=0；RSA=1
+    CryptoType cryptoType = 1;
+    // 密钥长度
+    oneof Algorithm {
+        // ECDSA密钥长度
+        EccAlgorithm eccAlgorithm = 2;
+        // RSA密钥长度
+        RsaAlgorithm rsaAlgorithm = 3;
+    }
+}
+
+// 密钥生成配置返回结构
+message RespKeyConfig {
+    // 请求返回结果：success=0；fail=1
+    Code code = 1;
+    // 当且仅当返回码为1时，此处包含错误信息
+    string errMsg = 2;
+    // 私钥数据信息，直接转string得到pem格式化后内容
+    bytes priKeyBytes = 3;
+    // 公钥数据信息，直接转string得到pem格式化后内容
+    bytes pubKeyBytes = 4;
+}
+
+// 生成联盟根证书请求
+message ReqCreateLeague {
+    // 联盟根域名
+    string domain = 1;
+    // 联盟ca私钥，pem格式化
+    bytes priKeyBytes = 2;
+    // 联盟tlsCa私钥，pem格式化
+    bytes priTlsKeyBytes = 3;
+    // 证书请求申请内容
+    CSR csr = 4;
+    // 签名算法
+    SignAlgorithm signAlgorithm = 5;
+}
+
+// 返回联盟根证书请求
+message RespCreateLeague {
+    // 请求返回结果：success=0；fail=1
+    Code code = 1;
+    // 当且仅当返回码为1时，此处包含错误信息
+    string errMsg = 2;
+    // 根证书信息，直接转string得到pem格式化后内容
+    bytes caCertBytes = 3;
+    // tls根证书信息，直接转string得到pem格式化后内容
+    bytes tlsCaCertBytes = 4;
+}
+
+// 生成CA请求证书文件请求
+message ReqCreateCsr {
+    // 联盟根域名
+    string leagueDomain = 2;
+    // 组织名称
+    string orgName = 3;
+    // 组织根域名
+    string orgDomain = 4;
+    // 私钥，pem格式化
+    bytes priKeyBytes = 5;
+    // 证书请求申请内容
+    CSR name = 6;
+    SignAlgorithm signAlgorithm = 7;
+}
+
+// 生成CA请求证书文件返回
+message RespCreateCsr {
+    // 请求返回结果：success=0；fail=1
+    Code code = 1;
+    // 当且仅当返回码为1时，此处包含错误信息
+    string errMsg = 2;
+    // CA请求证书文件，直接转string得到pem格式化后内容
+    bytes csrBytes = 3;
+}
+
+message ReqCreateOrgChild {
+    // 组织类型
+    OrgType orgType = 1;
+    // 组织子节点/用户
+    OrgChild orgChild = 2;
+}
+
+message RespCreateOrgChild {
+    Code code = 1;
+    string errMsg = 2;
+    // 被签发证书，直接转string得到pem格式化后内容
+    bytes cert = 3;
+    // 被签发tls证书，直接转string得到pem格式化后内容
+    bytes tlsCert = 4;
+}
+
+// 组织子节点/用户
+message OrgChild {
+    // 用户公钥
+    bytes pubTlsBytes = 7;
+    // 联盟tls私钥
+    bytes priTlsParentBytes = 6;
+    // 联盟tls根证书
+    bytes rootTlsCaCertBytes = 9;
+    // 传输签名算法
+    SignAlgorithm signAlgorithm = 10;
+    // fabric ca 登记信息1
+    EnrollInfo enrollInfo = 11;
+}
+
+// fabric ca 登记信息
+message EnrollInfo {
+    // csr pem 请求内容
+    bytes csrPemBytes = 1;
+    // fabric ca url
+    string fabricCaServerURL = 2;
+    // 在多少天前无效
+    int64 notBefore = 3;
+    // 在多少天后无效
+    int64 notAfter = 4;
+    // fabric ca 登记请求
+    EnrollRequest enrollRequest = 5;
+}
+
+// fabric ca 等级请求
+message EnrollRequest {
+    // fabric ca 登记ID
+    string enrollID = 1;
+    // fabric ca 登记密码
+    string secret = 2;
+    // 证书请求申请内容
+    CSR name = 3;
+    // tls，非必须
+    string profile = 4;
+    // 标签，非必须
+    string label = 5;
+    // ca name，非必须
+    string caName = 6;
+    // example.com，非必须
+    repeated string hosts = 7;
+    // fabric ca 登记属性，非必须
+    repeated EnrollAttribute attrs = 8;
+}
+
+// fabric ca 登记属性
+message EnrollAttribute {
+    string name = 1;
+    bool optional = 2;
+}
+
+// 证书请求申请内容
+message CSR {
+    // 国家代号，如CN
+    repeated string country = 1;
+    // 组织机构代号，如HyperLedger
+    repeated string organization = 2;
+    // 组织机构下部门代号，如Fabric（非必须）
+    repeated string organizationalUnit = 3;
+    // 位置坐标信息（非必须）
+    repeated string locality = 4;
+    // 省份名称（非必须）
+    repeated string province = 5;
+    // 街道信息（非必须）
+    repeated string streetAddress = 6;
+    // 邮政编码（非必须）
+    repeated string postalCode = 7;
+    // 序列号（非必须）
+    string serialNumber = 8;
+    // 当前待申请证书最终受访域名，如example.com、org1.example.com等
+    string commonName = 9;
+}
