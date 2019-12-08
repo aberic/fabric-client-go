@@ -12,14 +12,14 @@
  * limitations under the License.
  */
 
-package utils
+package rpc
 
 import (
 	"google.golang.org/grpc"
 )
 
-// RPC 通过rpc进行通信 protoc --go_out=plugins=grpc:. grpc/proto/*.proto
-func RPC(url string, business func(conn *grpc.ClientConn) (interface{}, error)) (interface{}, error) {
+// Request 通过rpc进行通信 protoc --go_out=plugins=grpc:. grpc/proto/*.proto
+func Request(url string, business func(conn *grpc.ClientConn) (interface{}, error)) (interface{}, error) {
 	var (
 		conn *grpc.ClientConn
 		err  error

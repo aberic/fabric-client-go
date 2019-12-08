@@ -7,7 +7,11 @@ export GO111MODULE=on
 
 checkTravis: overalls vet lint misspell staticcheck cyclo const veralls test
 
-checkLocal: overalls vet lint misspell staticcheck cyclo const test
+checkLocal: fabricca overalls vet lint misspell staticcheck cyclo const test
+
+fabricca:
+	@echo "docker run ca"
+	docker-compose -f ./example/ca/docker-ca-compose.yml up -d
 
 overalls:
 	@echo "overalls"

@@ -64,14 +64,14 @@ message RespCreateLeague {
 message ReqCreateCsr {
     // 联盟根域名
     string leagueDomain = 2;
-    // 组织名称
-    string orgName = 3;
+    // 节点/用户名称
+    string childName = 3;
     // 组织根域名
     string orgDomain = 4;
     // 私钥，pem格式化
     bytes priKeyBytes = 5;
     // 证书请求申请内容
-    CSR name = 6;
+    CSR csr = 6;
     SignAlgorithm signAlgorithm = 7;
 }
 
@@ -85,24 +85,8 @@ message RespCreateCsr {
     bytes csrBytes = 3;
 }
 
-message ReqCreateOrgChild {
-    // 组织类型
-    OrgType orgType = 1;
-    // 组织子节点/用户
-    OrgChild orgChild = 2;
-}
-
-message RespCreateOrgChild {
-    Code code = 1;
-    string errMsg = 2;
-    // 被签发证书，直接转string得到pem格式化后内容
-    bytes cert = 3;
-    // 被签发tls证书，直接转string得到pem格式化后内容
-    bytes tlsCert = 4;
-}
-
 // 组织子节点/用户
-message OrgChild {
+message ReqCreateOrgChild {
     // 用户公钥
     bytes pubTlsBytes = 7;
     // 联盟tls私钥
@@ -113,6 +97,15 @@ message OrgChild {
     SignAlgorithm signAlgorithm = 10;
     // fabric ca 登记信息1
     EnrollInfo enrollInfo = 11;
+}
+
+message RespCreateOrgChild {
+    Code code = 1;
+    string errMsg = 2;
+    // 被签发证书，直接转string得到pem格式化后内容
+    bytes cert = 3;
+    // 被签发tls证书，直接转string得到pem格式化后内容
+    bytes tlsCert = 4;
 }
 
 // fabric ca 登记信息
@@ -136,7 +129,7 @@ message EnrollRequest {
     // fabric ca 登记密码
     string secret = 2;
     // 证书请求申请内容
-    CSR name = 3;
+    CSR csr = 3;
     // tls，非必须
     string profile = 4;
     // 标签，非必须

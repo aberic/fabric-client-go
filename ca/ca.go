@@ -62,7 +62,7 @@ func generateOrgChildCsr(csr *ca.ReqCreateCsr) (*ca.RespCreateCsr, error) {
 		csrBytes []byte
 		err      error
 	)
-	if csrBytes, err = cc.generateCsr(csr.PriKeyBytes, getSubject(csr.Name), getSignAlgorithm(csr.SignAlgorithm)); err != nil {
+	if csrBytes, err = cc.generateCsr(csr.PriKeyBytes, getSubject(csr.Csr), getSignAlgorithm(csr.SignAlgorithm)); err != nil {
 		return &ca.RespCreateCsr{Code: ca.Code_Fail, ErrMsg: err.Error()}, err
 	}
 	return &ca.RespCreateCsr{Code: ca.Code_Success, CsrBytes: csrBytes}, nil
@@ -76,14 +76,14 @@ func generateOrgChildCrt(child *ca.ReqCreateOrgChild) (*ca.RespCreateOrgChild, e
 		err           error
 	)
 	// tls ca cert
-	if tlsCert, err = cc.generateCryptoChildCrt(child.OrgChild.RootTlsCaCertBytes, child.OrgChild.PriTlsParentBytes,
-		child.OrgChild.PubTlsBytes, getSubject(child.OrgChild.EnrollInfo.EnrollRequest.Name),
-		getSignAlgorithm(child.OrgChild.SignAlgorithm)); nil != err {
+	if tlsCert, err = cc.generateCryptoChildCrt(child.RootTlsCaCertBytes, child.PriTlsParentBytes,
+		child.PubTlsBytes, getSubject(child.EnrollInfo.EnrollRequest.Csr),
+		getSignAlgorithm(child.SignAlgorithm)); nil != err {
 		return &ca.RespCreateOrgChild{Code: ca.Code_Fail, ErrMsg: err.Error()}, err
 	}
 	// ca cert
-	if cert, err = cc.enroll(getGcr(child.OrgChild), child.OrgChild.EnrollInfo.FabricCaServerURL,
-		child.OrgChild.EnrollInfo.EnrollRequest.EnrollID, child.OrgChild.EnrollInfo.EnrollRequest.Secret); nil != err {
+	if cert, err = cc.enroll(getGcr(child), child.EnrollInfo.FabricCaServerURL,
+		child.EnrollInfo.EnrollRequest.EnrollID, child.EnrollInfo.EnrollRequest.Secret); nil != err {
 		return &ca.RespCreateOrgChild{Code: ca.Code_Fail, ErrMsg: err.Error()}, err
 	}
 	return &ca.RespCreateOrgChild{Code: ca.Code_Success, Cert: cert, TlsCert: tlsCert}, nil
@@ -373,7 +373,7 @@ func generateCryptoParams(config *ca.ReqKeyConfig) (ct cryptoType, cal cryptoAlg
 	return
 }
 
-func getGcr(child *ca.OrgChild) generateCertificateRequest {
+func getGcr(child *ca.ReqCreateOrgChild) generateCertificateRequest {
 	gcr := generateCertificateRequest{CR: string(child.EnrollInfo.CsrPemBytes), EnrollRequest: *child.EnrollInfo.EnrollRequest}
 	gcr.NotAfter = time.Now().Add(time.Duration(child.EnrollInfo.NotAfter) * 24 * time.Hour)
 	gcr.NotBefore = time.Now().Add(time.Duration(child.EnrollInfo.NotBefore) * 24 * time.Hour)

@@ -45,59 +45,15 @@ MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEHgioiBii+X6dgYRwdXbEbbNgbZog
 1vXemDItzT+Jnd83Lt+NCHcdQxt0v7m9ky6gKQSx2Uu9zz+tfBE5vPfc7Q==
 -----END PUBLIC KEY-----`
 
-func TestGenerateCsr(t *testing.T) {
-	var (
-		cc       = &CertConfig{}
-		csrBytes []byte
-		err      error
-	)
-	if csrBytes, err = cc.generateCsr([]byte(priParentBytes), pkix.Name{
-		Country:      []string{"CN"},
-		Organization: []string{"league"},
-		Locality:     []string{"Beijing"},
-		Province:     []string{"Beijing"},
-		CommonName:   "example.com",
-	}, x509.ECDSAWithSHA256); nil != err {
-		t.Error(err)
-	}
-	t.Log(string(csrBytes))
-}
-
-func TestGenerateCsrCNFail(t *testing.T) {
-	var (
-		cc       = &CertConfig{}
-		csrBytes []byte
-		err      error
-	)
-	if csrBytes, err = cc.generateCsr([]byte(priParentBytes), pkix.Name{
-		Country:      []string{"CN"},
-		Organization: []string{"league"},
-		Locality:     []string{"Beijing"},
-		Province:     []string{"Beijing"},
-		CommonName:   "",
-	}, x509.ECDSAWithSHA256); nil != err {
-		t.Log(err)
-	}
-	t.Log(string(csrBytes))
-}
-
-func TestGenerateCsrBytesFail(t *testing.T) {
-	var (
-		cc       = &CertConfig{}
-		csrBytes []byte
-		err      error
-	)
-	if csrBytes, err = cc.generateCsr([]byte{}, pkix.Name{
-		Country:      []string{"CN"},
-		Organization: []string{"league"},
-		Locality:     []string{"Beijing"},
-		Province:     []string{"Beijing"},
-		CommonName:   "example.com",
-	}, x509.ECDSAWithSHA256); nil != err {
-		t.Log(err)
-	}
-	t.Log(string(csrBytes))
-}
+var csrBytes = `-----BEGIN CERTIFICATE REQUEST-----
+MIIBPDCB4wIBADBYMQswCQYDVQQGEwJDTjEQMA4GA1UECBMHQmVpamluZzEQMA4G
+A1UEBxMHQmVpamluZzEPMA0GA1UEChMGbGVhZ3VlMRQwEgYDVQQDEwtleGFtcGxl
+LmNvbTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABGrX/v1bNcgiDKgJ3+IC5WjP
+ttm4XZcXMkpPfRASmWTrgrndev53aO2RHvbvDf//ZdDp9mB96EUmnyhZq1INZKGg
+KTAnBgkqhkiG9w0BCQ4xGjAYMBYGA1UdEQQPMA2CC2V4YW1wbGUuY29tMAoGCCqG
+SM49BAMCA0gAMEUCICSKUWUDvqo+rOncH9Q/krz/1Syc97UGbiCQ9PdXlDtcAiEA
+qydz8zubbSc2WM2SmFDLKnaScMSNVw8jsR3Sc066kno=
+-----END CERTIFICATE REQUEST-----`
 
 func TestGenerateCryptoRootCrt(t *testing.T) {
 	var (
@@ -115,14 +71,8 @@ func TestGenerateCryptoRootCrt(t *testing.T) {
 		t.Error(err)
 	}
 	t.Log(string(caRootCertBytes))
-}
 
-func TestGenerateCryptoRootCrtByteFail(t *testing.T) {
-	var (
-		cc              = &CertConfig{}
-		caRootCertBytes []byte
-		err             error
-	)
+	// TestGenerateCryptoRootCrtByteFail
 	if caRootCertBytes, err = cc.generateCryptoRootCrt([]byte{}, pkix.Name{
 		Country:      []string{"CN"},
 		Organization: []string{"league"},
@@ -132,15 +82,8 @@ func TestGenerateCryptoRootCrtByteFail(t *testing.T) {
 	}, x509.ECDSAWithSHA256, "/tmp/caRootCertBytes/cert.crt"); nil != err {
 		t.Log(err)
 	}
-	t.Log(string(caRootCertBytes))
-}
 
-func TestGenerateCryptoRootCrtFileFail(t *testing.T) {
-	var (
-		cc              = &CertConfig{}
-		caRootCertBytes []byte
-		err             error
-	)
+	// TestGenerateCryptoRootCrtFileFail
 	if caRootCertBytes, err = cc.generateCryptoRootCrt([]byte(priParentBytes), pkix.Name{
 		Country:      []string{"CN"},
 		Organization: []string{"league"},
@@ -150,7 +93,46 @@ func TestGenerateCryptoRootCrtFileFail(t *testing.T) {
 	}, x509.ECDSAWithSHA256, "/fabric"); nil != err {
 		t.Log(err)
 	}
-	t.Log(string(caRootCertBytes))
+}
+
+func TestGenerateCsr(t *testing.T) {
+	var (
+		cc       = &CertConfig{}
+		csrBytes []byte
+		err      error
+	)
+	if csrBytes, err = cc.generateCsr([]byte(priParentBytes), pkix.Name{
+		Country:      []string{"CN"},
+		Organization: []string{"league"},
+		Locality:     []string{"Beijing"},
+		Province:     []string{"Beijing"},
+		CommonName:   "example.com",
+	}, x509.ECDSAWithSHA256); nil != err {
+		t.Error(err)
+	}
+	t.Log(string(csrBytes))
+
+	// TestGenerateCsrCNFail
+	if csrBytes, err = cc.generateCsr([]byte(priParentBytes), pkix.Name{
+		Country:      []string{"CN"},
+		Organization: []string{"league"},
+		Locality:     []string{"Beijing"},
+		Province:     []string{"Beijing"},
+		CommonName:   "",
+	}, x509.ECDSAWithSHA256); nil != err {
+		t.Log(err)
+	}
+
+	// TestGenerateCsrBytesFail
+	if csrBytes, err = cc.generateCsr([]byte{}, pkix.Name{
+		Country:      []string{"CN"},
+		Organization: []string{"league"},
+		Locality:     []string{"Beijing"},
+		Province:     []string{"Beijing"},
+		CommonName:   "example.com",
+	}, x509.ECDSAWithSHA256); nil != err {
+		t.Log(err)
+	}
 }
 
 func TestGenerateCryptoChildCrt(t *testing.T) {
@@ -169,14 +151,8 @@ func TestGenerateCryptoChildCrt(t *testing.T) {
 		t.Error(err)
 	}
 	t.Log(string(certBytes))
-}
 
-func TestGenerateCryptoChildCrtByteFail1(t *testing.T) {
-	var (
-		cc        = &CertConfig{}
-		certBytes []byte
-		err       error
-	)
+	// TestGenerateCryptoChildCrtByteFail1
 	if certBytes, err = cc.generateCryptoChildCrt([]byte{}, []byte(priParentBytes), []byte(pubBytes), pkix.Name{
 		Country:      []string{"CN"},
 		Organization: []string{"league"},
@@ -186,15 +162,8 @@ func TestGenerateCryptoChildCrtByteFail1(t *testing.T) {
 	}, x509.ECDSAWithSHA256); nil != err {
 		t.Log(err)
 	}
-	t.Log(string(certBytes))
-}
 
-func TestGenerateCryptoChildCrtByteFail2(t *testing.T) {
-	var (
-		cc        = &CertConfig{}
-		certBytes []byte
-		err       error
-	)
+	// TestGenerateCryptoChildCrtByteFail2
 	if certBytes, err = cc.generateCryptoChildCrt([]byte(rootCertBytes), []byte{}, []byte(pubBytes), pkix.Name{
 		Country:      []string{"CN"},
 		Organization: []string{"league"},
@@ -204,15 +173,8 @@ func TestGenerateCryptoChildCrtByteFail2(t *testing.T) {
 	}, x509.ECDSAWithSHA256); nil != err {
 		t.Log(err)
 	}
-	t.Log(string(certBytes))
-}
 
-func TestGenerateCryptoChildCrtByteFail3(t *testing.T) {
-	var (
-		cc        = &CertConfig{}
-		certBytes []byte
-		err       error
-	)
+	// TestGenerateCryptoChildCrtByteFail3
 	if certBytes, err = cc.generateCryptoChildCrt([]byte(rootCertBytes), []byte(priParentBytes), []byte{}, pkix.Name{
 		Country:      []string{"CN"},
 		Organization: []string{"league"},
@@ -222,15 +184,8 @@ func TestGenerateCryptoChildCrtByteFail3(t *testing.T) {
 	}, x509.ECDSAWithSHA256); nil != err {
 		t.Log(err)
 	}
-	t.Log(string(certBytes))
-}
 
-func TestGenerateCryptoChildCrtFileFail(t *testing.T) {
-	var (
-		cc        = &CertConfig{}
-		certBytes []byte
-		err       error
-	)
+	// TestGenerateCryptoChildCrtFileFail
 	if certBytes, err = cc.generateCryptoChildCrt([]byte(rootCertBytes), []byte(priParentBytes), []byte(pubBytes), pkix.Name{
 		Country:      []string{"CN"},
 		Organization: []string{"league"},
@@ -240,5 +195,4 @@ func TestGenerateCryptoChildCrtFileFail(t *testing.T) {
 	}, x509.ECDSAWithSHA256); nil != err {
 		t.Error(err)
 	}
-	t.Log(string(certBytes))
 }
