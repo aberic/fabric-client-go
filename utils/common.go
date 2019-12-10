@@ -15,11 +15,14 @@
 package utils
 
 import (
+	"encoding/hex"
 	"fmt"
 	"github.com/aberic/gnomon"
 	"github.com/gin-gonic/gin"
+	"github.com/hyperledger/fabric/common/tools/cryptogen/csp"
 	"net/http"
 	"path"
+	"strings"
 )
 
 var (
@@ -41,4 +44,17 @@ func CatchAllErr(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, resp)
 		return
 	}
+}
+
+func SKI(priKeyBytes []byte) (string, error) {
+	if _, err := gnomon.File().Append("/tmp/ski.key", priKeyBytes, true); nil != err {
+		return "", err
+	}
+	priKey, _, _ := csp.GeneratePrivateKey("/tmp/ski.key")
+	return strings.Join([]string{hex.EncodeToString(priKey.SKI()), "sk"}, "_"), nil
+}
+
+func SKIFromFP(priKeyFilePath string) string {
+	priKey, _, _ := csp.GeneratePrivateKey(priKeyFilePath)
+	return strings.Join([]string{hex.EncodeToString(priKey.SKI()), "sk"}, "_")
 }

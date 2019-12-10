@@ -16,6 +16,7 @@ package utils
 
 import (
 	"github.com/aberic/gnomon"
+	"path"
 	"strings"
 )
 
@@ -28,8 +29,9 @@ var (
 
 // 环境变量
 const (
-	GPort = "GRPC_PORT"
-	HPort = "HTTP_PORT"
+	GOPath = "GOPATH"
+	GPort  = "GRPC_PORT"
+	HPort  = "HTTP_PORT"
 	// DataPath 项目工作目录 [template]
 	DataPath = "DATA_PATH"
 )
@@ -37,5 +39,6 @@ const (
 func init() {
 	GRPCPort = gnomon.Env().GetIntD(GPort, 9872)
 	HttpPort = gnomon.Env().GetIntD(HPort, 9865)
-	dataPath = strings.Join([]string{gnomon.Env().GetD(DataPath, "/home"), "data"}, "/")
+	defaultDataPath := path.Join(gnomon.Env().GetD(GOPath, "/home/go"), "src/github.com/aberic/fabric-client-go/example")
+	dataPath = strings.Join([]string{gnomon.Env().GetD(DataPath, defaultDataPath), "data"}, "/")
 }

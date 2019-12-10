@@ -15,13 +15,21 @@
 package ca
 
 import (
+	"bytes"
+	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"encoding/base64"
+	"encoding/json"
+	"fmt"
 	"github.com/aberic/fabric-client-go/grpc/proto/ca"
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/msp"
 	mspctx "github.com/hyperledger/fabric-sdk-go/pkg/common/providers/msp"
 	"github.com/hyperledger/fabric-sdk-go/pkg/fabsdk"
+	"io/ioutil"
+	"net/http"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -82,7 +90,7 @@ func generateOrgChildCrt(child *ca.ReqCreateOrgChild) (*ca.RespCreateOrgChild, e
 		return &ca.RespCreateOrgChild{Code: ca.Code_Fail, ErrMsg: err.Error()}, err
 	}
 	// ca cert
-	if cert, err = cc.enroll(getGcr(child), child.EnrollInfo.FabricCaServerURL,
+	if cert, err = enroll(getGcr(child), child.EnrollInfo.FabricCaServerURL,
 		child.EnrollInfo.EnrollRequest.EnrollID, child.EnrollInfo.EnrollRequest.Secret); nil != err {
 		return &ca.RespCreateOrgChild{Code: ca.Code_Fail, ErrMsg: err.Error()}, err
 	}
@@ -98,22 +106,43 @@ func caInfo(orgName string, sdk *fabsdk.FabricSDK) (*msp.GetCAInfoResponse, erro
 	return mspClient.GetCAInfo()
 }
 
-// Enroll enrolls a registered user in order to receive a signed X509 certificate.
-// A new key pair is generated for the user. The private key and the
-// enrollment certificate issued by the CA are stored in SDK stores.
-// They can be retrieved by calling IdentityManager.GetSigningIdentity().
-//  Parameters:
-//  enrollmentID enrollment ID of a registered user
-//  opts are optional enrollment options
-//
-//  Returns:
-//  an error if enrollment fails
-func enroll(orgName, enrollmentID string, sdk *fabsdk.FabricSDK, opts ...msp.EnrollmentOption) error {
-	mspClient, err := msp.New(sdk.Context(), msp.WithOrg(orgName))
+func enroll(gcr generateCertificateRequest, fabricCaServerURL, enrollID, secret string) (cert []byte, err error) {
+	crm, err := json.Marshal(gcr)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return mspClient.Enroll(enrollmentID, opts...)
+	req, err := http.NewRequest(http.MethodPost, strings.Join([]string{fabricCaServerURL, "api/v1/enroll"}, "/"), bytes.NewBuffer(crm))
+	if nil != err {
+		return nil, err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.SetBasicAuth(enrollID, secret)
+
+	httpClient := &http.Client{Transport: &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}}
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode >= 200 && resp.StatusCode <= 299 {
+		enrResp := new(enrollmentResponse)
+		if err := json.Unmarshal(body, enrResp); err != nil {
+			return nil, err
+		}
+		if !enrResp.Success {
+			return nil, enrResp.error()
+		}
+		return base64.StdEncoding.DecodeString(enrResp.Result.Cert)
+	}
+	return nil, fmt.Errorf("non 200 response: %v message is: %s", resp.StatusCode, string(body))
 }
 
 // Reenroll reenrolls an enrolled user in order to obtain a new signed X509 certificate

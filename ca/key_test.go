@@ -29,6 +29,16 @@ func TestGenerateCrypto(t *testing.T) {
 	generateCryptoECCFailTest(t)
 }
 
+func TestGenerateCryptoECC256(t *testing.T) {
+	pc := &keyConfig{}
+	priBytes, pubBytes, err := pc.generateCrypto(cryptoECC, p256)
+	if nil != err {
+		t.Error(err)
+	}
+	t.Log(string(priBytes))
+	t.Log(string(pubBytes))
+}
+
 func generateCryptoFailTest(t *testing.T) {
 	pc := &keyConfig{}
 	t.Log(pc.generateCrypto(0, 0))

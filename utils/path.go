@@ -60,18 +60,29 @@ func CsrFileTmpPath(leagueDomain, orgName, orgDomain, commonName string) string 
 	return filepath.Join(dataTmpPath, leagueDomain, "csr", strings.Join([]string{orgName, orgDomain}, "."), fileName)
 }
 
+// CryptoOrgPath 组织机构及其节点根目录
+func CryptoOrgPath(leagueDomain, orgDomain, orgName string, isPeer bool) string {
+	var orgsName, orgPathName string
+	if isPeer {
+		orgsName = "peerOrganizations/"
+	} else {
+		orgsName = "ordererOrganizations/"
+	}
+	orgPathName = strings.Join([]string{orgsName, orgName, ".", orgDomain}, "")
+	return filepath.Join(dataPath, leagueDomain, "crypto-config", orgPathName)
+}
+
 // CryptoOrgAndNodePath 组织机构及其节点根目录
 func CryptoOrgAndNodePath(leagueDomain, orgDomain, orgName, nodeName string, isPeer bool) (orgPath, nodePath string) {
 	var orgsName, orgPathName, nodesName, nodePathName string
 	if isPeer {
 		orgsName = "peerOrganizations/"
 		nodesName = "peers"
-		nodePathName = strings.Join([]string{nodeName, orgName, orgDomain}, ".")
 	} else {
 		orgsName = "ordererOrganizations/"
 		nodesName = "orderers"
-		nodePathName = strings.Join([]string{nodeName, orgName, orgDomain}, ".")
 	}
+	nodePathName = strings.Join([]string{nodeName, orgName, orgDomain}, ".")
 	orgPathName = strings.Join([]string{orgsName, orgName, ".", orgDomain}, "")
 	orgPath = filepath.Join(dataPath, leagueDomain, "crypto-config", orgPathName)
 	nodePath = filepath.Join(orgPath, nodesName, nodePathName)
@@ -97,20 +108,18 @@ func CryptoOrgAndNodeTmpPath(leagueDomain, orgDomain, orgName, nodeName string, 
 }
 
 // CryptoOrgAndUserPath 组织机构及其用户根目录
-func CryptoOrgAndUserPath(leagueDomain, orgDomain, orgName, nodeName string, isPeer bool) (orgPath, nodePath string) {
+func CryptoOrgAndUserPath(leagueDomain, orgDomain, orgName, username string, isPeer bool) (orgPath, userPath string) {
 	var orgsName, orgPathName, nodesName, nodePathName string
 	if isPeer {
 		orgsName = "peerOrganizations/"
-		nodesName = "users"
-		nodePathName = strings.Join([]string{nodeName, "@", orgName, ".", orgDomain}, "")
 	} else {
 		orgsName = "ordererOrganizations/"
-		nodesName = "users"
-		nodePathName = strings.Join([]string{nodeName, "@", orgName, ".", orgDomain}, "")
 	}
+	nodePathName = strings.Join([]string{username, "@", orgName, ".", orgDomain}, "")
+	nodesName = "users"
 	orgPathName = strings.Join([]string{orgsName, orgName, ".", orgDomain}, "")
 	orgPath = filepath.Join(dataPath, leagueDomain, "crypto-config", orgPathName)
-	nodePath = filepath.Join(orgPath, nodesName, nodePathName)
+	userPath = filepath.Join(orgPath, nodesName, nodePathName)
 	return
 }
 
@@ -140,4 +149,15 @@ func CertNodeCAName(orgName, orgDomain, nodeName string) string {
 // CertUserCAName 组织下用户证书名称
 func CertUserCAName(orgName, orgDomain, userName string) string {
 	return strings.Join([]string{userName, "@", orgName, ".", orgDomain, "-cert.pem"}, "")
+}
+
+// NodeDomain 节点域名
+func NodeDomain(orgName, orgDomain, nodeName string) string {
+	return strings.Join([]string{nodeName, orgName, orgDomain}, ".")
+}
+
+// CryptoUserTmpPath CryptoUserTempPath
+func CryptoUserTmpPath(leagueDomain, orgDomain, orgName string) string {
+	tmpPath := strings.Join([]string{"tmp/", orgName, ".", orgDomain, "/users"}, "")
+	return filepath.Join(dataPath, leagueDomain, "crypto-config", tmpPath)
 }

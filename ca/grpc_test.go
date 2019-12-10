@@ -20,12 +20,6 @@ import (
 	"testing"
 )
 
-var (
-	algorithm = &ca.ReqKeyConfig_EccAlgorithm{
-		EccAlgorithm: ca.EccAlgorithm_p256,
-	}
-)
-
 // TestGrpcGenerateCrypto 生成密钥对
 func TestGrpcGenerateCrypto(t *testing.T) {
 	gs := GenerateServer{}

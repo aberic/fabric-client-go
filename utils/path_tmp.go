@@ -24,11 +24,6 @@ func MspID(orgName string) string {
 	return strings.Join([]string{orgName, "MSP"}, "")
 }
 
-// NodeDomain 节点域名
-func NodeDomain(orgName, orgDomain, nodeName string) string {
-	return strings.Join([]string{nodeName, orgName, orgDomain}, ".")
-}
-
 // CertificateAuthorityFilePath CertificateAuthorityFilePath
 func CertificateAuthorityFilePath(leagueDomain, caName string) string {
 	return filepath.Join(dataPath, leagueDomain, "ca", caName, "cert.pem")
@@ -54,12 +49,6 @@ func CryptoOrgMspPath(leagueDomain, orgDomain, orgName string, isPeer bool) (msp
 	}
 	orgPathName = strings.Join([]string{orgsName, orgName, ".", orgDomain}, "")
 	return filepath.Join(dataPath, leagueDomain, "crypto-config", orgPathName, "msp")
-}
-
-// CryptoUserTmpPath CryptoUserTempPath
-func CryptoUserTmpPath(leagueDomain, orgDomain, orgName string) string {
-	tmpPath := strings.Join([]string{"tmp/", orgName, ".", orgDomain, "/users"}, "")
-	return filepath.Join(dataPath, leagueDomain, "crypto-config", tmpPath)
 }
 
 // ChainCodePath code目录

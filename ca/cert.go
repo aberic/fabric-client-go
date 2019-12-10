@@ -15,30 +15,20 @@
 package ca
 
 import (
-	"bytes"
 	"crypto"
 	"crypto/ecdsa"
 	"crypto/rand"
 	"crypto/rsa"
-	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/asn1"
-	"encoding/base64"
-	"encoding/hex"
-	"encoding/json"
 	"encoding/pem"
 	"errors"
-	"fmt"
 	"github.com/aberic/fabric-client-go/utils"
 	"github.com/aberic/gnomon"
-	"github.com/hyperledger/fabric/common/tools/cryptogen/csp"
-	"io/ioutil"
 	random "math/rand"
-	"net/http"
 	"path/filepath"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -143,54 +133,6 @@ func (cc *CertConfig) generateCryptoChildCrt(rootCertBytes, priParentBytes, pubB
 	return pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: certData}), nil
 }
 
-func (cc *CertConfig) enroll(gcr generateCertificateRequest, fabricCaServerURL, enrollID, secret string) (cert []byte, err error) {
-	crm, err := json.Marshal(gcr)
-	if err != nil {
-		return nil, err
-	}
-	req, err := http.NewRequest(http.MethodPost, strings.Join([]string{fabricCaServerURL, "api/v1/enroll"}, "/"), bytes.NewBuffer(crm))
-	if nil != err {
-		return nil, err
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-	req.SetBasicAuth(enrollID, secret)
-
-	httpClient := &http.Client{Transport: &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}}
-	resp, err := httpClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer func() { _ = resp.Body.Close() }()
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-	if resp.StatusCode >= 200 && resp.StatusCode <= 299 {
-		enrResp := new(enrollmentResponse)
-		if err := json.Unmarshal(body, enrResp); err != nil {
-			return nil, err
-		}
-		if !enrResp.Success {
-			return nil, enrResp.error()
-		}
-		return base64.StdEncoding.DecodeString(enrResp.Result.Cert)
-	}
-	return nil, fmt.Errorf("non 200 response: %v message is: %s", resp.StatusCode, string(body))
-}
-
-func (cc *CertConfig) stringToCert(data string) (*x509.Certificate, error) {
-	rawCert, err := base64.StdEncoding.DecodeString(data)
-	if err != nil {
-		return nil, err
-	}
-	pemResult, _ := pem.Decode(rawCert)
-	return x509.ParseCertificate(pemResult.Bytes)
-}
-
 func (cc *CertConfig) getPriKeyFromBytes(priKeyData []byte) (priKey interface{}, err error) {
 	var priEccKey *ecdsa.PrivateKey
 	if priEccKey, err = gnomon.CryptoECC().LoadPriPem(priKeyData); nil != err {
@@ -262,9 +204,4 @@ func (cc *CertConfig) getRootCA(leagueDomain string) (caPath, caFileName, tlsCaP
 	tlsCaPath = utils.CryptoRootTLSCATmpPath(leagueDomain)
 	tlsCaFileName = utils.RootTLSCACertFileName(leagueDomain)
 	return
-}
-
-func (cc *CertConfig) ski(priKeyFilePath string) string {
-	priKey, _, _ := csp.GeneratePrivateKey(priKeyFilePath)
-	return hex.EncodeToString(priKey.SKI()) + "_sk"
 }

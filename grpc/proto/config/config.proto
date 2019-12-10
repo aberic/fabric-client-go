@@ -6,30 +6,71 @@ option go_package = "grpc/proto/config";
 
 package config;
 
-// Config 网络连接配置为客户端应用程序提供有关目标区块链网络的信息
-message Config {
+message ReqConfigInit {
     // Version 内容的版本。用于SDK应用相应的解析规则
     string version = 1;
-    // Client GO SDK使用的客户端
-    Client client = 2;
-    // Channels 可选，如果有通道操作则需要补充完整
-    map<string, Channel> channels = 3;
-    // Organizations 此网络的参与机构名单
-    map<string, Organization> organizations = 4;
-    // 发送事务和通道创建/更新请求的Order列表。如果定义了多个，那么SDK将根据文档定义来使用特定的Order
-    map<string, Orderer> orderers = 5;
-    // 发送各种请求的节点列表，包括背书、查询和事件侦听器注册。
-    map<string, Peer> peers = 6;
-    // Fabric- ca是由Hyperledger Fabric提供的一种特殊的证书颁发机构，它允许通过REST api进行证书管理。
-    //
-    // 应用程序可以选择使用标准的证书颁发机构，而不是Fabric-CA，在这种情况下，不会指定此部分。
-    map<string, CertificateAuthority> certificateAuthorities = 7;
+    League league = 2;
+    Orderer orderer = 3;
+    Org org = 4;
+    Client client = 5;
+    map<string, Channel> channels = 6;
+}
+
+message ReqConfigList {
+    int32 list = 1;
+}
+
+message ReqConfig {
+    string configID = 1;
+}
+
+message ReqConfigRecover {
+    repeated string configIDs = 1;
+}
+
+message League {
+    // 联盟根域名，如：example.com
+    string domain = 1;
+    // 联盟根证书
+    bytes certBytes = 2;
+    // 联盟tls根证书
+    bytes tlsCertBytes = 3;
+}
+
+message Org {
+    // 必填参数，预测或确认该值，组织根域名，并不一定要与联盟根域名相同，如：org.com
+    string domain = 2;
+    // 必填参数，预测或确认该值，这个应用程序实例属于某个组织，值必须是在“组织”下定义的组织的名称，如：Org1或league-org1
+    string name = 3;
+    // 可选参数，组织在创世中的ID，如：Org1MSP，默认${name}MSP
+    string mspID = 4;
+    // 必填参数，预测或确认该值，组织当前使用用户，如：Admin/User0
+    string username = 5;
+    // 组织下节点集合
+    repeated Peer peers = 6;
+    // 组织下用户集合
+    repeated User users = 7;
+    // 组织下fabric-ca集合
+    repeated CertificateAuthority cas = 8;
+}
+
+message Orderer {
+    // 排序根域名，并不一定要与联盟根域名相同，如：order.com
+    string domain = 2;
+    // 这个应用程序实例属于某个组织，值必须是在“组织”下定义的组织的名称，如：Order或league-order
+    string name = 3;
+    // 可选参数，组织在创世中的ID，如：OrderMSP，默认${name}MSP
+    string mspID = 4;
+    // 组织当前使用用户，如：Admin/User0
+    string username = 5;
+    // 用户信息
+    User user = 7;
+    // 组织可访问orderer集合
+    repeated Node nodes = 9;
 }
 
 // Client go sdk 使用的客户端
 message Client {
-    // 这个应用程序实例属于哪个组织?值必须是在“组织”下定义的组织的名称，如：Org1或league-org1
-    string organization = 1;
     // 日志级别，debug、info、warn、error等
     ClientLogging logging = 2;
     // 节点超时的全局配置，如果省略此部分，则将使用缺省值
@@ -40,12 +81,9 @@ message Client {
     ClientOrder order = 5;
     // 超时的全局配置，如果省略此部分，则将使用缺省值
     ClientGlobal global = 6;
-    // 客户端
-    ClientCryptoConfig cryptoConfig = 7;
-    ClientCredentialStore credentialStore = 8;
     // 客户端的BCCSP配置
     ClientBCCSP BCCSP = 9;
-    ClientTLSCerts tlsCerts = 10;
+    bool tls = 10;
 }
 
 // 客户端日志设置对象
@@ -109,15 +147,6 @@ message ClientGlobalCache {
     string selection = 6;
 }
 
-message ClientCryptoConfig {
-    string path = 1;
-}
-
-message ClientCredentialStore {
-    string path = 1;
-    ClientCredentialStoreCryptoStore cryptoStore = 2;
-}
-
 message ClientCredentialStoreCryptoStore {
     string path = 1;
 }
@@ -138,59 +167,11 @@ message ClientBCCSPSecurityDefault {
     string provider = 1;
 }
 
-message ClientTLSCerts {
-    // 是否开启TLS，默认false
-    bool systemCertPool = 1;
-    // 客户端密钥和证书，用于TLS与节点和排序服务的握手
-    ClientTLSCertsClient client = 2;
-}
-
-message ClientTLSCertsClient {
-    ClientTLSCertsClientKey key = 1;
-    ClientTLSCertsClientCert cert = 2;
-}
-
-message ClientTLSCertsClientKey {
-    string path = 1;
-}
-
-message ClientTLSCertsClientCert {
-    string path = 1;
-}
-
 message Channel {
-    // 可选参数，参与组织的节点列表
-    map<string, ChannelPeer> peers = 1;
+    // 已知加入该通道的peer节点名称集合，如[peer0, peer1]
+    repeated string peerNames = 1;
     // 可选参数，应用程序可以使用这些选项来执行通道操作，如检索通道配置等。
     Policy Policies = 2;
-}
-
-// 可选参数，参与组织的节点列表
-message ChannelPeer {
-    // 可选参数
-    //
-    // 是否会向该节点发送交易以供其背书，节点必须安装chaincode。应用程序也可以使用这个属性来决定发送chaincode安装请求的节点。
-    //
-    // 默认值:true
-    bool endorsingPeer = 1;
-    // 可选参数
-    //
-    // 这个节点是否可被发送查询建议，节点必须安装chaincode。应用程序也可以使用这个属性来决定发送chaincode安装请求的节点。
-    //
-    // 默认值:true
-    bool chaincodeQuery = 2;
-    // 可选参数
-    //
-    // 这个节点是否可发送不需要链码的查询建议，如queryBlock()、queryTransaction()等。
-    //
-    // 默认值:true
-    bool ledgerQuery = 3;
-    // 可选参数
-    //
-    // 这个节点是否是SDK侦听器注册的目标，所有的对等点都可以产生事件，但应用程序通常只需要连接一个来监听事件。
-    //
-    // 默认值:true
-    bool eventSource = 4;
 }
 
 // 可选参数，应用程序可以使用这些选项来执行通道操作，如检索通道配置等
@@ -274,29 +255,16 @@ message EventService {
     string peerMonitorPeriod = 5;
 }
 
-// 此网络的参与机构
-message Organization {
-    string mspID = 1;
-    // 这个组织的MSP存储(绝对路径或相对于client.cryptoconfig)
-    string cryptoPath = 2;
-    repeated string peers = 3;
-    // 在基于Fabric的网络中，证书颁发机构颁发证书用于身份验证
-    //
-    // 通常，证书供应是在运行时网络之外的独立进程中完成的
-    //
-    // ca是一个特殊的证书颁发机构，它为动态证书管理(注册、撤销、重新注册)提供了REST api
-    //
-    // CertificateAuthorities只针对fabric-ca服务
-    repeated string certificateAuthorities = 4;
-}
-
 // 发送事务和通道创建/更新请求
-message Orderer {
+message Node {
+    // orderer名称，如：orderer0
+    string name = 1;
     // grpcs://127.0.0.1:7050
-    string url = 1;
+    string url = 2;
     // 这些是由gRPC库定义的标准属性，它们将按原样传递给gRPC客户端构造函数
-    GRPCOptions grpcOptions = 2;
-    OrdererTLSCACerts tlsCACerts = 3;
+    GRPCOptions grpcOptions = 6;
+    // 节点密钥信息
+    Crypto crypto = 5;
 }
 
 message OrdererTLSCACerts {
@@ -306,13 +274,39 @@ message OrdererTLSCACerts {
 
 // 节点，用于发送各种请求的节点列表，包括背书、查询和事件侦听器注册
 message Peer {
-    // 此URL用于发送背书和查询请求
-    string url = 1;
-    // eventUrl只在使用eventhub时才需要(默认是交付服务)
-    string eventUrl = 2;
+    string name = 1;
+    // 此URL用于发送背书和查询请求，grpc://peer0.org1.example.com:7051
+    string url = 2;
+    // eventUrl只在使用eventhub时才需要(默认是交付服务)，grpc://peer0.org1.example.com:7053
+    string eventUrl = 3;
     // 这些是由gRPC库定义的标准属性，它们将按原样传递给gRPC客户端构造函数
-    GRPCOptions grpcOptions = 3;
-    PeerTLSCACerts tlsCACerts = 4;
+    GRPCOptions grpcOptions = 4;
+    // 节点密钥信息
+    Crypto crypto = 5;
+    // 可选参数
+    //
+    // 是否会向该节点发送交易以供其背书，节点必须安装chaincode。应用程序也可以使用这个属性来决定发送chaincode安装请求的节点。
+    //
+    // 默认值:true
+    bool endorsingPeer = 6;
+    // 可选参数
+    //
+    // 这个节点是否可被发送查询建议，节点必须安装chaincode。应用程序也可以使用这个属性来决定发送chaincode安装请求的节点。
+    //
+    // 默认值:true
+    bool chaincodeQuery = 7;
+    // 可选参数
+    //
+    // 这个节点是否可发送不需要链码的查询建议，如queryBlock()、queryTransaction()等。
+    //
+    // 默认值:true
+    bool ledgerQuery = 8;
+    // 可选参数
+    //
+    // 这个节点是否是SDK侦听器注册的目标，所有的对等点都可以产生事件，但应用程序通常只需要连接一个来监听事件。
+    //
+    // 默认值:true
+    bool eventSource = 9;
 }
 
 message GRPCOptions {
@@ -341,69 +335,39 @@ message GRPCOptions {
     bool allowInsecure = 6;
 }
 
-message PeerTLSCACerts {
-    // 证书位置绝对路径
-    string path = 1;
+// 节点/用户密钥信息
+message Crypto {
+    // 节点/用户私钥
+    bytes key = 1;
+    // 节点/用户证书
+    bytes cert = 2;
+    // 节点/用户tls私钥
+    bytes tlsKey = 3;
+    // 节点/用户tls证书
+    bytes tlsCert = 4;
+}
+
+// 组织用户
+message User {
+    // 用户名，如：Admin/User0
+    string name = 1;
+    // 是否为管理员用户
+    bool isAdmin = 2;
+    // 用户密钥信息
+    Crypto crypto = 5;
 }
 
 message CertificateAuthority {
     // https://ca.org1.example.com:7054
     string url = 1;
-    // 可选参数，name of the CA
-    string caName = 2;
-    CertificateAuthorityTLSCACerts tlsCACerts = 3;
-    CertificateAuthorityRegistrar registrar = 4;
+    // name of the CA
+    string name = 2;
+    // ca 指定组织用户名，如：Admin/User0
+    string username = 3;
+    Registrar registrar = 5;
 }
 
-message CertificateAuthorityTLSCACerts {
-    bytes cert = 1;
-    CertificateAuthorityTLSCACertsClient client = 2;
-}
-
-message CertificateAuthorityTLSCACertsClient {
-    CertificateAuthorityTLSCACertsClientKey key = 1;
-    CertificateAuthorityTLSCACertsClientCert cert = 2;
-}
-
-message CertificateAuthorityTLSCACertsClientKey {
-    bytes key = 1;
-}
-
-message CertificateAuthorityTLSCACertsClientCert {
-    bytes cert = 1;
-}
-
-message CertificateAuthorityRegistrar {
+message Registrar {
     string enrollId = 1;
     string enrollSecret = 2;
-}
-
-message OrgInfo {
-    string leagueDomain = 1;
-    string domain = 2;
-    string name = 3;
-    string username = 4;
-}
-
-message ReqConfigInit {
-    string version = 1;
-    OrgInfo orgInfo = 2;
-    Client client = 3;
-    map<string, Channel> channels = 4;
-    map<string, Organization> organizations = 5;
-    map<string, Orderer> orderers = 6;
-    map<string, Peer> peers = 7;
-    map<string, CertificateAuthority> certificateAuthorities = 8;
-}
-
-message ReqConfigList {
-    int32 list = 1;
-}
-
-message ReqConfig {
-    string configID = 1;
-}
-
-message ReqConfigRecover {
-    repeated string configIDs = 1;
 }

@@ -3,7 +3,7 @@ port: 7054
 debug: false
 crlsizelimit: 512000
 tls:
-  enabled: false
+  enabled: true
   certfile: tlsca.cert
   keyfile: tlsca.key
   clientauth:
