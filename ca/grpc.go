@@ -23,9 +23,9 @@ import (
 type GenerateServer struct{}
 
 // GenerateCrypto 生成密钥对
-func (gc *GenerateServer) GenerateCrypto(ctx context.Context, config *ca.ReqKeyConfig) (*ca.RespKeyConfig, error) {
-	return generateCrypto(config)
-}
+//func (gc *GenerateServer) GenerateCrypto(ctx context.Context, config *ca.ReqKeyConfig) (*ca.RespKeyConfig, error) {
+//	return generateCrypto(config)
+//}
 
 // GenerateLeagueCrt 生成联盟根证书
 func (gc *GenerateServer) GenerateLeagueCrt(ctx context.Context, league *ca.ReqCreateLeague) (*ca.RespCreateLeague, error) {
@@ -40,4 +40,14 @@ func (gc *GenerateServer) GenerateOrgChildCsr(ctx context.Context, csr *ca.ReqCr
 // GenerateOrgChildCrt 生成组织下子节点/用户证书
 func (gc *GenerateServer) GenerateOrgChildCrt(ctx context.Context, child *ca.ReqCreateOrgChild) (*ca.RespCreateOrgChild, error) {
 	return generateOrgChildCrt(child)
+}
+
+// GenerateOrgChildCrt 生成组织下子节点/用户证书
+func (gc *GenerateServer) GenerateOrgChildCrtCa(ctx context.Context, child *ca.ReqCreateOrgChildCa) (*ca.RespCreateOrgChildCa, error) {
+	return generateOrgChildCaCrt(child)
+}
+
+// GenerateOrgChildCrt 生成组织下子节点/用户证书
+func (gc *GenerateServer) GenerateOrgChildCrtTlsCa(ctx context.Context, child *ca.ReqCreateOrgChildTlsCa) (*ca.RespCreateOrgChildTlsCa, error) {
+	return generateOrgChildTlsCaCrt(child)
 }

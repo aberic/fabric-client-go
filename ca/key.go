@@ -16,9 +16,14 @@ package ca
 
 import (
 	"crypto/elliptic"
+	"crypto/x509"
+	"encoding/pem"
 	"errors"
+	"github.com/aberic/fabric-client-go/utils"
 	"github.com/aberic/gnomon"
+	"github.com/hyperledger/fabric/common/tools/cryptogen/csp"
 	"io/ioutil"
+	"os"
 	"path"
 	"path/filepath"
 	"strconv"
@@ -47,21 +52,48 @@ type keyConfig struct{}
 // generateCrypto 生成密钥对
 //
 // cryptoType 密钥类型，ECC=1；RSA=2；
-func (pc *keyConfig) generateCrypto(cryptoType cryptoType, bits cryptoAlgorithm) (priFileBytes, pubFileBytes []byte, err error) {
+func (kc *keyConfig) generateCrypto(cryptoType cryptoType, bits cryptoAlgorithm) (priFileBytes, pubFileBytes []byte, err error) {
 	switch cryptoType {
 	default:
 		return nil, nil, errors.New("crypto type error")
 	case cryptoECC:
-		return pc.cryptoECC(bits)
+		return kc.cryptoECC(bits)
 	case cryptoRSA:
-		return pc.cryptoRSA(bits)
+		return kc.cryptoRSA(bits)
 	}
 }
 
+func (kc *keyConfig) generateCryptoCA() (skName string, priKeyBytes, pubKeyBytes []byte, err error) {
+	tmpPath := path.Join(os.TempDir(), strconv.FormatInt(time.Now().UnixNano(), 10))
+	priKey, _, err := csp.GeneratePrivateKey(tmpPath)
+	if nil != err {
+		return
+	}
+	skName = utils.ObtainSKI(priKey)
+	if priKeyBytes, err = ioutil.ReadFile(filepath.Join(tmpPath, skName)); nil != err {
+		return
+	}
+	pubKey, err := csp.GetECPublicKey(priKey)
+	if nil != err {
+		return
+	}
+	// 将公钥序列化为der编码的PKIX格式
+	derPkiX, err := x509.MarshalPKIXPublicKey(pubKey)
+	if nil != err {
+		return
+	}
+	block := &pem.Block{
+		Type:  "PUBLIC KEY",
+		Bytes: derPkiX,
+	}
+	pubKeyBytes = pem.EncodeToMemory(block)
+	return
+}
+
 // cryptoRSA 生成rsa密钥对
-func (pc *keyConfig) cryptoRSA(bits cryptoAlgorithm) (priFileBytes, pubFileBytes []byte, err error) {
+func (kc *keyConfig) cryptoRSA(bits cryptoAlgorithm) (priFileBytes, pubFileBytes []byte, err error) {
 	var long int
-	if long, err = pc.cryptoRSABits(bits); nil != err {
+	if long, err = kc.cryptoRSABits(bits); nil != err {
 		return nil, nil, err
 	}
 	storePath := path.Join("/tmp", strconv.FormatInt(time.Now().UnixNano(), 10))
@@ -70,13 +102,13 @@ func (pc *keyConfig) cryptoRSA(bits cryptoAlgorithm) (priFileBytes, pubFileBytes
 	if err = gnomon.CryptoRSA().GenerateKey(long, storePath, priKeyFileDefaultName, pubKeyFileDefaultName, gnomon.CryptoRSA().PKSC8()); nil != err {
 		return nil, nil, err
 	}
-	return pc.cryptoBytes(priFilePath, pubFilePath)
+	return kc.cryptoBytes(priFilePath, pubFilePath)
 }
 
 // cryptoECC 生成ecc密钥对
-func (pc *keyConfig) cryptoECC(bits cryptoAlgorithm) (priFileBytes, pubFileBytes []byte, err error) {
+func (kc *keyConfig) cryptoECC(bits cryptoAlgorithm) (priFileBytes, pubFileBytes []byte, err error) {
 	var curve elliptic.Curve
-	if curve, err = pc.cryptoECCCurve(bits); nil != err {
+	if curve, err = kc.cryptoECCCurve(bits); nil != err {
 		return nil, nil, err
 	}
 	storePath := path.Join("/tmp", strconv.Itoa(time.Now().Nanosecond()))
@@ -85,11 +117,11 @@ func (pc *keyConfig) cryptoECC(bits cryptoAlgorithm) (priFileBytes, pubFileBytes
 	if err = gnomon.CryptoECC().GeneratePemKey(storePath, priKeyFileDefaultName, pubKeyFileDefaultName, curve); nil != err {
 		return nil, nil, err
 	}
-	return pc.cryptoBytes(priFilePath, pubFilePath)
+	return kc.cryptoBytes(priFilePath, pubFilePath)
 }
 
 // cryptoBytes 将密钥对所在路径文件内容读出并返回
-func (pc *keyConfig) cryptoBytes(priFilePath, pubFilePath string) (priFileBytes, pubFileBytes []byte, err error) {
+func (kc *keyConfig) cryptoBytes(priFilePath, pubFilePath string) (priFileBytes, pubFileBytes []byte, err error) {
 	if priFileBytes, err = ioutil.ReadFile(priFilePath); nil != err {
 		return nil, nil, err
 	}
@@ -99,7 +131,7 @@ func (pc *keyConfig) cryptoBytes(priFilePath, pubFilePath string) (priFileBytes,
 	return
 }
 
-func (pc *keyConfig) cryptoRSABits(bits cryptoAlgorithm) (long int, err error) {
+func (kc *keyConfig) cryptoRSABits(bits cryptoAlgorithm) (long int, err error) {
 	switch bits {
 	default:
 		return 0, errors.New("rsa algorithm type error")
@@ -110,7 +142,7 @@ func (pc *keyConfig) cryptoRSABits(bits cryptoAlgorithm) (long int, err error) {
 	}
 }
 
-func (pc *keyConfig) cryptoECCCurve(bits cryptoAlgorithm) (curve elliptic.Curve, err error) {
+func (kc *keyConfig) cryptoECCCurve(bits cryptoAlgorithm) (curve elliptic.Curve, err error) {
 	switch bits {
 	default:
 		return nil, errors.New("ecc algorithm type error")

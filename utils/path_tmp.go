@@ -19,11 +19,6 @@ import (
 	"strings"
 )
 
-// MspID 组织MspID
-func MspID(orgName string) string {
-	return strings.Join([]string{orgName, "MSP"}, "")
-}
-
 // CertificateAuthorityFilePath CertificateAuthorityFilePath
 func CertificateAuthorityFilePath(leagueDomain, caName string) string {
 	return filepath.Join(dataPath, leagueDomain, "ca", caName, "cert.pem")
@@ -39,47 +34,10 @@ func CertificateAuthorityClientCertFilePath(leagueDomain, caName string) string 
 	return filepath.Join(dataPath, leagueDomain, "ca", caName, "client.crt")
 }
 
-// CryptoOrgMspPath CryptoOrgMspPath
-func CryptoOrgMspPath(leagueDomain, orgDomain, orgName string, isPeer bool) (mspPath string) {
-	var orgsName, orgPathName string
-	if isPeer {
-		orgsName = "peerOrganizations/"
-	} else {
-		orgsName = "ordererOrganizations/"
-	}
-	orgPathName = strings.Join([]string{orgsName, orgName, ".", orgDomain}, "")
-	return filepath.Join(dataPath, leagueDomain, "crypto-config", orgPathName, "msp")
-}
-
 // ChainCodePath code目录
 func ChainCodePath(leagueName, chainCodeName, version string) (source, path, zipPath string) {
 	source = filepath.Join(dataPath, leagueName, "code/go")
 	path = filepath.Join(chainCodeName, version, chainCodeName)
 	zipPath = strings.Join([]string{source, "/src/", path, ".zip"}, "")
 	return
-}
-
-// CryptoConfigPath crypto-config目录
-func CryptoConfigPath(leagueName string) string {
-	return filepath.Join(dataPath, leagueName, "crypto-config")
-}
-
-// ChannelArtifactsPath channel-artifacts目录
-func ChannelArtifactsPath(leagueName string) string {
-	return filepath.Join(dataPath, leagueName, "channel-artifacts")
-}
-
-// GenesisBlockFilePath orderer.genesis.block路径
-func GenesisBlockFilePath(leagueName string) string {
-	return filepath.Join(dataPath, leagueName, "channel-artifacts/orderer.genesis.block")
-}
-
-// ChannelTXFilePath 通道tx文件路径
-func ChannelTXFilePath(leagueName, channelName string) string {
-	return strings.Join([]string{ChannelArtifactsPath(leagueName), "/", channelName, ".tx"}, "")
-}
-
-// ChannelUpdateTXFilePath 通道tx文件路径
-func ChannelUpdateTXFilePath(leagueName, channelName string) string {
-	return strings.Join([]string{ChannelArtifactsPath(leagueName), "/", channelName, "_update.pb"}, "")
 }

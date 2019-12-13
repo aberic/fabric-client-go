@@ -224,6 +224,10 @@ func NewConfigClient(league *config.League, org *config.Org) (*Client, string, e
 		},
 		TLSCerts: &ClientTLSCerts{
 			SystemCertPool: false,
+			Client: &ClientTLSCertsClient{
+				Key:  &ClientTLSCertsClientKey{},
+				Cert: &ClientTLSCertsClientCert{},
+			},
 		},
 	}, orgUserPath, nil
 }

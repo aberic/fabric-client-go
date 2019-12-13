@@ -18,7 +18,7 @@ import (
 	"github.com/aberic/fabric-client-go/grpc/proto/config"
 )
 
-func ConfigForCA(caCrypto *CaCrypto) (*Config, error) {
+func JustCA(caCrypto *CaCrypto) (*Config, error) {
 	conf := Config{}
 	if err := conf.set(&config.ReqConfigInit{
 		Version: "1.0.0",

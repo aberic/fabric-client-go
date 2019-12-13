@@ -24,11 +24,18 @@ import (
 	"encoding/asn1"
 	"encoding/pem"
 	"errors"
+	ca2 "github.com/aberic/fabric-client-go/grpc/proto/ca"
 	"github.com/aberic/fabric-client-go/utils"
 	"github.com/aberic/gnomon"
+	"github.com/hyperledger/fabric/common/tools/cryptogen/ca"
+	"github.com/hyperledger/fabric/common/tools/cryptogen/csp"
+	"io/ioutil"
 	random "math/rand"
+	"os"
+	"path"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -92,6 +99,35 @@ func (cc *CertConfig) generateCryptoRootCrt(priKeyBytes []byte, subject pkix.Nam
 	}
 	// 将block的PEM编码写入
 	return pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: certData}), nil
+}
+
+func (cc *CertConfig) signCertificateCA(commonName string, ca *ca.CA, pubKey *ecdsa.PublicKey) (certBytes []byte, err error) {
+	tmpPath := path.Join(os.TempDir(), strconv.FormatInt(time.Now().UnixNano(), 10))
+	if err = os.MkdirAll(tmpPath, 0755); nil != err && !gnomon.File().PathExists(tmpPath) {
+		return nil, err
+	}
+	if _, err := ca.SignCertificate(tmpPath, commonName, nil, nil, pubKey,
+		x509.KeyUsageDigitalSignature|x509.KeyUsageKeyEncipherment, []x509.ExtKeyUsage{x509.ExtKeyUsageAny}); nil != err {
+		return nil, err
+	}
+	return ioutil.ReadFile(filepath.Join(tmpPath, strings.Join([]string{commonName, "cert.pem"}, "-")))
+}
+
+func (cc *CertConfig) getCA(rootCaDir, commonName string, subject *ca2.Subject) *ca.CA {
+	_, signer, _ := csp.LoadPrivateKey(rootCaDir)
+	cert, _ := ca.LoadCertificateECDSA(rootCaDir)
+
+	return &ca.CA{
+		Name:               commonName,
+		Signer:             signer,
+		SignCert:           cert,
+		Country:            subject.Country,
+		Province:           subject.Province,
+		Locality:           subject.Locality,
+		OrganizationalUnit: subject.OrgUnit,
+		StreetAddress:      subject.StreetAddress,
+		PostalCode:         subject.PostalCode,
+	}
 }
 
 // generateCryptoOrgChildTlsCaCrt 生成组织子节点/用户tls证书

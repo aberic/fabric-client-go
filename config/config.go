@@ -106,9 +106,11 @@ func (c *Config) setChannels(init *config.ReqConfigInit) {
 func (c *Config) setOrganizations(init *config.ReqConfigInit) {
 	c.Organizations = make(map[string]*Organization)
 	// 设置orderer
-	orderer := &Organization{}
-	orderer.setOrderer(init.League, init.Orderer)
-	c.Organizations[init.Orderer.Name] = orderer
+	if nil != init.Orderer {
+		orderer := &Organization{}
+		orderer.setOrderer(init.League, init.Orderer)
+		c.Organizations[init.Orderer.Name] = orderer
+	}
 	// 设置org
 	org := &Organization{}
 	org.setOrg(init.League, init.Org)
@@ -187,7 +189,7 @@ func (c *Config) mkOrdererDir(league *config.League, orderer *config.Orderer) er
 	if err = os.MkdirAll(userPath, 0755); !gnomon.File().PathExists(userPath) && nil != err {
 		return err
 	}
-	userSKIFileName, err := utils.SKI(orderer.User.Crypto.Key)
+	userSKIFileName, err := utils.SKI(league.Domain, orderer.Domain, orderer.Name, orderer.Username, true, orderer.User.Crypto.Key)
 	if nil != err {
 		return err
 	}
@@ -211,7 +213,7 @@ func (c *Config) mkOrdererDir(league *config.League, orderer *config.Orderer) er
 	}
 	for _, node := range orderer.Nodes {
 		_, nodePath := utils.CryptoOrgAndNodePath(league.Domain, orderer.Domain, orderer.Name, node.Name, false)
-		nodeSKIFileName, err := utils.SKI(node.Crypto.Key)
+		nodeSKIFileName, err := utils.SKI(league.Domain, orderer.Domain, orderer.Name, node.Name, false, node.Crypto.Key)
 		if nil != err {
 			return err
 		}
@@ -248,7 +250,7 @@ func (c *Config) mkPeerDir(league *config.League, org *config.Org) error {
 		if err = os.MkdirAll(orgPath, 0755); gnomon.File().PathExists(userPath) && nil != err {
 			return err
 		}
-		userSKIFileName, err := utils.SKI(user.Crypto.Key)
+		userSKIFileName, err := utils.SKI(league.Domain, org.Domain, org.Name, user.Name, true, user.Crypto.Key)
 		if nil != err {
 			return err
 		}
@@ -275,7 +277,7 @@ func (c *Config) mkPeerDir(league *config.League, org *config.Org) error {
 	}
 	for _, peer := range org.Peers {
 		_, peerPath := utils.CryptoOrgAndNodePath(league.Domain, org.Domain, org.Name, peer.Name, false)
-		peerSKIFileName, err := utils.SKI(peer.Crypto.Key)
+		peerSKIFileName, err := utils.SKI(league.Domain, org.Domain, org.Name, peer.Name, false, peer.Crypto.Key)
 		if nil != err {
 			return err
 		}

@@ -30,8 +30,8 @@ func TestGenerateCrypto(t *testing.T) {
 }
 
 func TestGenerateCryptoECC256(t *testing.T) {
-	pc := &keyConfig{}
-	priBytes, pubBytes, err := pc.generateCrypto(cryptoECC, p256)
+	kc := &keyConfig{}
+	priBytes, pubBytes, err := kc.generateCrypto(cryptoECC, p256)
 	if nil != err {
 		t.Error(err)
 	}
@@ -39,42 +39,53 @@ func TestGenerateCryptoECC256(t *testing.T) {
 	t.Log(string(pubBytes))
 }
 
+func TestGenerateCryptoCA(t *testing.T) {
+	kc := &keyConfig{}
+	skName, priKeyBytes, pubKeyBytes, err := kc.generateCryptoCA()
+	if nil != err {
+		t.Fatal(err)
+	}
+	t.Log(skName)
+	t.Log(string(priKeyBytes))
+	t.Log(string(pubKeyBytes))
+}
+
 func generateCryptoFailTest(t *testing.T) {
-	pc := &keyConfig{}
-	t.Log(pc.generateCrypto(0, 0))
+	kc := &keyConfig{}
+	t.Log(kc.generateCrypto(0, 0))
 }
 
 func generateCryptoRSA2048Test(t *testing.T) {
-	pc := &keyConfig{}
-	t.Log(pc.generateCrypto(cryptoRSA, r2048))
+	kc := &keyConfig{}
+	t.Log(kc.generateCrypto(cryptoRSA, r2048))
 }
 
 func generateCryptoRSA4096Test(t *testing.T) {
-	pc := &keyConfig{}
-	t.Log(pc.generateCrypto(cryptoRSA, r4096))
+	kc := &keyConfig{}
+	t.Log(kc.generateCrypto(cryptoRSA, r4096))
 }
 
 func generateCryptoRSAFailTest(t *testing.T) {
-	pc := &keyConfig{}
-	t.Log(pc.generateCrypto(cryptoRSA, 0))
+	kc := &keyConfig{}
+	t.Log(kc.generateCrypto(cryptoRSA, 0))
 }
 
 func generateCryptoECC256Test(t *testing.T) {
-	pc := &keyConfig{}
-	t.Log(pc.generateCrypto(cryptoECC, p256))
+	kc := &keyConfig{}
+	t.Log(kc.generateCrypto(cryptoECC, p256))
 }
 
 func generateCryptoECC384Test(t *testing.T) {
-	pc := &keyConfig{}
-	t.Log(pc.generateCrypto(cryptoECC, p384))
+	kc := &keyConfig{}
+	t.Log(kc.generateCrypto(cryptoECC, p384))
 }
 
 func generateCryptoECC521Test(t *testing.T) {
-	pc := &keyConfig{}
-	t.Log(pc.generateCrypto(cryptoECC, p521))
+	kc := &keyConfig{}
+	t.Log(kc.generateCrypto(cryptoECC, p521))
 }
 
 func generateCryptoECCFailTest(t *testing.T) {
-	pc := &keyConfig{}
-	t.Log(pc.generateCrypto(cryptoECC, 0))
+	kc := &keyConfig{}
+	t.Log(kc.generateCrypto(cryptoECC, 0))
 }

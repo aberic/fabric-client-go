@@ -21,27 +21,94 @@ import (
 	"crypto/x509/pkix"
 	"encoding/base64"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
 	"github.com/aberic/fabric-client-go/grpc/proto/ca"
+	"github.com/aberic/fabric-client-go/utils"
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/msp"
 	mspctx "github.com/hyperledger/fabric-sdk-go/pkg/common/providers/msp"
 	"github.com/hyperledger/fabric-sdk-go/pkg/fabsdk"
+	caMgr "github.com/hyperledger/fabric/common/tools/cryptogen/ca"
+	"github.com/hyperledger/fabric/common/tools/cryptogen/csp"
 	"io/ioutil"
 	"net/http"
+	"os"
+	"path"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 )
 
-// generateCrypto 生成密钥对
-func generateCrypto(config *ca.ReqKeyConfig) (*ca.RespKeyConfig, error) {
+func generateOrgRootCrypto(org *ca.ReqOrgRootCa) (*ca.RespOrgRootCa, error) {
+	var (
+		commonName, skName                    string
+		skBytes, pubKeyBytes, certBytes       []byte
+		tlsPriBytes, tlsPubBytes, tlsCertByte []byte
+		cc                                    = &CertConfig{}
+		err                                   error
+	)
+	// ca
+	if commonName, skName, skBytes, pubKeyBytes, certBytes, err = generateCryptoCA(org.Name, org.Domain, org.Subject); nil != err {
+		return nil, err
+	}
+	// tls ca
+	if tlsPriBytes, tlsPubBytes, err = generateCryptoTlsCa(org.Config); nil != err {
+		return nil, err
+	}
+	// tls ca cert
+	if tlsCertByte, err = cc.generateCryptoRootCrt(tlsPriBytes, getSub(org.Name, commonName, org.Subject),
+		getSignAlgorithm(org.Config.SignAlgorithm), filepath.Join(os.TempDir(), strconv.FormatInt(time.Now().UnixNano(), 10))); nil != err {
+		return &ca.RespOrgRootCa{Code: ca.Code_Fail, ErrMsg: err.Error()}, err
+	}
+	return &ca.RespOrgRootCa{
+		Code:           ca.Code_Success,
+		SkName:         skName,
+		SkBytes:        skBytes,
+		PubKeyBytes:    pubKeyBytes,
+		CertBytes:      certBytes,
+		TlsPriKeyBytes: tlsPriBytes,
+		TlsPubKeyBytes: tlsPubBytes,
+		TlsCertBytes:   tlsCertByte,
+	}, nil
+}
+
+func generateCryptoCA(orgName, orgDomain string, subject *ca.Subject) (commonName, skName string, skFileBytes, pubKeyBytes, certFileBytes []byte, err error) {
+	tmpPath := path.Join(os.TempDir(), strconv.FormatInt(time.Now().UnixNano(), 10))
+	commonName = utils.CertOrgCANameWithOutCert(orgName, orgDomain)
+	// org, name, country, province, locality, orgUnit, streetAddress, postalCode
+	_, err = caMgr.NewCA(tmpPath, orgName, commonName, subject.Country, subject.Province, subject.Locality, subject.OrgUnit, subject.StreetAddress, subject.PostalCode)
+	priKey, _, err := csp.LoadPrivateKey(tmpPath)
+	skName = utils.ObtainSKI(priKey)
+	certFilePath := filepath.Join(tmpPath, strings.Join([]string{commonName, "cert.pem"}, "-"))
+	if skFileBytes, err = ioutil.ReadFile(filepath.Join(tmpPath, skName)); nil != err {
+		return
+	}
+	if certFileBytes, err = ioutil.ReadFile(certFilePath); nil != err {
+		return
+	}
+	pubKey, err := csp.GetECPublicKey(priKey)
+	if nil != err {
+		return
+	}
+	// 将公钥序列化为der编码的PKIX格式
+	derPkiX, err := x509.MarshalPKIXPublicKey(pubKey)
+	if nil != err {
+		return
+	}
+	block := &pem.Block{
+		Type:  "PUBLIC KEY",
+		Bytes: derPkiX,
+	}
+	pubKeyBytes = pem.EncodeToMemory(block)
+	return
+}
+
+// generateCryptoTlsCa 生成密钥对
+func generateCryptoTlsCa(config *ca.CryptoConfig) (priBytes, pubBytes []byte, err error) {
 	kc := &keyConfig{}
 	cryptoType, cryptoAlgorithm := generateCryptoParams(config)
-	priFileBytes, pubFileBytes, err := kc.generateCrypto(cryptoType, cryptoAlgorithm)
-	if nil != err {
-		return &ca.RespKeyConfig{Code: ca.Code_Fail, ErrMsg: err.Error()}, err
-	}
-	return &ca.RespKeyConfig{Code: ca.Code_Success, PriKeyBytes: priFileBytes, PubKeyBytes: pubFileBytes}, nil
+	return kc.generateCrypto(cryptoType, cryptoAlgorithm)
 }
 
 // generateLeagueCrt 生成联盟根证书
@@ -90,11 +157,41 @@ func generateOrgChildCrt(child *ca.ReqCreateOrgChild) (*ca.RespCreateOrgChild, e
 		return &ca.RespCreateOrgChild{Code: ca.Code_Fail, ErrMsg: err.Error()}, err
 	}
 	// ca cert
-	if cert, err = enroll(getGcr(child), child.EnrollInfo.FabricCaServerURL,
+	if cert, err = enroll(getGcr(child.EnrollInfo), child.EnrollInfo.FabricCaServerURL,
 		child.EnrollInfo.EnrollRequest.EnrollID, child.EnrollInfo.EnrollRequest.Secret); nil != err {
 		return &ca.RespCreateOrgChild{Code: ca.Code_Fail, ErrMsg: err.Error()}, err
 	}
 	return &ca.RespCreateOrgChild{Code: ca.Code_Success, Cert: cert, TlsCert: tlsCert}, nil
+}
+
+// generateOrgChildCACrt 生成组织下子节点/用户证书
+func generateOrgChildCaCrt(child *ca.ReqCreateOrgChildCa) (*ca.RespCreateOrgChildCa, error) {
+	var (
+		cert []byte
+		err  error
+	)
+	// ca cert
+	if cert, err = enroll(getGcr(child.EnrollInfo), child.EnrollInfo.FabricCaServerURL,
+		child.EnrollInfo.EnrollRequest.EnrollID, child.EnrollInfo.EnrollRequest.Secret); nil != err {
+		return &ca.RespCreateOrgChildCa{Code: ca.Code_Fail, ErrMsg: err.Error()}, err
+	}
+	return &ca.RespCreateOrgChildCa{Code: ca.Code_Success, Cert: cert}, nil
+}
+
+// generateOrgChildTlsCaCrt 生成组织下子节点/用户证书
+func generateOrgChildTlsCaCrt(child *ca.ReqCreateOrgChildTlsCa) (*ca.RespCreateOrgChildTlsCa, error) {
+	var (
+		cc      = &CertConfig{}
+		tlsCert []byte
+		err     error
+	)
+	// tls ca cert
+	if tlsCert, err = cc.generateCryptoChildCrt(child.RootTlsCaCertBytes, child.PriTlsParentBytes,
+		child.PubTlsBytes, getSubject(child.Csr),
+		getSignAlgorithm(child.SignAlgorithm)); nil != err {
+		return &ca.RespCreateOrgChildTlsCa{Code: ca.Code_Fail, ErrMsg: err.Error()}, err
+	}
+	return &ca.RespCreateOrgChildTlsCa{Code: ca.Code_Success, TlsCert: tlsCert}, nil
 }
 
 // GetCAInfo returns generic CA information
@@ -372,7 +469,7 @@ func revoke(orgName string, req *msp.RevocationRequest, sdk *fabsdk.FabricSDK) (
 	return mspClient.Revoke(req)
 }
 
-func generateCryptoParams(config *ca.ReqKeyConfig) (ct cryptoType, cal cryptoAlgorithm) {
+func generateCryptoParams(config *ca.CryptoConfig) (ct cryptoType, cal cryptoAlgorithm) {
 	switch config.CryptoType {
 	default:
 		ct = 0
@@ -402,10 +499,10 @@ func generateCryptoParams(config *ca.ReqKeyConfig) (ct cryptoType, cal cryptoAlg
 	return
 }
 
-func getGcr(child *ca.ReqCreateOrgChild) generateCertificateRequest {
-	gcr := generateCertificateRequest{CR: string(child.EnrollInfo.CsrPemBytes), EnrollRequest: *child.EnrollInfo.EnrollRequest}
-	gcr.NotAfter = time.Now().Add(time.Duration(child.EnrollInfo.NotAfter) * 24 * time.Hour)
-	gcr.NotBefore = time.Now().Add(time.Duration(child.EnrollInfo.NotBefore) * 24 * time.Hour)
+func getGcr(enrollInfo *ca.EnrollInfo) generateCertificateRequest {
+	gcr := generateCertificateRequest{CR: string(enrollInfo.CsrPemBytes), EnrollRequest: *enrollInfo.EnrollRequest}
+	gcr.NotAfter = time.Now().Add(time.Duration(enrollInfo.NotAfter) * 24 * time.Hour)
+	gcr.NotBefore = time.Now().Add(time.Duration(enrollInfo.NotBefore) * 24 * time.Hour)
 	return gcr
 }
 
@@ -438,5 +535,18 @@ func getSubject(csr *ca.CSR) pkix.Name {
 		PostalCode:         csr.PostalCode,
 		SerialNumber:       csr.SerialNumber,
 		CommonName:         csr.CommonName,
+	}
+}
+
+func getSub(orgName, commonName string, subject *ca.Subject) pkix.Name {
+	return pkix.Name{
+		Country:            []string{subject.Country},
+		Organization:       []string{orgName},
+		OrganizationalUnit: []string{subject.OrgUnit},
+		Locality:           []string{subject.Locality},
+		Province:           []string{subject.Province},
+		StreetAddress:      []string{subject.StreetAddress},
+		PostalCode:         []string{subject.PostalCode},
+		CommonName:         commonName,
 	}
 }

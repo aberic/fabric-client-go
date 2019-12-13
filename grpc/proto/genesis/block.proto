@@ -1,0 +1,155 @@
+syntax = "proto3";
+
+option java_package = "cn.aberic.fabric-client.grpc.proto.genesis";
+option java_outer_classname = "GenesisProto";
+option go_package = "grpc/proto/genesis";
+
+package genesis;
+
+import "grpc/proto/genesis/enums.proto";
+
+message ReqGenesis {
+    // 联盟部署信息
+    LeagueInBlock league = 1;
+    // 联盟下组织机构信息
+    repeated OrgInBlock orgs = 2;
+}
+
+message RespGenesis {
+    Code code = 1;
+    string errMsg = 2;
+}
+
+message ReqChannelTx {
+    string channelID = 1;
+    ReqGenesis genesis = 2;
+}
+
+message RespChannelTx {
+    Code code = 1;
+    string errMsg = 2;
+}
+
+// 联盟部署信息
+message LeagueInBlock {
+    Version version = 1;
+    // 联盟主域名
+    string domain = 2;
+    // 地址过去是client和peer可以连接的orderer地址列表
+    //
+    // 但是，这并不允许client关联orderer地址和orderer组织，这对于诸如TLS验证之类的事情是非常有用的
+    //
+    // 指定orderer地址的首选方法是现在在您的org定义中包含ordererendpoint项
+    repeated string addresses = 3;
+    // 批处理超时:创建批处理之前等待的时间量
+    int64 BatchTimeout = 4;
+    // 批处理大小:控制成批处理到一个块中的消息的数量
+    BatchSize batchSize = 5;
+    // EtcdRaft定义了在选择“EtcdRaft”orderertype时必须设置的配置
+    EtcdRaft etcdRaft = 6;
+    // 最大通道是orderer网络上允许的最大通道数。当设置为0时，这意味着没有最大通道数
+    uint64 MaxChannels = 7;
+}
+
+// 批处理大小:控制成批处理到一个块中的消息的数量
+//
+// orderer不透明地查看消息，但是通常，消息可能被认为是Fabric事务
+//
+// “批处理”是块的“数据”字段中的一组消息。当应用签名、散列和其他元数据时，块将比批处理大小大几kb
+message BatchSize {
+    // 最大消息数:批处理中允许的最大消息数。没有一个块包含超过这个数量的消息
+    uint32 maxMessageCount = 1;
+    // 绝对最大字节数:批处理中允许的序列化消息的绝对最大字节数
+    //
+    // 最大块大小是这个值加上相关元数据的大小(通常是几个KB，这取决于签名标识的大小)
+    //
+    // 任何大于此值的事务将被orderer拒绝
+    //
+    // 如果选择了“kafka”OrdererType，则设置“message.max”。字节数”和“replica.fetch.max。在Kafka代理上设置一个比这个更大的值
+    uint32 absoluteMaxBytes = 2;
+    // 首选最大字节:批处理中序列化消息所允许的首选最大字节数
+    //
+    // 大致上，这个字段可以被认为是批处理的最大努力
+    //
+    // 批处理将填充消息，直到达到这个大小(或超过最大消息数，或超过批处理超时)
+    //
+    // 如果向批处理添加新消息会导致批处理超过首选的最大字节，那么将关闭当前批处理并将其写入一个块，并创建一个包含新消息的新批处理
+    //
+    // 如果接收到的消息大于首选的最大字节，则其批处理将仅包含该消息
+    //
+    // 因为消息可能大于首选的最大字节(直到AbsoluteMaxBytes)，所以某些批可能超过首选的最大字节，但始终只包含一个事务
+    uint32 preferredMaxBytes = 3;
+}
+
+// EtcdRaft定义了在选择“EtcdRaft”orderertype时必须设置的配置
+message EtcdRaft {
+    // 这个网络的一组raft副本
+    //
+    // 对于基于etcd/raft的实现，fabric网络中每个副本都是一个OSN
+    //
+    // 因此，此列表中枚举的host:port项的一个子集应该在Orderer.Addresses下复制
+    repeated Consenter consenters = 1;
+    // 为所有etcd/raft节点指定的选项。这里的值是所有新通道的默认值，可以通过配置更新对每个通道进行修改
+    Options options = 2;
+}
+
+// fabric网络中基于raft的orderer单个节点信息
+message Consenter {
+    string host = 1;
+    uint32 port = 2;
+    bytes clientTlsCert = 3;
+    bytes serverTlsCert = 4;
+}
+
+// 为所有etcd/raft节点指定的选项。这里的值是所有新通道的默认值，可以通过配置更新对每个通道进行修改
+message Options {
+    // TickInterval是两个节点之间的时间间隔
+    string TickInterval = 1;
+    // ElectionTick是节点的数量
+    //
+    // 在两次选举之间必须通过的调用。也就是说，如果一个追随者在选举结束前没有收到任何现任领导人的信息，他将成为候选人并开始选举
+    //
+    // 选举的节奏必须比心跳的节奏快
+    uint32 ElectionTick = 2;
+    // 心跳次数是心跳之间必须传递的节点次数。也就是说，领导者在每一次心跳时都发送心跳信息以保持其领导力
+    uint32 HeartbeatTick = 3;
+    // MaxInflightBlocks在乐观复制阶段限制动态附加消息的最大数量
+    uint32 MaxInflightBlocks = 4;
+    // SnapshotIntervalSize定义每个快照的字节数
+    uint32 SnapshotIntervalSize  = 5;
+}
+
+// ReqOrderers 请求生成指定联盟默认orderer服务集合
+message OrgInBlock {
+    // 组织主域名
+    string domain = 2;
+    // 组织名称
+    string name = 3;
+    // ordererendpoint是这个组织运行的所有orderers的列表
+    //
+    // client和peer可以分别连接到这些orderers来推动事务和接收块，如：127.0.0.1:7050
+    repeated string ordererEndpoints = 4;
+    // 组织类型
+    OrgType type = 5;
+    // 组织证书信息
+    MspCert cert = 6;
+    // 锚节点定义了节点的位置，这些节点可用于跨组织的gossip通信。注意，这个值只在应用程序部分上下文的genesis块中编码
+    repeated AnchorPeer anchorPeers = 7;
+}
+
+// 组织证书信息
+message MspCert {
+    // 组织管理员证书
+    bytes adminCert = 1;
+    // 组织根证书
+    bytes caCert = 2;
+    // 组织tls根证书
+    bytes tlsCaCert = 3;
+}
+
+// 锚节点定义了节点的位置，这些节点可用于跨组织的gossip通信。注意，这个值只在应用程序部分上下文的genesis块中编码
+message AnchorPeer {
+    string host = 1;
+    int32 port = 2;
+}
+

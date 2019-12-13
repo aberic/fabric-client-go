@@ -24,25 +24,25 @@ import (
 func Router(r *gin.Engine) {
 	// 仓库相关路由设置
 	vRepo := r.Group("/ca")
-	vRepo.POST("/generate/crypto", routerGenerateCrypto)
+	//vRepo.POST("/generate/crypto", routerGenerateCrypto)
 	vRepo.POST("/generate/crt/league", routerGenerateLeagueCrt)
 	vRepo.POST("/generate/csr/child", routerGenerateOrgChildCsr)
 	vRepo.POST("/generate/crt/child", routerGenerateOrgChildCrt)
 }
 
 // routerGenerateCrypto 生成密钥对
-func routerGenerateCrypto(c *gin.Context) {
-	defer utils.CatchAllErr(c)
-	serviceModel := new(ca.ReqKeyConfig)
-	if err := c.ShouldBindJSON(serviceModel); err != nil {
-		resp := &utils.RespImpl{}
-		resp.Fail(err.Error())
-		c.JSON(http.StatusOK, resp)
-		return
-	}
-	resp, _ := generateCrypto(serviceModel)
-	c.JSON(http.StatusOK, resp)
-}
+//func routerGenerateCrypto(c *gin.Context) {
+//	defer utils.CatchAllErr(c)
+//	serviceModel := new(ca.ReqKeyConfig)
+//	if err := c.ShouldBindJSON(serviceModel); err != nil {
+//		resp := &utils.RespImpl{}
+//		resp.Fail(err.Error())
+//		c.JSON(http.StatusOK, resp)
+//		return
+//	}
+//	resp, _ := generateCrypto(serviceModel)
+//	c.JSON(http.StatusOK, resp)
+//}
 
 // routerGenerateLeagueCrt 生成联盟根证书
 func routerGenerateLeagueCrt(c *gin.Context) {

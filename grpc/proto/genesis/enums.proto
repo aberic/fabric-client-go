@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+option java_package = "cn.aberic.fabric-client.grpc.proto.genesis";
+option java_outer_classname = "EnumsProto";
+option go_package = "grpc/proto/genesis";
+
+package genesis;
+
+// fabric版本号
+enum Version {
+    V1_4_4 = 0;
+}
+
+// 网络请求返回码
+enum Code {
+    Success = 0;
+    Fail = 1;
+}
+
+// 组织类型
+enum OrgType {
+    Order = 0;
+    Peer = 1;
+}

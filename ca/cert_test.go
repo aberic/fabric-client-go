@@ -17,14 +17,18 @@ package ca
 import (
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"github.com/aberic/fabric-client-go/grpc/proto/ca"
+	"github.com/aberic/fabric-client-go/utils"
+	"github.com/aberic/gnomon"
+	"path"
 	"testing"
 )
 
 var (
 	priParentBytes = `-----BEGIN PRIVATE KEY-----
-MHcCAQEEIIhrOabzAfOlN0/i0sXGKJguCZ826fsLelzW2p2rjCLzoAoGCCqGSM49
-AwEHoUQDQgAE87Z73DwJaF/ma9JDJ1vOAfEET28ugvPbWGmVl3X7O5TGyfLmCdqc
-KsZsFqVS4myUmbg2dndSqaaEGz0ZyMunRg==
+MHcCAQEEIPr0WsecZnx+UA/Qa8IXeWKYR7EV726N8B/fVvGjdWP6oAoGCCqGSM49
+AwEHoUQDQgAE0gEG8fdQ3JIpmjX58E6hnYwFYuyw5HqDnNGcNDda93AA2aBOmQgT
+QJN+d/Q38Jb6QhXrCYT7fAv5MAtn3reUWQ==
 -----END PRIVATE KEY-----`
 	rootCertBytes = `-----BEGIN CERTIFICATE-----
 MIIB9TCCAZygAwIBAgIIAO3TOff5WAcwCgYIKoZIzj0EAwIwWDELMAkGA1UEBhMC
@@ -44,6 +48,39 @@ MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEHgioiBii+X6dgYRwdXbEbbNgbZog
 1vXemDItzT+Jnd83Lt+NCHcdQxt0v7m9ky6gKQSx2Uu9zz+tfBE5vPfc7Q==
 -----END PUBLIC KEY-----`
 )
+
+func TestGetCA(t *testing.T) {
+	cc := &CertConfig{}
+	cc.getCA(path.Join(utils.ObtainDataPath(), "cert"), "test.example.com", &ca.Subject{
+		Country:       "US",
+		Province:      "Hebei",
+		Locality:      "Yichun",
+		OrgUnit:       "TI",
+		StreetAddress: "Sheng road",
+		PostalCode:    "443002",
+	})
+}
+
+func TestSignCertificate(t *testing.T) {
+	cc := &CertConfig{}
+	caObj := cc.getCA(path.Join(utils.ObtainDataPath(), "cert"), "test.example.com", &ca.Subject{
+		Country:       "US",
+		Province:      "Hebei",
+		Locality:      "Yichun",
+		OrgUnit:       "TI",
+		StreetAddress: "Sheng road",
+		PostalCode:    "443002",
+	})
+	pubKey, err := gnomon.CryptoECC().LoadPubPem([]byte(pubBytes))
+	if nil != err {
+		t.Fatal(err)
+	}
+	certBytes, err := cc.signCertificateCA("test.example.com", caObj, pubKey)
+	if nil != err {
+		t.Fatal(err)
+	}
+	t.Log(string(certBytes))
+}
 
 func TestGenerateCryptoRootCrt(t *testing.T) {
 	var (

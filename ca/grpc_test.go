@@ -21,17 +21,17 @@ import (
 )
 
 // TestGrpcGenerateCrypto 生成密钥对
-func TestGrpcGenerateCrypto(t *testing.T) {
-	gs := GenerateServer{}
-	if respKeyConfig, err := gs.GenerateCrypto(nil, &ca.ReqKeyConfig{
-		CryptoType: ca.CryptoType_ECDSA,
-		Algorithm:  algorithm,
-	}); nil != err {
-		t.Error(err)
-	} else {
-		t.Log(respKeyConfig)
-	}
-}
+//func TestGrpcGenerateCrypto(t *testing.T) {
+//	gs := GenerateServer{}
+//	if respKeyConfig, err := gs.GenerateCrypto(nil, &ca.ReqKeyConfig{
+//		CryptoType: ca.CryptoType_ECDSA,
+//		Algorithm:  algorithm,
+//	}); nil != err {
+//		t.Error(err)
+//	} else {
+//		t.Log(respKeyConfig)
+//	}
+//}
 
 // TestGrpcGenerateLeagueCrt 生成联盟根证书
 func TestGrpcGenerateLeagueCrt(t *testing.T) {

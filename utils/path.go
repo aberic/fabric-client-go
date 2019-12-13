@@ -19,6 +19,11 @@ import (
 	"strings"
 )
 
+// MspID 组织MspID
+func MspID(orgName string) string {
+	return strings.Join([]string{orgName, "MSP"}, "")
+}
+
 // CryptoRootCAPath 指定联盟主域名的根证书文件目录
 func CryptoRootCAPath(leagueDomain string) string {
 	return filepath.Join(dataPath, leagueDomain, "crypto-config", "root", "ca")
@@ -47,6 +52,16 @@ func RootCACertFileName(leagueDomain string) string {
 // RootTLSCACertFileName 指定联盟主域名的根TLS证书文件名称
 func RootTLSCACertFileName(leagueDomain string) string {
 	return strings.Join([]string{"tlsca.", leagueDomain, "-cert.pem"}, "")
+}
+
+// RootOrgCACertFileName 指定联盟主域名的根证书文件名称
+func RootOrgCACertFileName(orgName, orgDomain string) string {
+	return strings.Join([]string{"ca.", orgName, orgDomain, "-cert.pem"}, "")
+}
+
+// RootOrgTLSCACertFileName 指定联盟主域名的根TLS证书文件名称
+func RootOrgTLSCACertFileName(orgName, orgDomain string) string {
+	return strings.Join([]string{"tlsca.", orgName, orgDomain, "-cert.pem"}, "")
 }
 
 // CsrTmpPath CA请求证书文件临时目录
@@ -146,9 +161,24 @@ func CertNodeCAName(orgName, orgDomain, nodeName string) string {
 	return strings.Join([]string{nodeName, ".", orgName, ".", orgDomain, "-cert.pem"}, "")
 }
 
+// CertNodeCANameWithOutCert 组织下节点证书名称
+func CertNodeCANameWithOutCert(orgName, orgDomain, nodeName string) string {
+	return strings.Join([]string{nodeName, orgName, orgDomain}, ".")
+}
+
 // CertUserCAName 组织下用户证书名称
 func CertUserCAName(orgName, orgDomain, userName string) string {
 	return strings.Join([]string{userName, "@", orgName, ".", orgDomain, "-cert.pem"}, "")
+}
+
+// CertUserCANameWithOutCert 组织下用户证书名称
+func CertUserCANameWithOutCert(orgName, orgDomain, userName string) string {
+	return strings.Join([]string{userName, "@", orgName, ".", orgDomain}, "")
+}
+
+// CertOrgCANameWithOutCert 组织下节点证书名称
+func CertOrgCANameWithOutCert(orgName, orgDomain string) string {
+	return strings.Join([]string{orgName, orgDomain}, ".")
 }
 
 // NodeDomain 节点域名
@@ -160,4 +190,53 @@ func NodeDomain(orgName, orgDomain, nodeName string) string {
 func CryptoUserTmpPath(leagueDomain, orgDomain, orgName string) string {
 	tmpPath := strings.Join([]string{"tmp/", orgName, ".", orgDomain, "/users"}, "")
 	return filepath.Join(dataPath, leagueDomain, "crypto-config", tmpPath)
+}
+
+// CryptoConfigPath crypto-config目录
+func CryptoConfigPath(leagueName string) string {
+	return filepath.Join(dataPath, leagueName, "crypto-config")
+}
+
+// ChannelArtifactsPath channel-artifacts目录
+func ChannelArtifactsPath(leagueName string) string {
+	return filepath.Join(dataPath, leagueName, "channel-artifacts")
+}
+
+// GenesisBlockFilePath orderer.genesis.block路径
+func GenesisBlockFilePath(leagueName string) string {
+	return filepath.Join(dataPath, leagueName, "channel-artifacts/orderer.genesis.block")
+}
+
+// ChannelTXFilePath 通道tx文件路径
+func ChannelTXFilePath(leagueName, channelName string) string {
+	return strings.Join([]string{ChannelArtifactsPath(leagueName), "/", channelName, ".tx"}, "")
+}
+
+// ChannelUpdateTXFilePath 通道tx文件路径
+func ChannelUpdateTXFilePath(leagueName, channelName string) string {
+	return strings.Join([]string{ChannelArtifactsPath(leagueName), "/", channelName, "_update.pb"}, "")
+}
+
+// CryptoOrgMspPath CryptoOrgMspPath
+func CryptoOrgMspPath(leagueDomain, orgDomain, orgName string, isPeer bool) (mspPath string) {
+	var orgsName, orgPathName string
+	if isPeer {
+		orgsName = "peerOrganizations/"
+	} else {
+		orgsName = "ordererOrganizations/"
+	}
+	orgPathName = strings.Join([]string{orgsName, orgName, ".", orgDomain}, "")
+	return filepath.Join(dataPath, leagueDomain, "crypto-config", orgPathName, "msp")
+}
+
+// CryptoGenesisOrgMspPath CryptoGenesisOrgMspPath
+func CryptoGenesisOrgMspPath(leagueDomain, orgDomain, orgName string, isPeer bool) (mspPath string) {
+	var orgsName, orgPathName string
+	if isPeer {
+		orgsName = "peerOrganizations/"
+	} else {
+		orgsName = "ordererOrganizations/"
+	}
+	orgPathName = strings.Join([]string{orgsName, orgName, ".", orgDomain}, "")
+	return filepath.Join(dataPath, "genesis", leagueDomain, "crypto-config", orgPathName, "msp")
 }

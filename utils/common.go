@@ -19,9 +19,12 @@ import (
 	"fmt"
 	"github.com/aberic/gnomon"
 	"github.com/gin-gonic/gin"
+	"github.com/hyperledger/fabric/bccsp"
 	"github.com/hyperledger/fabric/common/tools/cryptogen/csp"
 	"net/http"
+	"os"
 	"path"
+	"path/filepath"
 	"strings"
 )
 
@@ -46,15 +49,24 @@ func CatchAllErr(c *gin.Context) {
 	}
 }
 
-func SKI(priKeyBytes []byte) (string, error) {
-	if _, err := gnomon.File().Append("/tmp/ski.key", priKeyBytes, true); nil != err {
+func SKI(leagueDomain, orgDomain, orgName, childName string, isUser bool, priKeyBytes []byte) (string, error) {
+	symbol := "node"
+	if isUser {
+		symbol = "user"
+	}
+	fileName := strings.Join([]string{childName, "key"}, ".")
+	tmpPath := filepath.Join(os.TempDir(), leagueDomain, orgDomain, orgName, symbol, fileName)
+	if _, err := gnomon.File().Append(tmpPath, priKeyBytes, true); nil != err {
 		return "", err
 	}
-	priKey, _, _ := csp.GeneratePrivateKey("/tmp/ski.key")
-	return strings.Join([]string{hex.EncodeToString(priKey.SKI()), "sk"}, "_"), nil
+	return LoadPrivateKey(tmpPath), nil
 }
 
-func SKIFromFP(priKeyFilePath string) string {
-	priKey, _, _ := csp.GeneratePrivateKey(priKeyFilePath)
+func LoadPrivateKey(tmpPath string) string {
+	priKey, _, _ := csp.LoadPrivateKey(tmpPath)
+	return ObtainSKI(priKey)
+}
+
+func ObtainSKI(priKey bccsp.Key) string {
 	return strings.Join([]string{hex.EncodeToString(priKey.SKI()), "sk"}, "_")
 }

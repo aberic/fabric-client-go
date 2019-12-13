@@ -6,20 +6,26 @@ option go_package = "grpc/proto/ca";
 
 package ca;
 
-import "grpc/proto/ca/cert.proto";
+//import "grpc/proto/ca/cert.proto";
 
 // 证书生成服务
 service Generate {
     // 生成密钥对
-    rpc GenerateCrypto (ReqKeyConfig) returns (RespKeyConfig) {
-    }
-    // 生成联盟根证书
-    rpc GenerateLeagueCrt (ReqCreateLeague) returns (RespCreateLeague) {
-    }
-    // 生成组织下子节点/用户CA请求证书文件
-    rpc GenerateOrgChildCsr (ReqCreateCsr) returns (RespCreateCsr) {
-    }
-    // 生成组织下子节点/用户证书
-    rpc GenerateOrgChildCrt (ReqCreateOrgChild) returns (RespCreateOrgChild) {
-    }
+//    rpc GenerateCrypto (ReqKeyConfig) returns (RespKeyConfig) {
+//    }
+//    // 生成联盟根证书
+//    rpc GenerateLeagueCrt (ReqCreateLeague) returns (RespCreateLeague) {
+//    }
+//    // 生成组织下子节点/用户CA请求证书文件
+//    rpc GenerateOrgChildCsr (ReqCreateCsr) returns (RespCreateCsr) {
+//    }
+//    // 生成组织下子节点/用户证书
+//    rpc GenerateOrgChildCrt (ReqCreateOrgChild) returns (RespCreateOrgChild) {
+//    }
+//    // 生成组织下子节点/用户证书
+//    rpc GenerateOrgChildCrtCa (ReqCreateOrgChildCa) returns (RespCreateOrgChildCa) {
+//    }
+//    // 生成组织下子节点/用户证书
+//    rpc GenerateOrgChildCrtTlsCa (ReqCreateOrgChildTlsCa) returns (RespCreateOrgChildTlsCa) {
+//    }
 }
