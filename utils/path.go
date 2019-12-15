@@ -56,12 +56,12 @@ func RootTLSCACertFileName(leagueDomain string) string {
 
 // RootOrgCACertFileName 指定联盟主域名的根证书文件名称
 func RootOrgCACertFileName(orgName, orgDomain string) string {
-	return strings.Join([]string{"ca.", orgName, orgDomain, "-cert.pem"}, "")
+	return strings.Join([]string{"ca.", orgName, ".", orgDomain, "-cert.pem"}, "")
 }
 
 // RootOrgTLSCACertFileName 指定联盟主域名的根TLS证书文件名称
 func RootOrgTLSCACertFileName(orgName, orgDomain string) string {
-	return strings.Join([]string{"tlsca.", orgName, orgDomain, "-cert.pem"}, "")
+	return strings.Join([]string{"tlsca.", orgName, ".", orgDomain, "-cert.pem"}, "")
 }
 
 // CsrTmpPath CA请求证书文件临时目录

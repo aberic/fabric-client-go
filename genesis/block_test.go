@@ -17,6 +17,7 @@ package genesis
 import (
 	gen "github.com/aberic/fabric-client-go/grpc/proto/genesis"
 	"github.com/aberic/fabric-client-go/utils"
+	"github.com/hyperledger/fabric-sdk-go/pkg/fab/resource"
 	"io/ioutil"
 	"path"
 	"path/filepath"
@@ -26,39 +27,55 @@ import (
 )
 
 func TestGenesis_Set(t *testing.T) {
-
+	genesis := testGenesisSet(t)
+	blockBytes, err := genesis.ObtainGenesisBlockData("test")
+	if nil != err {
+		t.Fatal(err)
+	}
+	blockStr, err := resource.InspectBlock(blockBytes)
+	if nil != err {
+		t.Fatal(err)
+	}
+	t.Log(blockStr)
 }
 
-func test_genesis_set(leagueDomain string, t *testing.T) {
+func testGenesisSet(t *testing.T) *Genesis {
 	var (
-		addresses  []string
-		consenters []*gen.Consenter
-		orgs       []*gen.OrgInBlock
+		leagueDomain = "league.com"
+		addresses    []string
+		consenters   []*gen.Consenter
+		orgs         []*gen.OrgInBlock
 	)
 	for i := 1; i < 4; i++ {
 		orgName := strings.Join([]string{"orderer", strconv.Itoa(i)}, "")
 		orgDomain := strings.Join([]string{"example", strconv.Itoa(i), ".com"}, "")
+		orgPath := path.Join(utils.ObtainDataPath(), leagueDomain, strings.Join([]string{orgName, orgDomain}, "."))
 		for j := 0; j < 3; j++ {
 			childName := strings.Join([]string{"order", strconv.Itoa(j)}, "")
 			host := strings.Join([]string{childName, ".", orgName, ".", orgDomain}, "")
 			addresses = append(addresses, strings.Join([]string{host, "7050"}, ":"))
+			tlsCertBytes, err := ioutil.ReadFile(filepath.Join(orgPath, childName, "tls.crt"))
+			if nil != err {
+				t.Fatal(err)
+			}
 			consenters = append(consenters, &gen.Consenter{
-				Host: host,
-				Port: 7050,
+				Host:          host,
+				Port:          7050,
+				ClientTlsCert: tlsCertBytes,
+				ServerTlsCert: tlsCertBytes,
 			})
 		}
-		orgPath := path.Join(utils.ObtainDataPath(), leagueDomain, strings.Join([]string{orgName, orgDomain}, "."))
 		adminPath := path.Join(orgPath, "user0")
 
 		adminCertBytes, err := ioutil.ReadFile(filepath.Join(adminPath, utils.CertUserCAName(orgName, orgDomain, "user0")))
 		if nil != err {
 			t.Fatal(err)
 		}
-		caCertBytes, err := ioutil.ReadFile(filepath.Join(adminPath, utils.RootOrgCACertFileName(orgName, orgDomain)))
+		caCertBytes, err := ioutil.ReadFile(filepath.Join(orgPath, utils.RootOrgCACertFileName(orgName, orgDomain)))
 		if nil != err {
 			t.Fatal(err)
 		}
-		tlsCaCertBytes, err := ioutil.ReadFile(filepath.Join(adminPath, utils.RootOrgTLSCACertFileName(orgName, orgDomain)))
+		tlsCaCertBytes, err := ioutil.ReadFile(filepath.Join(orgPath, utils.RootOrgTLSCACertFileName(orgName, orgDomain)))
 		if nil != err {
 			t.Fatal(err)
 		}
@@ -86,11 +103,11 @@ func test_genesis_set(leagueDomain string, t *testing.T) {
 		if nil != err {
 			t.Fatal(err)
 		}
-		caCertBytes, err := ioutil.ReadFile(filepath.Join(adminPath, utils.RootOrgCACertFileName(orgName, orgDomain)))
+		caCertBytes, err := ioutil.ReadFile(filepath.Join(orgPath, utils.RootOrgCACertFileName(orgName, orgDomain)))
 		if nil != err {
 			t.Fatal(err)
 		}
-		tlsCaCertBytes, err := ioutil.ReadFile(filepath.Join(adminPath, utils.RootOrgTLSCACertFileName(orgName, orgDomain)))
+		tlsCaCertBytes, err := ioutil.ReadFile(filepath.Join(orgPath, utils.RootOrgTLSCACertFileName(orgName, orgDomain)))
 		if nil != err {
 			t.Fatal(err)
 		}
@@ -119,7 +136,7 @@ func test_genesis_set(leagueDomain string, t *testing.T) {
 
 	}
 
-	genesis := Genesis{
+	genesis := &Genesis{
 		Info: &gen.ReqGenesis{
 			League: &gen.LeagueInBlock{
 				Domain:       leagueDomain,
@@ -130,7 +147,16 @@ func test_genesis_set(leagueDomain string, t *testing.T) {
 					AbsoluteMaxBytes:  10 * 1024 * 1024,
 					PreferredMaxBytes: 2 * 1024 * 1024,
 				},
-				EtcdRaft:    &gen.EtcdRaft{},
+				EtcdRaft: &gen.EtcdRaft{
+					Consenters: []*gen.Consenter{},
+					Options: &gen.Options{
+						TickInterval:         "500ms",
+						ElectionTick:         10,
+						HeartbeatTick:        1,
+						MaxInflightBlocks:    5,
+						SnapshotIntervalSize: 20,
+					},
+				},
 				MaxChannels: 1000,
 			},
 			Orgs: orgs,
@@ -139,4 +165,6 @@ func test_genesis_set(leagueDomain string, t *testing.T) {
 	if err := genesis.Set(); nil != err {
 		t.Fatal(err)
 	}
+
+	return genesis
 }

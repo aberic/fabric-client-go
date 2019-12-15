@@ -18,10 +18,9 @@ import (
 	"github.com/aberic/fabric-client-go/grpc/proto/genesis"
 	"github.com/aberic/fabric-client-go/utils"
 	"github.com/aberic/gnomon"
-	"github.com/hyperledger/fabric/common/tools/configtxgen/encoder"
-	"github.com/hyperledger/fabric/common/tools/configtxgen/localconfig"
-	"github.com/hyperledger/fabric/protos/orderer/etcdraft"
-	commonUtils "github.com/hyperledger/fabric/protos/utils"
+	"github.com/hyperledger/fabric-protos-go/orderer/etcdraft"
+	"github.com/hyperledger/fabric-sdk-go/pkg/fab/resource"
+	"github.com/hyperledger/fabric-sdk-go/pkg/fab/resource/genesisconfig"
 	"path/filepath"
 	"strings"
 	"time"
@@ -29,9 +28,9 @@ import (
 
 type Genesis struct {
 	Info               *genesis.ReqGenesis
-	orderOrganizations []*localconfig.Organization
-	peerOrganizations  []*localconfig.Organization
-	allOrganizations   []*localconfig.Organization
+	orderOrganizations []*genesisconfig.Organization
+	peerOrganizations  []*genesisconfig.Organization
+	allOrganizations   []*genesisconfig.Organization
 }
 
 func (g *Genesis) Set() (err error) {
@@ -40,13 +39,15 @@ func (g *Genesis) Set() (err error) {
 }
 
 func (g *Genesis) ObtainGenesisBlockData(consortium string) ([]byte, error) {
-	pgen := encoder.New(g.genesisBlockConfigProfile(consortium))
-	return commonUtils.Marshal(pgen.GenesisBlockForChannel(consortium))
+	data, err := resource.CreateGenesisBlock(g.genesisBlockConfigProfile(consortium), consortium)
+	if nil != err {
+		return nil, err
+	}
+	return data, err
 }
 
 func (g *Genesis) CreateGenesisBlock(consortium string) error {
-	pgen := encoder.New(g.genesisBlockConfigProfile(consortium))
-	data, err := commonUtils.Marshal(pgen.GenesisBlockForChannel(consortium))
+	data, err := resource.CreateGenesisBlock(g.genesisBlockConfigProfile(consortium), consortium)
 	if nil != err {
 		return err
 	}
@@ -57,8 +58,7 @@ func (g *Genesis) CreateGenesisBlock(consortium string) error {
 }
 
 func (g *Genesis) CreateChannelCreateTx(consortium, channelID string) error {
-	pgen := encoder.New(g.genesisChannelTxConfigProfile(consortium))
-	data, err := commonUtils.Marshal(pgen.GenesisBlockForChannel(consortium))
+	data, err := resource.CreateChannelCreateTx(g.genesisChannelTxConfigProfile(consortium), nil, channelID)
 	if nil != err {
 		return err
 	}
@@ -68,8 +68,8 @@ func (g *Genesis) CreateChannelCreateTx(consortium, channelID string) error {
 	return nil
 }
 
-func (g *Genesis) orgPolicies(mspID string) map[string]*localconfig.Policy {
-	return map[string]*localconfig.Policy{
+func (g *Genesis) orgPolicies(mspID string) map[string]*genesisconfig.Policy {
+	return map[string]*genesisconfig.Policy{
 		"Readers": {
 			Type: "Signature",
 			Rule: strings.Join([]string{"OR('", mspID, ".member')"}, ""),
@@ -89,13 +89,13 @@ func (g *Genesis) orgPolicies(mspID string) map[string]*localconfig.Policy {
 	}
 }
 
-func (g *Genesis) organizations(orgs []*genesis.OrgInBlock) (orders, peers, all []*localconfig.Organization, err error) {
+func (g *Genesis) organizations(orgs []*genesis.OrgInBlock) (orders, peers, all []*genesisconfig.Organization, err error) {
 	for _, org := range orgs {
 		var (
 			mspDir string
 			mspID  = utils.MspID(org.Name)
 		)
-		organization := &localconfig.Organization{
+		organization := &genesisconfig.Organization{
 			Name:           org.Name,
 			ID:             mspID,
 			MSPType:        "bccsp",
@@ -106,9 +106,9 @@ func (g *Genesis) organizations(orgs []*genesis.OrgInBlock) (orders, peers, all 
 		default:
 			return
 		case genesis.OrgType_Peer:
-			var anchorPeers []*localconfig.AnchorPeer
+			var anchorPeers []*genesisconfig.AnchorPeer
 			for _, peer := range org.AnchorPeers {
-				anchorPeers = append(anchorPeers, &localconfig.AnchorPeer{Host: peer.Host, Port: int(peer.Port)})
+				anchorPeers = append(anchorPeers, &genesisconfig.AnchorPeer{Host: peer.Host, Port: int(peer.Port)})
 			}
 			organization.AnchorPeers = anchorPeers
 			if mspDir, err = g.mspExec(org, true); nil != err {
@@ -161,12 +161,12 @@ func (g *Genesis) applicationCapabilities() map[string]bool {
 	}
 }
 
-func (g *Genesis) applications() *localconfig.Application {
+func (g *Genesis) applications() *genesisconfig.Application {
 	//rule := strings.Join([]string{"OR('", adminOrgMspID, ".admin')"}, "")
-	return &localconfig.Application{
+	return &genesisconfig.Application{
 		Organizations: g.peerOrganizations,
 		Capabilities:  g.applicationCapabilities(),
-		Policies: map[string]*localconfig.Policy{
+		Policies: map[string]*genesisconfig.Policy{
 			"LifecycleEndorsement": {
 				Rule: "MAJORITY Endorsement",
 				Type: "ImplicitMeta",
@@ -225,7 +225,7 @@ func (g *Genesis) ordererCapabilities() map[string]bool {
 	}
 }
 
-func (g *Genesis) orderer() *localconfig.Orderer {
+func (g *Genesis) orderer() *genesisconfig.Orderer {
 	var consenters []*etcdraft.Consenter
 	for _, consenter := range g.Info.League.EtcdRaft.Consenters {
 		c := &etcdraft.Consenter{
@@ -236,11 +236,11 @@ func (g *Genesis) orderer() *localconfig.Orderer {
 		}
 		consenters = append(consenters, c)
 	}
-	return &localconfig.Orderer{
-		OrdererType:  "kafka",
+	return &genesisconfig.Orderer{
+		OrdererType:  "etcdraft",
 		Addresses:    g.Info.League.Addresses, // []string{"orderer.example.org:7050"}
 		BatchTimeout: time.Duration(time.Duration(g.Info.League.BatchTimeout) * time.Second),
-		BatchSize: localconfig.BatchSize{
+		BatchSize: genesisconfig.BatchSize{
 			MaxMessageCount:   g.Info.League.BatchSize.MaxMessageCount,   // 500
 			AbsoluteMaxBytes:  g.Info.League.BatchSize.AbsoluteMaxBytes,  //10 * 1024 * 1024
 			PreferredMaxBytes: g.Info.League.BatchSize.PreferredMaxBytes, //2 * 1024 * 1024
@@ -260,7 +260,7 @@ func (g *Genesis) orderer() *localconfig.Orderer {
 		// Policies defines the set of policies at this level of the config tree
 		// For Orderer policies, their canonical path is
 		// /Channel/Orderer/<PolicyName>
-		Policies: map[string]*localconfig.Policy{
+		Policies: map[string]*genesisconfig.Policy{
 			"Readers": {
 				Type: "ImplicitMeta",
 				Rule: "ANY Readers",
@@ -282,11 +282,11 @@ func (g *Genesis) orderer() *localconfig.Orderer {
 	}
 }
 
-func (g *Genesis) channelDefaults() map[string]*localconfig.Policy {
+func (g *Genesis) channelDefaults() map[string]*genesisconfig.Policy {
 	// Policies defines the set of policies at this level of the config tree
 	// For Channel policies, their canonical path is
 	// /Channel/<PolicyName>
-	policies := map[string]*localconfig.Policy{
+	policies := map[string]*genesisconfig.Policy{
 		"Admins": {
 			Type: "ImplicitMeta",
 			Rule: "MAJORITY Admins",
@@ -303,10 +303,10 @@ func (g *Genesis) channelDefaults() map[string]*localconfig.Policy {
 	return policies
 }
 
-func (g *Genesis) genesisBlockConfigProfile(consortium string) *localconfig.Profile {
-	profile := &localconfig.Profile{
+func (g *Genesis) genesisBlockConfigProfile(consortium string) *genesisconfig.Profile {
+	profile := &genesisconfig.Profile{
 		Orderer: g.orderer(),
-		Consortiums: map[string]*localconfig.Consortium{
+		Consortiums: map[string]*genesisconfig.Consortium{
 			consortium: {Organizations: g.peerOrganizations},
 		},
 		Policies: g.channelDefaults(),
@@ -314,8 +314,8 @@ func (g *Genesis) genesisBlockConfigProfile(consortium string) *localconfig.Prof
 	return profile
 }
 
-func (g *Genesis) genesisChannelTxConfigProfile(consortium string) *localconfig.Profile {
-	profile := &localconfig.Profile{
+func (g *Genesis) genesisChannelTxConfigProfile(consortium string) *genesisconfig.Profile {
+	profile := &genesisconfig.Profile{
 		Consortium:  consortium,
 		Application: g.applications(),
 		Policies:    g.channelDefaults(),
