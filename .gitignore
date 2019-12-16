@@ -22,3 +22,4 @@ gen### Go template
 /example/ca/resource/fabric-ca-server.db
 /example/ca/resource/IssuerPublicKey
 /example/ca/resource/msp/
+/example/genesis/
