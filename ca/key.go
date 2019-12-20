@@ -63,13 +63,15 @@ func (kc *keyConfig) generateCrypto(cryptoType cryptoType, bits cryptoAlgorithm)
 	}
 }
 
-func (kc *keyConfig) generateCryptoCA() (skName string, priKeyBytes, pubKeyBytes []byte, err error) {
-	tmpPath := path.Join(os.TempDir(), strconv.FormatInt(time.Now().UnixNano(), 10))
+func (kc *keyConfig) generateCryptoCA(childName string) (skName string, priKeyBytes, pubKeyBytes []byte, err error) {
+	tmpPath := path.Join(os.TempDir(), childName, strconv.FormatInt(time.Now().UnixNano(), 10))
 	priKey, _, err := csp.GeneratePrivateKey(tmpPath)
 	if nil != err {
 		return
 	}
-	skName = utils.ObtainSKI(priKey)
+	if skName, err = utils.ObtainSKI(priKey); nil != err {
+		return
+	}
 	if priKeyBytes, err = ioutil.ReadFile(filepath.Join(tmpPath, skName)); nil != err {
 		return
 	}

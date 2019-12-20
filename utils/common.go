@@ -54,19 +54,23 @@ func SKI(leagueDomain, orgDomain, orgName, childName string, isUser bool, priKey
 	if isUser {
 		symbol = "user"
 	}
-	fileName := strings.Join([]string{childName, "key"}, ".")
-	tmpPath := filepath.Join(os.TempDir(), leagueDomain, orgDomain, orgName, symbol, fileName)
-	if _, err := gnomon.File().Append(tmpPath, priKeyBytes, true); nil != err {
+	fileName := strings.Join([]string{childName, "sk"}, "_")
+	tmpPath := path.Join(os.TempDir(), leagueDomain, orgDomain, orgName, symbol)
+	filePath := filepath.Join(os.TempDir(), leagueDomain, orgDomain, orgName, symbol, fileName)
+	if _, err := gnomon.File().Append(filePath, priKeyBytes, true); nil != err {
 		return "", err
 	}
-	return LoadPrivateKey(tmpPath), nil
+	return LoadPrivateKey(tmpPath)
 }
 
-func LoadPrivateKey(tmpPath string) string {
-	priKey, _, _ := csp.LoadPrivateKey(tmpPath)
+func LoadPrivateKey(tmpPath string) (string, error) {
+	priKey, _, err := csp.LoadPrivateKey(tmpPath)
+	if nil != err {
+		return "", err
+	}
 	return ObtainSKI(priKey)
 }
 
-func ObtainSKI(priKey bccsp.Key) string {
-	return strings.Join([]string{hex.EncodeToString(priKey.SKI()), "sk"}, "_")
+func ObtainSKI(priKey bccsp.Key) (string, error) {
+	return strings.Join([]string{hex.EncodeToString(priKey.SKI()), "sk"}, "_"), nil
 }

@@ -19,6 +19,7 @@ import (
 	"github.com/aberic/fabric-client-go/grpc/proto/config"
 	"github.com/aberic/fabric-client-go/utils"
 	"github.com/aberic/gnomon"
+	"os"
 	"path"
 	"path/filepath"
 )
@@ -157,13 +158,13 @@ type ClientGlobalCache struct {
 	Selection         string `yaml:"selection"`
 }
 
-func NewConfigClient(league *config.League, org *config.Org) (*Client, string, error) {
-	if gnomon.String().IsEmpty(league.Domain) || gnomon.String().IsEmpty(org.Domain) ||
+func NewConfigClient(leagueDomain string, org *config.Org) (*Client, string, error) {
+	if gnomon.String().IsEmpty(leagueDomain) || gnomon.String().IsEmpty(org.Domain) ||
 		gnomon.String().IsEmpty(org.Name) || gnomon.String().IsEmpty(org.Username) {
 		return nil, "", errors.New("league or org info params should be set")
 	}
-	cryptoConfigPath := utils.CryptoConfigPath(league.Domain)
-	_, orgUserPath := utils.CryptoOrgAndNodePath(league.Domain, org.Domain, org.Name, org.Username, true)
+	cryptoConfigPath := utils.CryptoConfigPath(leagueDomain)
+	_, orgUserPath := utils.CryptoOrgAndUserPath(leagueDomain, org.Domain, org.Name, org.Username, true)
 	return &Client{
 		Organization: org.Name,
 		Logging: &ClientLogging{
@@ -208,8 +209,8 @@ func NewConfigClient(league *config.League, org *config.Org) (*Client, string, e
 			Path: cryptoConfigPath,
 		},
 		CredentialStore: &ClientCredentialStore{
-			Path:        path.Join(orgUserPath, "msp", "signcerts"),
-			CryptoStore: &ClientCredentialStoreCryptoStore{Path: path.Join(orgUserPath, "msp")},
+			Path:        path.Join(os.TempDir(), "msp", "signcerts"),
+			CryptoStore: &ClientCredentialStoreCryptoStore{Path: path.Join(os.TempDir(), "msp")},
 		},
 		BCCSP: &ClientBCCSP{
 			Security: &ClientBCCSPSecurity{
@@ -232,9 +233,9 @@ func NewConfigClient(league *config.League, org *config.Org) (*Client, string, e
 	}, orgUserPath, nil
 }
 
-func (c *Client) set(client *config.Client, orgUserPath string) error {
+func (c *Client) set(client *config.Client, orgUserPath string) {
 	if nil == client {
-		return nil
+		return
 	}
 	c.setLogging(client)
 	c.setPeer(client)
@@ -242,7 +243,7 @@ func (c *Client) set(client *config.Client, orgUserPath string) error {
 	c.setOrder(client)
 	c.setGlobal(client)
 	c.setBCCSP(client)
-	return c.setTLSCerts(client, orgUserPath)
+	c.setTLSCerts(client, orgUserPath)
 }
 
 func (c *Client) setLogging(client *config.Client) {
@@ -338,11 +339,10 @@ func (c *Client) setBCCSP(client *config.Client) {
 	}
 }
 
-func (c *Client) setTLSCerts(client *config.Client, orgUserPath string) error {
+func (c *Client) setTLSCerts(client *config.Client, orgUserPath string) {
 	if client.Tls {
 		c.TLSCerts.SystemCertPool = true
 		c.TLSCerts.Client.Key.Path = filepath.Join(orgUserPath, "tls", "client.key")
 		c.TLSCerts.Client.Cert.Path = filepath.Join(orgUserPath, "tls", "client.crt")
 	}
-	return nil
 }

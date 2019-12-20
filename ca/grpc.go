@@ -23,8 +23,8 @@ import (
 type GenerateServer struct{}
 
 // GenerateCrypto 生成密钥对
-//func (gc *GenerateServer) GenerateCrypto(ctx context.Context, config *ca.ReqKeyConfig) (*ca.RespKeyConfig, error) {
-//	return generateCrypto(config)
+//func (gc *GenerateServer) GenerateRootCrypto(ctx context.Context, req *ca.ReqRootCrypto) (*ca.RespRootCrypto, error) {
+//	return generateCrypto(req)
 //}
 
 // GenerateLeagueCrt 生成联盟根证书

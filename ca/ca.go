@@ -40,32 +40,42 @@ import (
 	"time"
 )
 
-func generateOrgRootCrypto(org *ca.ReqOrgRootCa) (*ca.RespOrgRootCa, error) {
+func generateRootCrypto(org *ca.ReqRootCrypto) (*ca.RespRootCrypto, error) {
 	var (
-		commonName, skName                    string
-		skBytes, pubKeyBytes, certBytes       []byte
+		caCommonName                          = utils.CertOrgCaNameWithOutCert(org.Name, org.Domain)
+		tlscaCommonName                       = utils.CertOrgTlsCaNameWithOutCert(org.Name, org.Domain)
+		skName                                string
+		priBytes, pubBytes, certBytes         []byte
 		tlsPriBytes, tlsPubBytes, tlsCertByte []byte
 		cc                                    = &CertConfig{}
 		err                                   error
 	)
 	// ca
-	if commonName, skName, skBytes, pubKeyBytes, certBytes, err = generateCryptoCA(org.Name, org.Domain, org.Subject); nil != err {
+	if priBytes, pubBytes, err = generateCryptoTlsCa(org.Config); nil != err {
 		return nil, err
+	}
+	if skName, err = utils.SKI("leagueDomain", org.Domain, org.Name, "childName", false, priBytes); nil != err {
+		return nil, err
+	}
+	// ca cert
+	if certBytes, err = cc.generateCryptoRootCrt(priBytes, getSub(org.Name, caCommonName, org.Subject),
+		getSignAlgorithm(org.Config.SignAlgorithm), filepath.Join(os.TempDir(), strconv.FormatInt(time.Now().UnixNano(), 10))); nil != err {
+		return &ca.RespRootCrypto{Code: ca.Code_Fail, ErrMsg: err.Error()}, err
 	}
 	// tls ca
 	if tlsPriBytes, tlsPubBytes, err = generateCryptoTlsCa(org.Config); nil != err {
 		return nil, err
 	}
 	// tls ca cert
-	if tlsCertByte, err = cc.generateCryptoRootCrt(tlsPriBytes, getSub(org.Name, commonName, org.Subject),
+	if tlsCertByte, err = cc.generateCryptoRootCrt(tlsPriBytes, getSub(org.Name, tlscaCommonName, org.Subject),
 		getSignAlgorithm(org.Config.SignAlgorithm), filepath.Join(os.TempDir(), strconv.FormatInt(time.Now().UnixNano(), 10))); nil != err {
-		return &ca.RespOrgRootCa{Code: ca.Code_Fail, ErrMsg: err.Error()}, err
+		return &ca.RespRootCrypto{Code: ca.Code_Fail, ErrMsg: err.Error()}, err
 	}
-	return &ca.RespOrgRootCa{
+	return &ca.RespRootCrypto{
 		Code:           ca.Code_Success,
 		SkName:         skName,
-		SkBytes:        skBytes,
-		PubKeyBytes:    pubKeyBytes,
+		PriKeyBytes:    priBytes,
+		PubKeyBytes:    pubBytes,
 		CertBytes:      certBytes,
 		TlsPriKeyBytes: tlsPriBytes,
 		TlsPubKeyBytes: tlsPubBytes,
@@ -73,13 +83,14 @@ func generateOrgRootCrypto(org *ca.ReqOrgRootCa) (*ca.RespOrgRootCa, error) {
 	}, nil
 }
 
-func generateCryptoCA(orgName, orgDomain string, subject *ca.Subject) (commonName, skName string, skFileBytes, pubKeyBytes, certFileBytes []byte, err error) {
+func generateCryptoCA(commonName, orgName string, subject *ca.Subject) (skName string, skFileBytes, pubKeyBytes, certFileBytes []byte, err error) {
 	tmpPath := path.Join(os.TempDir(), strconv.FormatInt(time.Now().UnixNano(), 10))
-	commonName = utils.CertOrgCANameWithOutCert(orgName, orgDomain)
 	// org, name, country, province, locality, orgUnit, streetAddress, postalCode
 	_, err = caMgr.NewCA(tmpPath, orgName, commonName, subject.Country, subject.Province, subject.Locality, subject.OrgUnit, subject.StreetAddress, subject.PostalCode)
 	priKey, _, err := csp.LoadPrivateKey(tmpPath)
-	skName = utils.ObtainSKI(priKey)
+	if skName, err = utils.ObtainSKI(priKey); nil != err {
+		return
+	}
 	certFilePath := filepath.Join(tmpPath, strings.Join([]string{commonName, "cert.pem"}, "-"))
 	if skFileBytes, err = ioutil.ReadFile(filepath.Join(tmpPath, skName)); nil != err {
 		return

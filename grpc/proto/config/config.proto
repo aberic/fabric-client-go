@@ -9,10 +9,15 @@ package config;
 message ReqConfigInit {
     // Version 内容的版本。用于SDK应用相应的解析规则
     string version = 1;
-    League league = 2;
+    // 联盟根域名，如：example.com
+    string leagueDomain = 2;
+    // 排序节点信息
     Orderer orderer = 3;
+    // 组织节点信息
     Org org = 4;
+    // Client go sdk 使用的客户端
     Client client = 5;
+    // 联盟通道信息集合
     map<string, Channel> channels = 6;
 }
 
@@ -28,15 +33,7 @@ message ReqConfigRecover {
     repeated string configIDs = 1;
 }
 
-message League {
-    // 联盟根域名，如：example.com
-    string domain = 1;
-    // 联盟根证书
-    bytes certBytes = 2;
-    // 联盟tls根证书
-    bytes tlsCertBytes = 3;
-}
-
+// 组织节点信息
 message Org {
     // 必填参数，预测或确认该值，组织根域名，并不一定要与联盟根域名相同，如：org.com
     string domain = 2;
@@ -52,8 +49,13 @@ message Org {
     repeated User users = 7;
     // 组织下fabric-ca集合
     repeated CertificateAuthority cas = 8;
+    // 组织根证书
+    bytes certBytes = 9;
+    // 组织tls根证书
+    bytes tlsCertBytes = 10;
 }
 
+// 排序节点信息
 message Orderer {
     // 排序根域名，并不一定要与联盟根域名相同，如：order.com
     string domain = 2;
@@ -66,7 +68,11 @@ message Orderer {
     // 用户信息
     User user = 7;
     // 组织可访问orderer集合
-    repeated Node nodes = 9;
+    repeated Node nodes = 8;
+    // 组织根证书
+    bytes certBytes = 9;
+    // 组织tls根证书
+    bytes tlsCertBytes = 10;
 }
 
 // Client go sdk 使用的客户端
@@ -88,6 +94,7 @@ message Client {
 
 // 客户端日志设置对象
 message ClientLogging {
+    // 默认info
     string level = 1;
 }
 
@@ -167,6 +174,7 @@ message ClientBCCSPSecurityDefault {
     string provider = 1;
 }
 
+// 联盟通道信息
 message Channel {
     // 已知加入该通道的peer节点名称集合，如[peer0, peer1]
     repeated string peerNames = 1;

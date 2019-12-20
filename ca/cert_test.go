@@ -51,7 +51,7 @@ MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEHgioiBii+X6dgYRwdXbEbbNgbZog
 
 func TestGetCA(t *testing.T) {
 	cc := &CertConfig{}
-	cc.getCA(path.Join(utils.ObtainDataPath(), "cert"), "test.example.com", &ca.Subject{
+	cc.getCA(path.Join(utils.ObtainDataPath(), "cert"), &ca.Subject{
 		Country:       "US",
 		Province:      "Hebei",
 		Locality:      "Yichun",
@@ -63,7 +63,7 @@ func TestGetCA(t *testing.T) {
 
 func TestSignCertificate(t *testing.T) {
 	cc := &CertConfig{}
-	caObj := cc.getCA(path.Join(utils.ObtainDataPath(), "cert"), "test.example.com", &ca.Subject{
+	caObj := cc.getCA(path.Join(utils.ObtainDataPath(), "cert"), &ca.Subject{
 		Country:       "US",
 		Province:      "Hebei",
 		Locality:      "Yichun",

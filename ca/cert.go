@@ -92,7 +92,7 @@ func (cc *CertConfig) generateCryptoRootCrt(priKeyBytes []byte, subject pkix.Nam
 		BasicConstraintsValid: true,
 		IsCA:                  true,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
-		KeyUsage:              x509.KeyUsageCertSign | x509.KeyUsageCRLSign | x509.KeyUsageDataEncipherment,
+		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment | x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
 		SignatureAlgorithm:    signatureAlgorithm,
 	}); nil != err {
 		return nil, err
@@ -106,19 +106,18 @@ func (cc *CertConfig) signCertificateCA(commonName string, ca *ca.CA, pubKey *ec
 	if err = os.MkdirAll(tmpPath, 0755); nil != err && !gnomon.File().PathExists(tmpPath) {
 		return nil, err
 	}
-	if _, err := ca.SignCertificate(tmpPath, commonName, nil, nil, pubKey,
+	if _, err := ca.SignCertificate(tmpPath, commonName, nil, []string{commonName}, pubKey,
 		x509.KeyUsageDigitalSignature|x509.KeyUsageKeyEncipherment, []x509.ExtKeyUsage{x509.ExtKeyUsageAny}); nil != err {
 		return nil, err
 	}
 	return ioutil.ReadFile(filepath.Join(tmpPath, strings.Join([]string{commonName, "cert.pem"}, "-")))
 }
 
-func (cc *CertConfig) getCA(rootCaDir, commonName string, subject *ca2.Subject) *ca.CA {
+func (cc *CertConfig) getCA(rootCaDir string, subject *ca2.Subject) *ca.CA {
 	_, signer, _ := csp.LoadPrivateKey(rootCaDir)
 	cert, _ := ca.LoadCertificateECDSA(rootCaDir)
 
 	return &ca.CA{
-		Name:               commonName,
 		Signer:             signer,
 		SignCert:           cert,
 		Country:            subject.Country,
@@ -133,34 +132,32 @@ func (cc *CertConfig) getCA(rootCaDir, commonName string, subject *ca2.Subject) 
 // generateCryptoOrgChildTlsCaCrt 生成组织子节点/用户tls证书
 func (cc *CertConfig) generateCryptoChildCrt(rootCertBytes, priParentBytes, pubBytes []byte, subject pkix.Name, signatureAlgorithm x509.SignatureAlgorithm) (cert []byte, err error) {
 	var (
-		parentTLSCert *x509.Certificate
-		certData      []byte
+		parentCert *x509.Certificate
+		certData   []byte
 	)
 	if nil == rootCertBytes || len(rootCertBytes) <= 0 {
 		return nil, errors.New("root cert bytes can't be empty")
 	}
 	parentCertData, _ := pem.Decode(rootCertBytes)
-	if parentTLSCert, err = x509.ParseCertificate(parentCertData.Bytes); nil != err {
+	if parentCert, err = x509.ParseCertificate(parentCertData.Bytes); nil != err {
 		return nil, err
 	}
-	priTLSParentKey, pubTLSKey, err := cc.getCertKey(priParentBytes, pubBytes)
+	priParentKey, pubKey, err := cc.getCertKey(priParentBytes, pubBytes)
 	if nil != err {
 		return nil, err
 	}
 	if certData, err = gnomon.CA().GenerateCertificate(&gnomon.Cert{
-		ParentCert: parentTLSCert,
+		ParentCert: parentCert,
 		CertSelf: gnomon.CertSelf{
-			CertificateFilePath:   filepath.Join("/tmp", strconv.Itoa(random.Int()), "tls", "tmp.crt"),
-			Subject:               subject,
-			ParentPrivateKey:      priTLSParentKey,
-			PublicKey:             pubTLSKey,
-			NotAfterDays:          time.Now().Add(5000 * 24 * time.Hour),
-			NotBeforeDays:         time.Now(),
-			BasicConstraintsValid: true,
-			IsCA:                  false,
-			ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
-			KeyUsage:              x509.KeyUsageCertSign | x509.KeyUsageCRLSign | x509.KeyUsageDataEncipherment,
-			SignatureAlgorithm:    signatureAlgorithm,
+			CertificateFilePath: filepath.Join(os.TempDir(), strconv.Itoa(random.Int()), "tmp.crt"),
+			Subject:             subject,
+			ParentPrivateKey:    priParentKey,
+			PublicKey:           pubKey,
+			NotAfterDays:        time.Now().Add(5000 * 24 * time.Hour),
+			NotBeforeDays:       time.Now(),
+			ExtKeyUsage:         []x509.ExtKeyUsage{x509.ExtKeyUsageAny},
+			KeyUsage:            x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment,
+			SignatureAlgorithm:  signatureAlgorithm,
 		},
 	}); nil != err {
 		return nil, err

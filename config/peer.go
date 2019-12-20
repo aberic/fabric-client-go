@@ -60,7 +60,7 @@ type PeerTLSCACerts struct {
 	Path string `yaml:"path"` // /fabric/crypto-config/ordererOrganizations/example.com/tlsca/tlsca.example.com-cert.pem
 }
 
-func (p *Peer) set(league *config.League, org *config.Org, peer *config.Peer) error {
+func (p *Peer) set(leagueDomain string, org *config.Org, peer *config.Peer) error {
 	if gnomon.String().IsNotEmpty(peer.Url) {
 		p.URL = peer.Url
 	} else {
@@ -76,8 +76,8 @@ func (p *Peer) set(league *config.League, org *config.Org, peer *config.Peer) er
 			return err
 		}
 	}
-	orgPath := utils.CryptoOrgPath(league.Domain, org.Domain, org.Name, false)
-	rootTLSCACertFileName := utils.RootTLSCACertFileName(league.Domain)
+	orgPath := utils.CryptoOrgPath(leagueDomain, org.Domain, org.Name, true)
+	rootTLSCACertFileName := utils.RootOrgTLSCACertFileName(org.Name, org.Domain)
 	tlsCaCertPath := filepath.Join(orgPath, "tlsca", rootTLSCACertFileName)
 	p.TLSCACerts.Path = tlsCaCertPath
 	return nil

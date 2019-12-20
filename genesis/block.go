@@ -46,26 +46,26 @@ func (g *Genesis) ObtainGenesisBlockData(consortium string) ([]byte, error) {
 	return data, err
 }
 
-func (g *Genesis) CreateGenesisBlock(consortium string) error {
+func (g *Genesis) CreateGenesisBlock(consortium string) ([]byte, error) {
 	data, err := resource.CreateGenesisBlock(g.genesisBlockConfigProfile(consortium), consortium)
 	if nil != err {
-		return err
+		return nil, err
 	}
 	if _, err = gnomon.File().Append(utils.GenesisBlockFilePath(g.Info.League.Domain), data, true); nil != err {
-		return err
+		return nil, err
 	}
-	return nil
+	return data, err
 }
 
-func (g *Genesis) CreateChannelCreateTx(consortium, channelID string) error {
+func (g *Genesis) CreateChannelCreateTx(consortium, channelID string) ([]byte, error) {
 	data, err := resource.CreateChannelCreateTx(g.genesisChannelTxConfigProfile(consortium), nil, channelID)
 	if nil != err {
-		return err
+		return nil, err
 	}
 	if _, err = gnomon.File().Append(utils.ChannelTXFilePath(g.Info.League.Domain, channelID), data, true); nil != err {
-		return err
+		return nil, err
 	}
-	return nil
+	return data, err
 }
 
 func (g *Genesis) orgPolicies(mspID string) map[string]*genesisconfig.Policy {

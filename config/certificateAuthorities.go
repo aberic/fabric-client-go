@@ -52,7 +52,7 @@ type CertificateAuthorityRegistrar struct {
 	EnrollSecret string `yaml:"enrollSecret"`
 }
 
-func (c *CertificateAuthority) set(league *config.League, org *config.Org, ca *config.CertificateAuthority) error {
+func (c *CertificateAuthority) set(leagueDomain string, org *config.Org, ca *config.CertificateAuthority) error {
 	if gnomon.String().IsNotEmpty(ca.Url) {
 		c.URL = ca.Url
 	} else {
@@ -66,8 +66,8 @@ func (c *CertificateAuthority) set(league *config.League, org *config.Org, ca *c
 	c.Registrar.EnrollId = ca.Registrar.EnrollId
 	c.Registrar.EnrollSecret = ca.Registrar.EnrollSecret
 
-	orgPath, userPath := utils.CryptoOrgAndUserPath(league.Domain, org.Domain, org.Name, ca.Username, true)
-	rootTLSCACertFileName := utils.RootTLSCACertFileName(league.Domain)
+	orgPath, userPath := utils.CryptoOrgAndUserPath(leagueDomain, org.Domain, org.Name, ca.Username, true)
+	rootTLSCACertFileName := utils.RootTLSCACertFileName(leagueDomain)
 
 	c.TLSCACerts.Path = filepath.Join(orgPath, "tlsca", rootTLSCACertFileName)
 	c.TLSCACerts.Client.Key.Path = filepath.Join(userPath, "tls", "client.key")

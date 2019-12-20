@@ -16,7 +16,6 @@ package core
 
 import (
 	"fmt"
-	"github.com/aberic/gnomon"
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/resmgmt"
 	"github.com/hyperledger/fabric-sdk-go/pkg/common/providers/context"
 	"github.com/hyperledger/fabric-sdk-go/pkg/core/config"
@@ -24,7 +23,7 @@ import (
 )
 
 // SDK fabsdk.FabricSDK
-func SDK(configBytes []byte, sdkOpts ...fabsdk.Option) (*fabsdk.FabricSDK, error) {
+func obtainSDK(configBytes []byte, sdkOpts ...fabsdk.Option) (*fabsdk.FabricSDK, error) {
 	configOpt := config.FromRaw(configBytes, "yaml")
 	sdk, err := fabsdk.New(configOpt, sdkOpts...)
 	if err != nil {
@@ -37,9 +36,9 @@ func SDK(configBytes []byte, sdkOpts ...fabsdk.Option) (*fabsdk.FabricSDK, error
 }
 
 // ClientContext context.ClientProvider
-func ClientContext(orgName, orgUser string, configBytes []byte,
+func clientContext(orgName, orgUser string, configBytes []byte,
 	sdkOpts ...fabsdk.Option) (context.ClientProvider, *fabsdk.FabricSDK) {
-	sdk, err := SDK(configBytes, sdkOpts...)
+	sdk, err := obtainSDK(configBytes, sdkOpts...)
 	if err != nil {
 		return nil, nil
 	}
@@ -48,11 +47,11 @@ func ClientContext(orgName, orgUser string, configBytes []byte,
 }
 
 // ResmgmtClient resmgmt.Client
-func ResmgmtClient(orgName, orgUser string, configBytes []byte,
-	sdkOpts ...fabsdk.Option) (*resmgmt.Client, *fabsdk.FabricSDK, error) {
-	sdk, err := SDK(configBytes, sdkOpts...)
+func resmgmtClient(orgName, orgUser string, configBytes []byte,
+	sdkOpts ...fabsdk.Option) (context.ClientProvider, *resmgmt.Client, *fabsdk.FabricSDK, error) {
+	sdk, err := obtainSDK(configBytes, sdkOpts...)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 	//clientContext allows creation of transactions using the supplied identity as the credential.
 	clientContext := sdk.Context(fabsdk.WithUser(orgUser), fabsdk.WithOrg(orgName))
@@ -60,8 +59,7 @@ func ResmgmtClient(orgName, orgUser string, configBytes []byte,
 	// Org resource management client
 	orgResMgmt, err := resmgmt.New(clientContext)
 	if err != nil {
-		gnomon.Log().Error("resMgmtOrgClient", gnomon.Log().Err(err))
-		return nil, nil, fmt.Errorf("Failed to create new resource management client: " + err.Error())
+		return nil, nil, nil, err
 	}
-	return orgResMgmt, sdk, nil
+	return clientContext, orgResMgmt, sdk, nil
 }

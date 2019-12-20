@@ -39,6 +39,32 @@ func TestGenesis_Set(t *testing.T) {
 	t.Log(blockStr)
 }
 
+func TestGenesisBlock(t *testing.T) {
+	genesis := testGenesisSet(t)
+	data, err := genesis.CreateGenesisBlock("test")
+	if nil != err {
+		t.Fatal(err)
+	}
+	blockStr, err := resource.InspectBlock(data)
+	if nil != err {
+		t.Fatal(err)
+	}
+	t.Log(blockStr)
+}
+
+func TestGenesisChannel(t *testing.T) {
+	genesis := testGenesisSet(t)
+	data, err := genesis.CreateChannelCreateTx("test", "mychannel01")
+	if nil != err {
+		t.Fatal(err)
+	}
+	channelStr, err := resource.InspectChannelCreateTx(data)
+	if nil != err {
+		t.Fatal(err)
+	}
+	t.Log(channelStr)
+}
+
 func testGenesisSet(t *testing.T) *Genesis {
 	var (
 		leagueDomain = "league.com"
@@ -46,28 +72,29 @@ func testGenesisSet(t *testing.T) *Genesis {
 		consenters   []*gen.Consenter
 		orgs         []*gen.OrgInBlock
 	)
-	for i := 1; i < 4; i++ {
+	for i := 1; i < 2; i++ {
 		orgName := strings.Join([]string{"orderer", strconv.Itoa(i)}, "")
 		orgDomain := strings.Join([]string{"example", strconv.Itoa(i), ".com"}, "")
 		orgPath := path.Join(utils.ObtainDataPath(), leagueDomain, strings.Join([]string{orgName, orgDomain}, "."))
+		offset := 0
+		var offsetU32 uint32 = 0
 		for j := 0; j < 3; j++ {
 			childName := strings.Join([]string{"order", strconv.Itoa(j)}, "")
 			host := strings.Join([]string{childName, ".", orgName, ".", orgDomain}, "")
-			addresses = append(addresses, strings.Join([]string{host, "7050"}, ":"))
-			tlsCertBytes, err := ioutil.ReadFile(filepath.Join(orgPath, childName, "tls.crt"))
-			if nil != err {
-				t.Fatal(err)
-			}
+			addresses = append(addresses, strings.Join([]string{host, strconv.Itoa(7050 + offset)}, ":"))
+			_, nodePath := utils.CryptoOrgAndNodePath(leagueDomain, orgDomain, orgName, childName, false)
 			consenters = append(consenters, &gen.Consenter{
 				Host:          host,
-				Port:          7050,
-				ClientTlsCert: tlsCertBytes,
-				ServerTlsCert: tlsCertBytes,
+				Port:          7050 + offsetU32,
+				ClientTlsCert: []byte(filepath.Join(nodePath, "tls", "server.crt")),
+				ServerTlsCert: []byte(filepath.Join(nodePath, "tls", "server.crt")),
 			})
+			offset += 1000
+			offsetU32 += 1000
 		}
-		adminPath := path.Join(orgPath, "user0")
+		adminPath := path.Join(orgPath, "Admin")
 
-		adminCertBytes, err := ioutil.ReadFile(filepath.Join(adminPath, utils.CertUserCAName(orgName, orgDomain, "user0")))
+		adminCertBytes, err := ioutil.ReadFile(filepath.Join(adminPath, utils.CertUserCAName(orgName, orgDomain, "Admin")))
 		if nil != err {
 			t.Fatal(err)
 		}
@@ -97,9 +124,9 @@ func testGenesisSet(t *testing.T) *Genesis {
 		orgDomain := strings.Join([]string{"example", strconv.Itoa(i), ".com"}, "")
 
 		orgPath := path.Join(utils.ObtainDataPath(), leagueDomain, strings.Join([]string{orgName, orgDomain}, "."))
-		adminPath := path.Join(orgPath, "user0")
+		adminPath := path.Join(orgPath, "Admin")
 
-		adminCertBytes, err := ioutil.ReadFile(filepath.Join(adminPath, utils.CertUserCAName(orgName, orgDomain, "user0")))
+		adminCertBytes, err := ioutil.ReadFile(filepath.Join(adminPath, utils.CertUserCAName(orgName, orgDomain, "Admin")))
 		if nil != err {
 			t.Fatal(err)
 		}
@@ -113,12 +140,14 @@ func testGenesisSet(t *testing.T) *Genesis {
 		}
 
 		var anchorPeers []*gen.AnchorPeer
+		var port int32 = 8051
 		for j := 0; j < 3; j++ {
 			childName := strings.Join([]string{"order", strconv.Itoa(j)}, "")
 			anchorPeers = append(anchorPeers, &gen.AnchorPeer{
 				Host: strings.Join([]string{childName, ".", orgName, ".", orgDomain}, ""),
-				Port: 7051,
+				Port: port,
 			})
+			port++
 		}
 
 		orgs = append(orgs, &gen.OrgInBlock{
@@ -148,7 +177,7 @@ func testGenesisSet(t *testing.T) *Genesis {
 					PreferredMaxBytes: 2 * 1024 * 1024,
 				},
 				EtcdRaft: &gen.EtcdRaft{
-					Consenters: []*gen.Consenter{},
+					Consenters: consenters,
 					Options: &gen.Options{
 						TickInterval:         "500ms",
 						ElectionTick:         10,

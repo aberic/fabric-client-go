@@ -176,9 +176,14 @@ func CertUserCANameWithOutCert(orgName, orgDomain, userName string) string {
 	return strings.Join([]string{userName, "@", orgName, ".", orgDomain}, "")
 }
 
-// CertOrgCANameWithOutCert 组织下节点证书名称
-func CertOrgCANameWithOutCert(orgName, orgDomain string) string {
-	return strings.Join([]string{orgName, orgDomain}, ".")
+// CertOrgCaNameWithOutCert 组织下节点证书名称
+func CertOrgCaNameWithOutCert(orgName, orgDomain string) string {
+	return strings.Join([]string{"ca", orgName, orgDomain}, ".")
+}
+
+// CertOrgTlsCaNameWithOutCert 组织下节点证书名称
+func CertOrgTlsCaNameWithOutCert(orgName, orgDomain string) string {
+	return strings.Join([]string{"tlsca", orgName, orgDomain}, ".")
 }
 
 // NodeDomain 节点域名

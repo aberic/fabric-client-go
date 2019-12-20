@@ -25,15 +25,25 @@ const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 func init() { proto.RegisterFile("grpc/proto/ca/server.proto", fileDescriptor_e7149eeb85e0e507) }
 
 var fileDescriptor_e7149eeb85e0e507 = []byte{
-	// 117 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x92, 0x4a, 0x2f, 0x2a, 0x48,
-	0xd6, 0x2f, 0x28, 0xca, 0x2f, 0xc9, 0xd7, 0x4f, 0x4e, 0xd4, 0x2f, 0x4e, 0x2d, 0x2a, 0x4b, 0x2d,
-	0xd2, 0x03, 0xf3, 0x85, 0x98, 0x92, 0x13, 0x8d, 0xb8, 0xb8, 0x38, 0xdc, 0x53, 0xf3, 0x52, 0x8b,
-	0x12, 0x4b, 0x52, 0x9d, 0x9c, 0xb9, 0x54, 0x93, 0xf3, 0xf4, 0x12, 0x93, 0x52, 0x8b, 0x32, 0x93,
-	0xf5, 0xd2, 0x12, 0x93, 0x8a, 0x32, 0x93, 0x75, 0x93, 0x73, 0x32, 0x53, 0xf3, 0x4a, 0xf4, 0x40,
-	0xa6, 0x40, 0x74, 0xe9, 0x25, 0x27, 0x3a, 0x71, 0x07, 0x83, 0x8d, 0x09, 0x00, 0xf1, 0xa3, 0x78,
-	0x51, 0x6c, 0x48, 0x62, 0x03, 0xb3, 0x8c, 0x01, 0x01, 0x00, 0x00, 0xff, 0xff, 0xc2, 0x2f, 0x96,
-	0x44, 0x79, 0x00, 0x00, 0x00,
+	// 276 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x6c, 0x92, 0xc1, 0x4a, 0x03, 0x31,
+	0x10, 0x86, 0x83, 0x82, 0x48, 0x44, 0xb0, 0x53, 0xab, 0x25, 0xde, 0x02, 0x1e, 0x4d, 0x41, 0xaf,
+	0x0a, 0xd2, 0x01, 0xbd, 0x14, 0x94, 0xaa, 0x17, 0x6f, 0xd3, 0x38, 0xd6, 0x85, 0xb2, 0xbb, 0x4e,
+	0xa2, 0xe0, 0x8b, 0xf9, 0x7c, 0xd2, 0x5d, 0x63, 0x0d, 0xe4, 0x36, 0xf3, 0xfd, 0xfc, 0xdf, 0x65,
+	0x46, 0x9b, 0xa5, 0xb4, 0x7e, 0xd2, 0x4a, 0x13, 0x9b, 0x89, 0xa7, 0x49, 0x60, 0xf9, 0x64, 0x71,
+	0xdd, 0x0e, 0x5b, 0x9e, 0xcc, 0x38, 0xcf, 0x3d, 0x4b, 0xec, 0xd3, 0xf3, 0xef, 0x6d, 0xbd, 0x7b,
+	0xcb, 0x35, 0x0b, 0x45, 0x86, 0x2b, 0x0d, 0x69, 0x9e, 0x37, 0x4d, 0x44, 0xf9, 0x6a, 0x63, 0x03,
+	0x03, 0xe7, 0xc9, 0xcd, 0xf9, 0x7d, 0x83, 0x0c, 0xf4, 0x28, 0xb4, 0x1b, 0x66, 0x15, 0x5c, 0xeb,
+	0x41, 0xaa, 0xcf, 0x98, 0x96, 0x1f, 0x8c, 0x12, 0x61, 0xf8, 0xdb, 0x46, 0xe1, 0x3f, 0x6e, 0x0e,
+	0x53, 0xff, 0x3f, 0xb5, 0x0a, 0x2e, 0xf5, 0x30, 0x19, 0xee, 0x64, 0x89, 0x6f, 0xd5, 0xea, 0x05,
+	0x83, 0xc0, 0x41, 0xe6, 0xc0, 0x20, 0x66, 0x90, 0x0b, 0x30, 0x88, 0x55, 0x70, 0x53, 0x68, 0x4b,
+	0x84, 0x51, 0xd6, 0x4e, 0x89, 0x39, 0xca, 0x15, 0x89, 0x5b, 0x05, 0x33, 0x3d, 0x2a, 0x78, 0x90,
+	0xe0, 0xb8, 0x68, 0x42, 0x32, 0xe3, 0xb2, 0x0b, 0xc9, 0x2a, 0x78, 0xd2, 0xe3, 0x82, 0xed, 0x71,
+	0x15, 0x90, 0xc0, 0x14, 0x85, 0x5d, 0x66, 0x4e, 0xca, 0xce, 0x2e, 0xb4, 0x6a, 0x8a, 0xfa, 0xd4,
+	0xd7, 0x8e, 0x16, 0x2c, 0x95, 0x77, 0xaf, 0xb4, 0x90, 0xca, 0x9f, 0xf9, 0x55, 0xc5, 0x75, 0x74,
+	0xeb, 0x63, 0xf7, 0xe7, 0x75, 0x9e, 0xa6, 0x7b, 0x0f, 0xdd, 0x37, 0xdc, 0xaf, 0xf7, 0xe7, 0xfd,
+	0xec, 0x11, 0x16, 0x3b, 0xdd, 0x74, 0xf1, 0x13, 0x00, 0x00, 0xff, 0xff, 0x2e, 0x35, 0x48, 0x82,
+	0x40, 0x02, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -48,6 +58,18 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type GenerateClient interface {
+	// 生成根密钥（含sk文件名）、tls密钥及前两者自签名根证书内容
+	GenerateRootCrypto(ctx context.Context, in *ReqRootCrypto, opts ...grpc.CallOption) (*RespRootCrypto, error)
+	// 生成联盟根证书
+	GenerateLeagueCrt(ctx context.Context, in *ReqCreateLeague, opts ...grpc.CallOption) (*RespCreateLeague, error)
+	// 生成组织下子节点/用户CA请求证书文件
+	GenerateOrgChildCsr(ctx context.Context, in *ReqCreateCsr, opts ...grpc.CallOption) (*RespCreateCsr, error)
+	// 生成组织下子节点/用户证书
+	GenerateOrgChildCrt(ctx context.Context, in *ReqCreateOrgChild, opts ...grpc.CallOption) (*RespCreateOrgChild, error)
+	// 生成组织下子节点/用户证书
+	GenerateOrgChildCrtCa(ctx context.Context, in *ReqCreateOrgChildCa, opts ...grpc.CallOption) (*RespCreateOrgChildCa, error)
+	// 生成组织下子节点/用户证书
+	GenerateOrgChildCrtTlsCa(ctx context.Context, in *ReqCreateOrgChildTlsCa, opts ...grpc.CallOption) (*RespCreateOrgChildTlsCa, error)
 }
 
 type generateClient struct {
@@ -58,18 +80,217 @@ func NewGenerateClient(cc *grpc.ClientConn) GenerateClient {
 	return &generateClient{cc}
 }
 
+func (c *generateClient) GenerateRootCrypto(ctx context.Context, in *ReqRootCrypto, opts ...grpc.CallOption) (*RespRootCrypto, error) {
+	out := new(RespRootCrypto)
+	err := c.cc.Invoke(ctx, "/ca.Generate/GenerateRootCrypto", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *generateClient) GenerateLeagueCrt(ctx context.Context, in *ReqCreateLeague, opts ...grpc.CallOption) (*RespCreateLeague, error) {
+	out := new(RespCreateLeague)
+	err := c.cc.Invoke(ctx, "/ca.Generate/GenerateLeagueCrt", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *generateClient) GenerateOrgChildCsr(ctx context.Context, in *ReqCreateCsr, opts ...grpc.CallOption) (*RespCreateCsr, error) {
+	out := new(RespCreateCsr)
+	err := c.cc.Invoke(ctx, "/ca.Generate/GenerateOrgChildCsr", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *generateClient) GenerateOrgChildCrt(ctx context.Context, in *ReqCreateOrgChild, opts ...grpc.CallOption) (*RespCreateOrgChild, error) {
+	out := new(RespCreateOrgChild)
+	err := c.cc.Invoke(ctx, "/ca.Generate/GenerateOrgChildCrt", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *generateClient) GenerateOrgChildCrtCa(ctx context.Context, in *ReqCreateOrgChildCa, opts ...grpc.CallOption) (*RespCreateOrgChildCa, error) {
+	out := new(RespCreateOrgChildCa)
+	err := c.cc.Invoke(ctx, "/ca.Generate/GenerateOrgChildCrtCa", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *generateClient) GenerateOrgChildCrtTlsCa(ctx context.Context, in *ReqCreateOrgChildTlsCa, opts ...grpc.CallOption) (*RespCreateOrgChildTlsCa, error) {
+	out := new(RespCreateOrgChildTlsCa)
+	err := c.cc.Invoke(ctx, "/ca.Generate/GenerateOrgChildCrtTlsCa", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // GenerateServer is the server API for Generate service.
 type GenerateServer interface {
+	// 生成根密钥（含sk文件名）、tls密钥及前两者自签名根证书内容
+	GenerateRootCrypto(context.Context, *ReqRootCrypto) (*RespRootCrypto, error)
+	// 生成联盟根证书
+	GenerateLeagueCrt(context.Context, *ReqCreateLeague) (*RespCreateLeague, error)
+	// 生成组织下子节点/用户CA请求证书文件
+	GenerateOrgChildCsr(context.Context, *ReqCreateCsr) (*RespCreateCsr, error)
+	// 生成组织下子节点/用户证书
+	GenerateOrgChildCrt(context.Context, *ReqCreateOrgChild) (*RespCreateOrgChild, error)
+	// 生成组织下子节点/用户证书
+	GenerateOrgChildCrtCa(context.Context, *ReqCreateOrgChildCa) (*RespCreateOrgChildCa, error)
+	// 生成组织下子节点/用户证书
+	GenerateOrgChildCrtTlsCa(context.Context, *ReqCreateOrgChildTlsCa) (*RespCreateOrgChildTlsCa, error)
 }
 
 func RegisterGenerateServer(s *grpc.Server, srv GenerateServer) {
 	s.RegisterService(&_Generate_serviceDesc, srv)
 }
 
+func _Generate_GenerateRootCrypto_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReqRootCrypto)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GenerateServer).GenerateRootCrypto(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ca.Generate/GenerateRootCrypto",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GenerateServer).GenerateRootCrypto(ctx, req.(*ReqRootCrypto))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Generate_GenerateLeagueCrt_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReqCreateLeague)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GenerateServer).GenerateLeagueCrt(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ca.Generate/GenerateLeagueCrt",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GenerateServer).GenerateLeagueCrt(ctx, req.(*ReqCreateLeague))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Generate_GenerateOrgChildCsr_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReqCreateCsr)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GenerateServer).GenerateOrgChildCsr(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ca.Generate/GenerateOrgChildCsr",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GenerateServer).GenerateOrgChildCsr(ctx, req.(*ReqCreateCsr))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Generate_GenerateOrgChildCrt_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReqCreateOrgChild)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GenerateServer).GenerateOrgChildCrt(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ca.Generate/GenerateOrgChildCrt",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GenerateServer).GenerateOrgChildCrt(ctx, req.(*ReqCreateOrgChild))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Generate_GenerateOrgChildCrtCa_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReqCreateOrgChildCa)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GenerateServer).GenerateOrgChildCrtCa(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ca.Generate/GenerateOrgChildCrtCa",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GenerateServer).GenerateOrgChildCrtCa(ctx, req.(*ReqCreateOrgChildCa))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Generate_GenerateOrgChildCrtTlsCa_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReqCreateOrgChildTlsCa)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GenerateServer).GenerateOrgChildCrtTlsCa(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ca.Generate/GenerateOrgChildCrtTlsCa",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GenerateServer).GenerateOrgChildCrtTlsCa(ctx, req.(*ReqCreateOrgChildTlsCa))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Generate_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "ca.Generate",
 	HandlerType: (*GenerateServer)(nil),
-	Methods:     []grpc.MethodDesc{},
-	Streams:     []grpc.StreamDesc{},
-	Metadata:    "grpc/proto/ca/server.proto",
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GenerateRootCrypto",
+			Handler:    _Generate_GenerateRootCrypto_Handler,
+		},
+		{
+			MethodName: "GenerateLeagueCrt",
+			Handler:    _Generate_GenerateLeagueCrt_Handler,
+		},
+		{
+			MethodName: "GenerateOrgChildCsr",
+			Handler:    _Generate_GenerateOrgChildCsr_Handler,
+		},
+		{
+			MethodName: "GenerateOrgChildCrt",
+			Handler:    _Generate_GenerateOrgChildCrt_Handler,
+		},
+		{
+			MethodName: "GenerateOrgChildCrtCa",
+			Handler:    _Generate_GenerateOrgChildCrtCa_Handler,
+		},
+		{
+			MethodName: "GenerateOrgChildCrtTlsCa",
+			Handler:    _Generate_GenerateOrgChildCrtTlsCa_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "grpc/proto/ca/server.proto",
 }

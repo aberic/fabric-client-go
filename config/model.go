@@ -27,6 +27,11 @@ type CaCrypto struct {
 	RootCertBytes, RootTlsCertBytes []byte
 }
 
+type orgCrypto struct {
+	caCertFileName, tlsCaCertFileName string
+	caCertBytes, tlsCaCertBytes       []byte
+}
+
 type userCrypto struct {
 	skiFileName  string
 	certFileName string

@@ -24,6 +24,7 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"sync"
 )
 
 // Config 网络连接配置为客户端应用程序提供有关目标区块链网络的信息
@@ -46,6 +47,37 @@ type Config struct {
 	//
 	// 应用程序可以选择使用标准的证书颁发机构，而不是Fabric-CA，在这种情况下，不会指定此部分。
 	CertificateAuthorities map[string]*CertificateAuthority `yaml:"certificateAuthorities"`
+	lock                   sync.RWMutex
+}
+
+func (c *Config) padding(init *config.ReqConfigInit) error {
+	var err error
+	if gnomon.String().IsEmpty(init.Version) {
+		err = errors.New("version can't be nil")
+		goto ERR
+	}
+	if nil == init.Org || gnomon.String().IsEmpty(init.Org.Domain) || gnomon.String().IsEmpty(init.Org.Name) ||
+		gnomon.String().IsEmpty(init.Org.Username) {
+		return errors.New("org or org require params can't be nil")
+	}
+	c.Version = init.Version
+	if err = c.setClient(init); nil != err {
+		goto ERR
+	}
+	c.setChannels(init)
+	c.setOrganizations(init)
+	if err = c.setOrderers(init); nil != err {
+		goto ERR
+	}
+	if err = c.setPeers(init); nil != err {
+		goto ERR
+	}
+	if err = c.setCertificateAuthorities(init); nil != err {
+		goto ERR
+	}
+	return nil
+ERR:
+	return fmt.Errorf("config set error: %w", err)
 }
 
 func (c *Config) set(init *config.ReqConfigInit) error {
@@ -82,13 +114,11 @@ ERR:
 }
 
 func (c *Config) setClient(init *config.ReqConfigInit) error {
-	client, orgUserPath, err := NewConfigClient(init.League, init.Org)
+	client, orgUserPath, err := NewConfigClient(init.LeagueDomain, init.Org)
 	if nil != err {
 		return fmt.Errorf("client set error: %w", err)
 	}
-	if err = client.set(init.Client, orgUserPath); nil != err {
-		return fmt.Errorf("client set error: %w", err)
-	}
+	client.set(init.Client, orgUserPath)
 	c.Client = client
 	return nil
 }
@@ -108,12 +138,12 @@ func (c *Config) setOrganizations(init *config.ReqConfigInit) {
 	// 设置orderer
 	if nil != init.Orderer {
 		orderer := &Organization{}
-		orderer.setOrderer(init.League, init.Orderer)
+		orderer.setOrderer(init.LeagueDomain, init.Orderer)
 		c.Organizations[init.Orderer.Name] = orderer
 	}
 	// 设置org
 	org := &Organization{}
-	org.setOrg(init.League, init.Org)
+	org.setOrg(init.LeagueDomain, init.Org)
 	c.Organizations[init.Org.Name] = org
 }
 
@@ -122,7 +152,7 @@ func (c *Config) setOrderers(init *config.ReqConfigInit) error {
 	if nil != init.Orderer {
 		for _, node := range init.Orderer.Nodes {
 			order := &Orderer{GRPCOptions: &OrdererGRPCOptions{}, TLSCACerts: &OrdererTLSCACerts{}}
-			if err := order.set(init.League, init.Orderer, node); nil != err {
+			if err := order.set(init.LeagueDomain, init.Orderer, node); nil != err {
 				return fmt.Errorf("orderers set error: %w", err)
 			}
 			c.Orderers[node.Name] = order
@@ -138,7 +168,7 @@ func (c *Config) setPeers(init *config.ReqConfigInit) error {
 	}
 	for _, peer := range init.Org.Peers {
 		p := &Peer{GRPCOptions: &PeerGRPCOptions{}, TLSCACerts: &PeerTLSCACerts{}}
-		if err := p.set(init.League, init.Org, peer); nil != err {
+		if err := p.set(init.LeagueDomain, init.Org, peer); nil != err {
 			return fmt.Errorf("peers set error: %w", err)
 		}
 		c.Peers[peer.Name] = p
@@ -156,7 +186,7 @@ func (c *Config) setCertificateAuthorities(init *config.ReqConfigInit) error {
 			}},
 			Registrar: &CertificateAuthorityRegistrar{},
 		}
-		if err := ca.set(init.League, init.Org, certificateAuthority); nil != err {
+		if err := ca.set(init.LeagueDomain, init.Org, certificateAuthority); nil != err {
 			return fmt.Errorf("ca set error: %w", err)
 		}
 		c.CertificateAuthorities[certificateAuthority.Name] = ca
@@ -168,13 +198,13 @@ func (c *Config) setCertificateAuthorities(init *config.ReqConfigInit) error {
 //
 // 优先创建用户相关证书信息，以便后续创建组织和组织子节点内容时拷贝
 func (c *Config) mkAllDir(init *config.ReqConfigInit) error {
-	if err := c.mkOrdererDir(init.League, init.Orderer); nil != err {
+	if err := c.mkOrdererDir(init.LeagueDomain, init.Orderer); nil != err {
 		return err
 	}
-	return c.mkPeerDir(init.League, init.Org)
+	return c.mkPeerDir(init.LeagueDomain, init.Org)
 }
 
-func (c *Config) mkOrdererDir(league *config.League, orderer *config.Orderer) error {
+func (c *Config) mkOrdererDir(leagueDomain string, orderer *config.Orderer) error {
 	var (
 		admins []*adminCrypto
 		err    error
@@ -183,19 +213,26 @@ func (c *Config) mkOrdererDir(league *config.League, orderer *config.Orderer) er
 		gnomon.String().IsEmpty(orderer.Username) || nil == orderer.User {
 		return nil
 	}
-	orgPath, userPath := utils.CryptoOrgAndUserPath(league.Domain, orderer.Domain, orderer.Name, orderer.Username, false)
-	rootCACertFileName := utils.RootCACertFileName(league.Domain)
-	rootTLSCACertFileName := utils.RootTLSCACertFileName(league.Domain)
+	orgPath, userPath := utils.CryptoOrgAndUserPath(leagueDomain, orderer.Domain, orderer.Name, orderer.Username, false)
+	rootCACertFileName := utils.RootOrgCACertFileName(orderer.Name, orderer.Domain)
+	rootTLSCACertFileName := utils.RootOrgTLSCACertFileName(orderer.Name, orderer.Domain)
+	orgCrypto := &orgCrypto{
+		caCertFileName:    rootCACertFileName,
+		caCertBytes:       orderer.CertBytes,
+		tlsCaCertFileName: rootTLSCACertFileName,
+		tlsCaCertBytes:    orderer.TlsCertBytes,
+	}
+
 	if err = os.MkdirAll(userPath, 0755); !gnomon.File().PathExists(userPath) && nil != err {
 		return err
 	}
-	userSKIFileName, err := utils.SKI(league.Domain, orderer.Domain, orderer.Name, orderer.Username, true, orderer.User.Crypto.Key)
-	if nil != err {
-		return err
-	}
+	//userSKIFileName, err := utils.SKI(leagueDomain, orderer.Domain, orderer.Name, orderer.Username, true, orderer.User.Crypto.Key)
+	//if nil != err {
+	//	return err
+	//}
 	userCertFileName := utils.CertUserCAName(orderer.Name, orderer.Domain, orderer.User.Name)
-	if err = c.mkMspDir(league, path.Join(userPath, "msp"), rootCACertFileName, rootTLSCACertFileName, nil, &userCrypto{
-		skiFileName:  userSKIFileName,
+	if err = c.mkMspDir(leagueDomain, path.Join(userPath, "msp"), nil, orgCrypto, &userCrypto{
+		skiFileName:  "ca_sk",
 		certFileName: userCertFileName,
 		tlsPath:      path.Join(userPath, "tls"),
 		isUser:       true,
@@ -205,21 +242,18 @@ func (c *Config) mkOrdererDir(league *config.League, orderer *config.Orderer) er
 	}
 	admins = append(admins, &adminCrypto{certFileName: userCertFileName, certBytes: orderer.User.Crypto.Cert})
 
-	if err = os.MkdirAll(orgPath, 0755); !gnomon.File().PathExists(orgPath) && nil != err {
-		return err
-	}
-	if err = c.mkOrgDir(league, orgPath, "orderers", rootCACertFileName, rootTLSCACertFileName, admins); nil != err {
+	if err = c.mkOrgDir(leagueDomain, orgPath, "orderers", admins, orgCrypto); nil != err {
 		return err
 	}
 	for _, node := range orderer.Nodes {
-		_, nodePath := utils.CryptoOrgAndNodePath(league.Domain, orderer.Domain, orderer.Name, node.Name, false)
-		nodeSKIFileName, err := utils.SKI(league.Domain, orderer.Domain, orderer.Name, node.Name, false, node.Crypto.Key)
-		if nil != err {
-			return err
-		}
+		_, nodePath := utils.CryptoOrgAndNodePath(leagueDomain, orderer.Domain, orderer.Name, node.Name, false)
+		//nodeSKIFileName, err := utils.SKI(leagueDomain, orderer.Domain, orderer.Name, node.Name, false, node.Crypto.Key)
+		//if nil != err {
+		//	return err
+		//}
 		nodeCertFileName := utils.CertNodeCAName(orderer.Name, orderer.Domain, node.Name)
-		if err = c.mkMspDir(league, path.Join(nodePath, "msp"), rootCACertFileName, rootTLSCACertFileName, admins, &userCrypto{
-			skiFileName:  nodeSKIFileName,
+		if err = c.mkMspDir(leagueDomain, path.Join(nodePath, "msp"), admins, orgCrypto, &userCrypto{
+			skiFileName:  "ca_sk",
 			certFileName: nodeCertFileName,
 			tlsPath:      path.Join(nodePath, "tls"),
 			isUser:       false,
@@ -231,7 +265,7 @@ func (c *Config) mkOrdererDir(league *config.League, orderer *config.Orderer) er
 	return nil
 }
 
-func (c *Config) mkPeerDir(league *config.League, org *config.Org) error {
+func (c *Config) mkPeerDir(leagueDomain string, org *config.Org) error {
 	var (
 		admins []*adminCrypto
 		err    error
@@ -241,22 +275,28 @@ func (c *Config) mkPeerDir(league *config.League, org *config.Org) error {
 		return nil
 	}
 
-	orgPath := utils.CryptoOrgPath(league.Domain, org.Domain, org.Name, true)
-	rootCACertFileName := utils.RootCACertFileName(league.Domain)
-	rootTLSCACertFileName := utils.RootTLSCACertFileName(league.Domain)
+	orgPath := utils.CryptoOrgPath(leagueDomain, org.Domain, org.Name, true)
+	rootCACertFileName := utils.RootOrgCACertFileName(org.Name, org.Domain)
+	rootTLSCACertFileName := utils.RootOrgTLSCACertFileName(org.Name, org.Domain)
+	orgCrypto := &orgCrypto{
+		caCertFileName:    rootCACertFileName,
+		caCertBytes:       org.CertBytes,
+		tlsCaCertFileName: rootTLSCACertFileName,
+		tlsCaCertBytes:    org.TlsCertBytes,
+	}
 
 	for _, user := range org.Users {
-		_, userPath := utils.CryptoOrgAndUserPath(league.Domain, org.Domain, org.Name, user.Name, true)
+		_, userPath := utils.CryptoOrgAndUserPath(leagueDomain, org.Domain, org.Name, user.Name, true)
 		if err = os.MkdirAll(orgPath, 0755); gnomon.File().PathExists(userPath) && nil != err {
 			return err
 		}
-		userSKIFileName, err := utils.SKI(league.Domain, org.Domain, org.Name, user.Name, true, user.Crypto.Key)
-		if nil != err {
-			return err
-		}
+		//userSKIFileName, err := utils.SKI(leagueDomain, org.Domain, org.Name, user.Name, true, user.Crypto.Key)
+		//if nil != err {
+		//	return err
+		//}
 		userCertFileName := utils.CertUserCAName(org.Name, org.Domain, user.Name)
-		if err = c.mkMspDir(league, path.Join(userPath, "msp"), rootCACertFileName, rootTLSCACertFileName, nil, &userCrypto{
-			skiFileName:  userSKIFileName,
+		if err = c.mkMspDir(leagueDomain, path.Join(userPath, "msp"), nil, orgCrypto, &userCrypto{
+			skiFileName:  "ca_sk",
 			certFileName: userCertFileName,
 			tlsPath:      path.Join(userPath, "tls"),
 			isUser:       true,
@@ -272,18 +312,18 @@ func (c *Config) mkPeerDir(league *config.League, org *config.Org) error {
 	if err = os.MkdirAll(orgPath, 0755); gnomon.File().PathExists(orgPath) && nil != err {
 		return err
 	}
-	if err = c.mkOrgDir(league, orgPath, "peers", rootCACertFileName, rootTLSCACertFileName, admins); nil != err {
+	if err = c.mkOrgDir(leagueDomain, orgPath, "peers", admins, orgCrypto); nil != err {
 		return err
 	}
 	for _, peer := range org.Peers {
-		_, peerPath := utils.CryptoOrgAndNodePath(league.Domain, org.Domain, org.Name, peer.Name, false)
-		peerSKIFileName, err := utils.SKI(league.Domain, org.Domain, org.Name, peer.Name, false, peer.Crypto.Key)
-		if nil != err {
-			return err
-		}
+		_, peerPath := utils.CryptoOrgAndNodePath(leagueDomain, org.Domain, org.Name, peer.Name, true)
+		//peerSKIFileName, err := utils.SKI(leagueDomain, org.Domain, org.Name, peer.Name, false, peer.Crypto.Key)
+		//if nil != err {
+		//	return err
+		//}
 		peerCertFileName := utils.CertNodeCAName(org.Name, org.Domain, peer.Name)
-		if err = c.mkMspDir(league, path.Join(peerPath, "msp"), rootCACertFileName, rootTLSCACertFileName, admins, &userCrypto{
-			skiFileName:  peerSKIFileName,
+		if err = c.mkMspDir(leagueDomain, path.Join(peerPath, "msp"), admins, orgCrypto, &userCrypto{
+			skiFileName:  "ca_sk",
 			certFileName: peerCertFileName,
 			tlsPath:      path.Join(peerPath, "tls"),
 			isUser:       false,
@@ -295,7 +335,7 @@ func (c *Config) mkPeerDir(league *config.League, org *config.Org) error {
 	return nil
 }
 
-func (c *Config) mkOrgDir(league *config.League, orgPath, orgs, rootCACertFileName, rootTLSCACertFileName string, admins []*adminCrypto) error {
+func (c *Config) mkOrgDir(leagueDomain string, orgPath, orgs string, admins []*adminCrypto, org *orgCrypto) error {
 	var err error
 	caPath := path.Join(orgPath, "ca")
 	mspPath := path.Join(orgPath, "msp")
@@ -319,21 +359,24 @@ func (c *Config) mkOrgDir(league *config.League, orgPath, orgs, rootCACertFileNa
 		return err
 	}
 
-	if _, err := gnomon.File().Append(filepath.Join(caPath, rootCACertFileName), league.CertBytes, true); nil != err {
+	if _, err := gnomon.File().Append(filepath.Join(caPath, org.caCertFileName), org.caCertBytes, true); nil != err {
 		return fmt.Errorf("ca cert set error: %w", err)
 	}
-	if _, err := gnomon.File().Append(filepath.Join(tlscaPath, rootTLSCACertFileName), league.TlsCertBytes, true); nil != err {
+	if _, err := gnomon.File().Append(filepath.Join(tlscaPath, org.tlsCaCertFileName), org.tlsCaCertBytes, true); nil != err {
 		return fmt.Errorf("tls ca cert set error: %w", err)
 	}
 
-	return c.mkMspDir(league, mspPath, rootCACertFileName, rootTLSCACertFileName, admins, nil)
+	return c.mkMspDir(leagueDomain, mspPath, admins, org, nil)
 }
 
-func (c *Config) mkMspDir(league *config.League, mspPath, rootCACertFileName, rootTLSCACertFileName string, admins []*adminCrypto, user *userCrypto) error {
+func (c *Config) mkMspDir(leagueDomain, mspPath string, admins []*adminCrypto, org *orgCrypto, user *userCrypto) error {
 	var err error
 	admincertsPath := path.Join(mspPath, "admincerts")
 	cacertsPath := path.Join(mspPath, "cacerts")
 	tlscacertsPath := path.Join(mspPath, "tlscacerts")
+	if err = os.MkdirAll(mspPath, 0755); !gnomon.File().PathExists(mspPath) && nil != err {
+		return err
+	}
 	if err = os.Mkdir(admincertsPath, 0755); !gnomon.File().PathExists(admincertsPath) && nil != err {
 		return err
 	}
@@ -344,10 +387,10 @@ func (c *Config) mkMspDir(league *config.League, mspPath, rootCACertFileName, ro
 		return err
 	}
 
-	if _, err := gnomon.File().Append(filepath.Join(cacertsPath, rootCACertFileName), league.CertBytes, true); nil != err {
+	if _, err := gnomon.File().Append(filepath.Join(cacertsPath, org.caCertFileName), org.caCertBytes, true); nil != err {
 		return fmt.Errorf("ca cert set error: %w", err)
 	}
-	if _, err := gnomon.File().Append(filepath.Join(tlscacertsPath, rootTLSCACertFileName), league.TlsCertBytes, true); nil != err {
+	if _, err := gnomon.File().Append(filepath.Join(tlscacertsPath, org.tlsCaCertFileName), org.tlsCaCertBytes, true); nil != err {
 		return fmt.Errorf("tls ca cert set error: %w", err)
 	}
 
@@ -365,12 +408,12 @@ func (c *Config) mkMspDir(league *config.League, mspPath, rootCACertFileName, ro
 			return fmt.Errorf("user key set error: %w", err)
 		}
 
-		if _, err := gnomon.File().Append(filepath.Join(admincertsPath, user.certFileName), user.Crypto.Cert, true); nil != err {
-			return fmt.Errorf("admin ca cert set error: %w", err)
+		if _, err := gnomon.File().Append(filepath.Join(signcertsPath, user.certFileName), user.Crypto.Cert, true); nil != err {
+			return fmt.Errorf("user ca cert set error: %w", err)
 		}
 		if user.isUser {
-			if _, err := gnomon.File().Append(filepath.Join(signcertsPath, user.certFileName), user.Crypto.Cert, true); nil != err {
-				return fmt.Errorf("user ca cert set error: %w", err)
+			if _, err := gnomon.File().Append(filepath.Join(admincertsPath, user.certFileName), user.Crypto.Cert, true); nil != err {
+				return fmt.Errorf("admin ca cert set error: %w", err)
 			}
 		} else {
 			for _, admin := range admins {
@@ -379,7 +422,7 @@ func (c *Config) mkMspDir(league *config.League, mspPath, rootCACertFileName, ro
 				}
 			}
 		}
-		return c.mkTlsDir(league, user)
+		return c.mkTlsDir(leagueDomain, org, user)
 	} else {
 		for _, admin := range admins {
 			if _, err := gnomon.File().Append(filepath.Join(admincertsPath, admin.certFileName), admin.certBytes, true); nil != err {
@@ -391,8 +434,8 @@ func (c *Config) mkMspDir(league *config.League, mspPath, rootCACertFileName, ro
 	return nil
 }
 
-func (c *Config) mkTlsDir(league *config.League, user *userCrypto) error {
-	if _, err := gnomon.File().Append(filepath.Join(user.tlsPath, "ca.crt"), league.TlsCertBytes, true); nil != err {
+func (c *Config) mkTlsDir(leagueDomain string, org *orgCrypto, user *userCrypto) error {
+	if _, err := gnomon.File().Append(filepath.Join(user.tlsPath, "ca.crt"), org.tlsCaCertBytes, true); nil != err {
 		return fmt.Errorf("root ca cert set error: %w", err)
 	}
 	tlsCryptoName := "server"
