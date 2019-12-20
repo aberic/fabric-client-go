@@ -17,10 +17,6 @@ package ca
 import (
 	"crypto/x509"
 	"crypto/x509/pkix"
-	"github.com/aberic/fabric-client-go/grpc/proto/ca"
-	"github.com/aberic/fabric-client-go/utils"
-	"github.com/aberic/gnomon"
-	"path"
 	"testing"
 )
 
@@ -48,39 +44,6 @@ MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEHgioiBii+X6dgYRwdXbEbbNgbZog
 1vXemDItzT+Jnd83Lt+NCHcdQxt0v7m9ky6gKQSx2Uu9zz+tfBE5vPfc7Q==
 -----END PUBLIC KEY-----`
 )
-
-func TestGetCA(t *testing.T) {
-	cc := &CertConfig{}
-	cc.getCA(path.Join(utils.ObtainDataPath(), "cert"), &ca.Subject{
-		Country:       "US",
-		Province:      "Hebei",
-		Locality:      "Yichun",
-		OrgUnit:       "TI",
-		StreetAddress: "Sheng road",
-		PostalCode:    "443002",
-	})
-}
-
-func TestSignCertificate(t *testing.T) {
-	cc := &CertConfig{}
-	caObj := cc.getCA(path.Join(utils.ObtainDataPath(), "cert"), &ca.Subject{
-		Country:       "US",
-		Province:      "Hebei",
-		Locality:      "Yichun",
-		OrgUnit:       "TI",
-		StreetAddress: "Sheng road",
-		PostalCode:    "443002",
-	})
-	pubKey, err := gnomon.CryptoECC().LoadPubPem([]byte(pubBytes))
-	if nil != err {
-		t.Fatal(err)
-	}
-	certBytes, err := cc.signCertificateCA("test.example.com", caObj, pubKey)
-	if nil != err {
-		t.Fatal(err)
-	}
-	t.Log(string(certBytes))
-}
 
 func TestGenerateCryptoRootCrt(t *testing.T) {
 	var (
@@ -118,46 +81,6 @@ func TestGenerateCryptoRootCrt(t *testing.T) {
 		Province:     []string{"Beijing"},
 		CommonName:   "example.com",
 	}, x509.ECDSAWithSHA256, "/fabric"); nil != err {
-		t.Log(err)
-	}
-}
-
-func TestGenerateCsr(t *testing.T) {
-	var (
-		cc       = &CertConfig{}
-		csrBytes []byte
-		err      error
-	)
-	if csrBytes, err = cc.generateCsr([]byte(priParentBytes), pkix.Name{
-		Country:      []string{"CN"},
-		Organization: []string{"league"},
-		Locality:     []string{"Beijing"},
-		Province:     []string{"Beijing"},
-		CommonName:   "example.com",
-	}, x509.ECDSAWithSHA256); nil != err {
-		t.Error(err)
-	}
-	t.Log(string(csrBytes))
-
-	// TestGenerateCsrCNFail
-	if csrBytes, err = cc.generateCsr([]byte(priParentBytes), pkix.Name{
-		Country:      []string{"CN"},
-		Organization: []string{"league"},
-		Locality:     []string{"Beijing"},
-		Province:     []string{"Beijing"},
-		CommonName:   "",
-	}, x509.ECDSAWithSHA256); nil != err {
-		t.Log(err)
-	}
-
-	// TestGenerateCsrBytesFail
-	if csrBytes, err = cc.generateCsr([]byte{}, pkix.Name{
-		Country:      []string{"CN"},
-		Organization: []string{"league"},
-		Locality:     []string{"Beijing"},
-		Province:     []string{"Beijing"},
-		CommonName:   "example.com",
-	}, x509.ECDSAWithSHA256); nil != err {
 		t.Log(err)
 	}
 }

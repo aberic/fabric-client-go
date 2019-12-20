@@ -63,7 +63,7 @@ func (kc *keyConfig) generateCrypto(cryptoType cryptoType, bits cryptoAlgorithm)
 	}
 }
 
-func (kc *keyConfig) generateCryptoCA(childName string) (skName string, priKeyBytes, pubKeyBytes []byte, err error) {
+func (kc *keyConfig) generateCryptoCa(childName string) (skName string, priKeyBytes, pubKeyBytes []byte, err error) {
 	tmpPath := path.Join(os.TempDir(), childName, strconv.FormatInt(time.Now().UnixNano(), 10))
 	priKey, _, err := csp.GeneratePrivateKey(tmpPath)
 	if nil != err {

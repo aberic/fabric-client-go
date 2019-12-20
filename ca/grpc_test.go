@@ -15,11 +15,6 @@
 
 package ca
 
-import (
-	"github.com/aberic/fabric-client-go/grpc/proto/ca"
-	"testing"
-)
-
 // TestGrpcGenerateCrypto 生成密钥对
 //func TestGrpcGenerateCrypto(t *testing.T) {
 //	gs := GenerateServer{}
@@ -34,65 +29,65 @@ import (
 //}
 
 // TestGrpcGenerateLeagueCrt 生成联盟根证书
-func TestGrpcGenerateLeagueCrt(t *testing.T) {
-	gs := GenerateServer{}
-	if respCreateLeague, err := gs.GenerateLeagueCrt(nil, &ca.ReqCreateLeague{
-		Domain:         "example.com",
-		PriKeyBytes:    []byte(priParentBytes),
-		PriTlsKeyBytes: []byte(priParentBytes),
-		Csr: &ca.CSR{
-			Country:      []string{"CN"},
-			Organization: []string{"league"},
-			Locality:     []string{"Beijing"},
-			Province:     []string{"Beijing"},
-			CommonName:   "example.com",
-		},
-		SignAlgorithm: ca.SignAlgorithm_ECDSAWithSHA256,
-	}); nil != err {
-		t.Error(err)
-	} else {
-		t.Log(respCreateLeague)
-	}
-}
-
-// TestGrpcGenerateOrgChildCsr 生成CA请求证书文件
-func TestGrpcGenerateOrgChildCsr(t *testing.T) {
-	gs := GenerateServer{}
-	if respCreateCsr, err := gs.GenerateOrgChildCsr(nil, &ca.ReqCreateCsr{
-		LeagueDomain: "example.com",
-		ChildName:    "peer0",
-		OrgDomain:    "org1.example.com",
-		PriKeyBytes:  []byte(priParentBytes),
-		Csr: &ca.CSR{
-			Country:      []string{"CN"},
-			Organization: []string{"league"},
-			Locality:     []string{"Beijing"},
-			Province:     []string{"Beijing"},
-			CommonName:   "example.com",
-		},
-		SignAlgorithm: ca.SignAlgorithm_ECDSAWithSHA256,
-	}); nil != err {
-		t.Error(err)
-	} else {
-		t.Log(respCreateCsr)
-	}
-}
-
-// TestGrpcGenerateOrgChildCrt 生成组织下子节点/用户证书
-func TestGrpcGenerateOrgChildCrt(t *testing.T) {
-	gs := GenerateServer{}
-	if respCreateOrgChild, err := gs.GenerateOrgChildCrt(nil, &ca.ReqCreateOrgChild{
-		PubTlsBytes:        []byte(pubBytes),
-		PriTlsParentBytes:  []byte(priParentBytes),
-		RootTlsCaCertBytes: []byte(rootCertBytes),
-		SignAlgorithm:      ca.SignAlgorithm_ECDSAWithSHA256,
-		EnrollInfo:         &ca.EnrollInfo{},
-	}); nil != err {
-		t.Error(err)
-	} else {
-		t.Log(respCreateOrgChild)
-	}
-}
+//func TestGrpcGenerateLeagueCrt(t *testing.T) {
+//	gs := GenerateServer{}
+//	if respCreateLeague, err := gs.GenerateLeagueCrt(nil, &ca.ReqCreateLeague{
+//		Domain:         "example.com",
+//		PriKeyBytes:    []byte(priParentBytes),
+//		PriTlsKeyBytes: []byte(priParentBytes),
+//		Csr: &ca.CSR{
+//			Country:      []string{"CN"},
+//			Organization: []string{"league"},
+//			Locality:     []string{"Beijing"},
+//			Province:     []string{"Beijing"},
+//			CommonName:   "example.com",
+//		},
+//		SignAlgorithm: ca.SignAlgorithm_ECDSAWithSHA256,
+//	}); nil != err {
+//		t.Error(err)
+//	} else {
+//		t.Log(respCreateLeague)
+//	}
+//}
+//
+//// TestGrpcGenerateOrgChildCsr 生成CA请求证书文件
+//func TestGrpcGenerateOrgChildCsr(t *testing.T) {
+//	gs := GenerateServer{}
+//	if respCreateCsr, err := gs.GenerateOrgChildCsr(nil, &ca.ReqCreateCsr{
+//		LeagueDomain: "example.com",
+//		ChildName:    "peer0",
+//		OrgDomain:    "org1.example.com",
+//		PriKeyBytes:  []byte(priParentBytes),
+//		Csr: &ca.CSR{
+//			Country:      []string{"CN"},
+//			Organization: []string{"league"},
+//			Locality:     []string{"Beijing"},
+//			Province:     []string{"Beijing"},
+//			CommonName:   "example.com",
+//		},
+//		SignAlgorithm: ca.SignAlgorithm_ECDSAWithSHA256,
+//	}); nil != err {
+//		t.Error(err)
+//	} else {
+//		t.Log(respCreateCsr)
+//	}
+//}
+//
+//// TestGrpcGenerateOrgChildCrt 生成组织下子节点/用户证书
+//func TestGrpcGenerateOrgChildCrt(t *testing.T) {
+//	gs := GenerateServer{}
+//	if respCreateOrgChild, err := gs.GenerateOrgChildCrt(nil, &ca.ReqCreateOrgChild{
+//		PubTlsBytes:        []byte(pubBytes),
+//		PriTlsParentBytes:  []byte(priParentBytes),
+//		RootTlsCaCertBytes: []byte(rootCertBytes),
+//		SignAlgorithm:      ca.SignAlgorithm_ECDSAWithSHA256,
+//		EnrollInfo:         &ca.EnrollInfo{},
+//	}); nil != err {
+//		t.Error(err)
+//	} else {
+//		t.Log(respCreateOrgChild)
+//	}
+//}
 
 //// grpcGenerateCrypto grpcGenerateCrypto
 //func grpcGenerateCrypto(url string, req *ca.ReqKeyConfig) (interface{}, error) {

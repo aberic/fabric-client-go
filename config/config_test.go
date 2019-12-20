@@ -38,8 +38,8 @@ func TestChannelCreate(t *testing.T) {
 	if nil != err {
 		t.Fatal(err)
 	}
-	txid, err := core.Create("order0", "orderer1", "Admin", "org1", "Admin", "mychannel01",
-		filepath.Join(utils.ObtainDataPath(), "league.com", "channel-artifacts", "mychannel01.tx"), confData)
+	txid, err := core.Create("order0", "orderer1", "Admin", "org1", "Admin", "mychannel02",
+		filepath.Join(utils.ObtainDataPath(), "league.com", "channel-artifacts", "mychannel02.tx"), confData)
 	t.Log(txid, err)
 }
 
@@ -122,7 +122,7 @@ func testOrder(leagueDomain, ordererName, ordererDomain, userName string, t *tes
 		MspID:        utils.MspID(ordererName),
 		Username:     userName,
 		User:         testOrderUser(userName, ordererPath, true, t),
-		Nodes:        testOrderNodes(ordererPath, t),
+		Nodes:        testOrderNodes(ordererName, ordererDomain, ordererPath, t),
 		CertBytes:    certBytes,
 		TlsCertBytes: tlsCertBytes,
 	}
@@ -159,7 +159,7 @@ func testOrderUser(username, ordererPath string, isAdmin bool, t *testing.T) *co
 	return user
 }
 
-func testOrderNodes(ordererPath string, t *testing.T) []*config.Node {
+func testOrderNodes(ordererName, ordererDomain, ordererPath string, t *testing.T) []*config.Node {
 	var nodes []*config.Node
 	offset := 0
 	for i := 0; i < 3; i++ {
@@ -184,6 +184,14 @@ func testOrderNodes(ordererPath string, t *testing.T) []*config.Node {
 		nodes = append(nodes, &config.Node{
 			Name: childName,
 			Url:  strings.Join([]string{"grpcs://127.0.0.1", strconv.Itoa(7050 + offset)}, ":"),
+			GrpcOptions: &config.GRPCOptions{
+				SslTargetNameOverride: strings.Join([]string{childName, ordererName, ordererDomain}, "."),
+				KeepAliveTime:         "0s",
+				KeepAliveTimeout:      "20s",
+				KeepAlivePermit:       false,
+				FailFast:              false,
+				AllowInsecure:         false,
+			},
 			Crypto: &config.Crypto{
 				Key:     keyBytes,
 				Cert:    certBytes,

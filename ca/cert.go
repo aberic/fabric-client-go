@@ -17,61 +17,21 @@ package ca
 import (
 	"crypto"
 	"crypto/ecdsa"
-	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
-	"encoding/asn1"
 	"encoding/pem"
 	"errors"
-	ca2 "github.com/aberic/fabric-client-go/grpc/proto/ca"
-	"github.com/aberic/fabric-client-go/utils"
 	"github.com/aberic/gnomon"
-	"github.com/hyperledger/fabric/common/tools/cryptogen/ca"
-	"github.com/hyperledger/fabric/common/tools/cryptogen/csp"
-	"io/ioutil"
 	random "math/rand"
 	"os"
-	"path"
 	"path/filepath"
 	"strconv"
-	"strings"
 	"time"
 )
 
 // CertConfig 证书配置结构
 type CertConfig struct{}
-
-func (cc *CertConfig) generateCsr(PriBytes []byte, subject pkix.Name, signatureAlgorithm x509.SignatureAlgorithm) (csrBytes []byte, err error) {
-	var (
-		asn1Subj, csrData []byte
-		priKey            interface{}
-	)
-	if subject.CommonName == "" {
-		return nil, errors.New("missing commonName")
-	}
-	rawSubj := subject.ToRDNSequence()
-
-	if asn1Subj, err = asn1.Marshal(rawSubj); err != nil {
-		return nil, err
-	}
-
-	template := x509.CertificateRequest{
-		RawSubject:         asn1Subj,
-		SignatureAlgorithm: signatureAlgorithm,
-		DNSNames:           []string{subject.CommonName},
-	}
-
-	if priKey, err = cc.getPriKeyFromBytes(PriBytes); nil != err {
-		return nil, err
-	}
-	csrData, err = x509.CreateCertificateRequest(rand.Reader, &template, priKey)
-	if err != nil {
-		return nil, err
-	}
-	// 将block的PEM编码写入
-	return pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE REQUEST", Bytes: csrData}), nil
-}
 
 func (cc *CertConfig) generateCryptoRootCrt(priKeyBytes []byte, subject pkix.Name,
 	signatureAlgorithm x509.SignatureAlgorithm, filePath string) (certBytes []byte, err error) {
@@ -99,34 +59,6 @@ func (cc *CertConfig) generateCryptoRootCrt(priKeyBytes []byte, subject pkix.Nam
 	}
 	// 将block的PEM编码写入
 	return pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: certData}), nil
-}
-
-func (cc *CertConfig) signCertificateCA(commonName string, ca *ca.CA, pubKey *ecdsa.PublicKey) (certBytes []byte, err error) {
-	tmpPath := path.Join(os.TempDir(), strconv.FormatInt(time.Now().UnixNano(), 10))
-	if err = os.MkdirAll(tmpPath, 0755); nil != err && !gnomon.File().PathExists(tmpPath) {
-		return nil, err
-	}
-	if _, err := ca.SignCertificate(tmpPath, commonName, nil, []string{commonName}, pubKey,
-		x509.KeyUsageDigitalSignature|x509.KeyUsageKeyEncipherment, []x509.ExtKeyUsage{x509.ExtKeyUsageAny}); nil != err {
-		return nil, err
-	}
-	return ioutil.ReadFile(filepath.Join(tmpPath, strings.Join([]string{commonName, "cert.pem"}, "-")))
-}
-
-func (cc *CertConfig) getCA(rootCaDir string, subject *ca2.Subject) *ca.CA {
-	_, signer, _ := csp.LoadPrivateKey(rootCaDir)
-	cert, _ := ca.LoadCertificateECDSA(rootCaDir)
-
-	return &ca.CA{
-		Signer:             signer,
-		SignCert:           cert,
-		Country:            subject.Country,
-		Province:           subject.Province,
-		Locality:           subject.Locality,
-		OrganizationalUnit: subject.OrgUnit,
-		StreetAddress:      subject.StreetAddress,
-		PostalCode:         subject.PostalCode,
-	}
 }
 
 // generateCryptoOrgChildTlsCaCrt 生成组织子节点/用户tls证书
@@ -164,28 +96,6 @@ func (cc *CertConfig) generateCryptoChildCrt(rootCertBytes, priParentBytes, pubB
 	}
 	// 将block的PEM编码写入
 	return pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: certData}), nil
-}
-
-func (cc *CertConfig) getPriKeyFromBytes(priKeyData []byte) (priKey interface{}, err error) {
-	var priEccKey *ecdsa.PrivateKey
-	if priEccKey, err = gnomon.CryptoECC().LoadPriPem(priKeyData); nil != err {
-		var (
-			priRsaKey *rsa.PrivateKey
-			pks       gnomon.PKSCType
-		)
-		pks = gnomon.CryptoRSA().PKSC8()
-		if priRsaKey, err = gnomon.CryptoRSA().LoadPri(priKeyData, pks); nil != err {
-			pks = gnomon.CryptoRSA().PKSC1()
-			if priRsaKey, err = gnomon.CryptoRSA().LoadPri(priKeyData, pks); nil != err {
-				return nil, errors.New("private key is not support")
-			}
-		}
-		priKey = priRsaKey
-	} else {
-		priKey = priEccKey
-
-	}
-	return
 }
 
 func (cc *CertConfig) getPriKey(priKeyData []byte) (crypto.Signer, error) {
@@ -228,13 +138,5 @@ func (cc *CertConfig) getCertKey(priParentKeyData, pubKeyData []byte) (priParent
 			return
 		}
 	}
-	return
-}
-
-func (cc *CertConfig) getRootCA(leagueDomain string) (caPath, caFileName, tlsCaPath, tlsCaFileName string) {
-	caPath = utils.CryptoRootCATmpPath(leagueDomain)
-	caFileName = utils.RootCACertFileName(leagueDomain)
-	tlsCaPath = utils.CryptoRootTLSCATmpPath(leagueDomain)
-	tlsCaFileName = utils.RootTLSCACertFileName(leagueDomain)
 	return
 }

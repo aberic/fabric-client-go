@@ -41,7 +41,7 @@ func TestGenerateCryptoECC256(t *testing.T) {
 
 func TestGenerateCryptoCA(t *testing.T) {
 	kc := &keyConfig{}
-	skName, priKeyBytes, pubKeyBytes, err := kc.generateCryptoCA("test")
+	skName, priKeyBytes, pubKeyBytes, err := kc.generateCryptoCa("test")
 	if nil != err {
 		t.Fatal(err)
 	}
