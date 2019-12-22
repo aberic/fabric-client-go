@@ -16,14 +16,9 @@ package ca
 
 import (
 	"crypto/elliptic"
-	"crypto/x509"
-	"encoding/pem"
 	"errors"
-	"github.com/aberic/fabric-client-go/utils"
 	"github.com/aberic/gnomon"
-	"github.com/hyperledger/fabric/common/tools/cryptogen/csp"
 	"io/ioutil"
-	"os"
 	"path"
 	"path/filepath"
 	"strconv"
@@ -61,35 +56,6 @@ func (kc *keyConfig) generateCrypto(cryptoType cryptoType, bits cryptoAlgorithm)
 	case cryptoRSA:
 		return kc.cryptoRSA(bits)
 	}
-}
-
-func (kc *keyConfig) generateCryptoCa(childName string) (skName string, priKeyBytes, pubKeyBytes []byte, err error) {
-	tmpPath := path.Join(os.TempDir(), childName, strconv.FormatInt(time.Now().UnixNano(), 10))
-	priKey, _, err := csp.GeneratePrivateKey(tmpPath)
-	if nil != err {
-		return
-	}
-	if skName, err = utils.ObtainSKI(priKey); nil != err {
-		return
-	}
-	if priKeyBytes, err = ioutil.ReadFile(filepath.Join(tmpPath, skName)); nil != err {
-		return
-	}
-	pubKey, err := csp.GetECPublicKey(priKey)
-	if nil != err {
-		return
-	}
-	// 将公钥序列化为der编码的PKIX格式
-	derPkiX, err := x509.MarshalPKIXPublicKey(pubKey)
-	if nil != err {
-		return
-	}
-	block := &pem.Block{
-		Type:  "PUBLIC KEY",
-		Bytes: derPkiX,
-	}
-	pubKeyBytes = pem.EncodeToMemory(block)
-	return
 }
 
 // cryptoRSA 生成rsa密钥对

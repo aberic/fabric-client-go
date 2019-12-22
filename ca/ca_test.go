@@ -15,8 +15,6 @@
 package ca
 
 import (
-	"crypto/x509"
-	"crypto/x509/pkix"
 	"github.com/aberic/fabric-client-go/grpc/proto/ca"
 	"github.com/aberic/fabric-client-go/utils"
 	"github.com/aberic/gnomon"
@@ -65,6 +63,11 @@ func testOrg(leagueDomain, orgName, orgDomain string, isOrder bool, t *testing.T
 			PostalCode:    "443000",
 		},
 		Config: &ca.CryptoConfig{
+			CryptoType:    ca.CryptoType_ECDSA,
+			Algorithm:     algorithm,
+			SignAlgorithm: ca.SignAlgorithm_ECDSAWithSHA256,
+		},
+		TlsConfig: &ca.CryptoConfig{
 			CryptoType:    ca.CryptoType_ECDSA,
 			Algorithm:     algorithm,
 			SignAlgorithm: ca.SignAlgorithm_ECDSAWithSHA256,
@@ -121,9 +124,6 @@ func testStoreOrg(leagueDomain, orgName, orgDomain string, orc *ca.RespRootCrypt
 	tlsPubKeyFileName := "tls.pub"
 	tlsCaCertFileName := "tls.crt"
 	tlsCertFileName := strings.Join([]string{"tlsca.", orgName, ".", orgDomain, "-cert.pem"}, "")
-	if _, err := gnomon.File().Append(filepath.Join(orgRootFilePath, orc.SkName), orc.PriKeyBytes, true); nil != err {
-		t.Fatal(err)
-	}
 	if _, err := gnomon.File().Append(filepath.Join(orgRootFilePath, priKeyFileName), orc.PriKeyBytes, true); nil != err {
 		t.Fatal(err)
 	}
@@ -153,103 +153,79 @@ func testStoreOrg(leagueDomain, orgName, orgDomain string, orc *ca.RespRootCrypt
 func testChild(leagueDomain, orgName, orgDomain, childName string, isUser bool, rootCertBytes, priParentBytes, rootTlsCertBytes, tlsPriParentBytes []byte, t *testing.T) {
 	childRootFilePath := filepath.Join(utils.ObtainDataPath(), leagueDomain, strings.Join([]string{orgName, orgDomain}, "."), childName)
 	// ca
-	skName, priKeyBytes, pubKeyBytes, err := generateCryptoCa(childName)
-	if nil != err {
-		t.Fatal(err)
-	}
-	t.Log(skName)
-	t.Log(string(priKeyBytes))
-	t.Log(string(pubKeyBytes))
-	if _, err := gnomon.File().Append(filepath.Join(childRootFilePath, skName), priKeyBytes, true); nil != err {
-		t.Fatal(err)
-	}
-	if _, err := gnomon.File().Append(filepath.Join(childRootFilePath, "ca.key"), priKeyBytes, true); nil != err {
-		t.Fatal(err)
-	}
-	if _, err := gnomon.File().Append(filepath.Join(childRootFilePath, "ca.pub"), pubKeyBytes, true); nil != err {
-		t.Fatal(err)
-	}
-	// tls ca
-	tlsPriKeyBytes, tlsPubKeyBytes, err := generateCryptoTlsCa(&ca.CryptoConfig{
-		CryptoType:    ca.CryptoType_ECDSA,
-		Algorithm:     algorithm,
-		SignAlgorithm: ca.SignAlgorithm_ECDSAWithSHA256,
+	crypto, err := generateCrypto(&ca.ReqCrypto{
+		Config: &ca.CryptoConfig{
+			CryptoType:    ca.CryptoType_ECDSA,
+			Algorithm:     algorithm,
+			SignAlgorithm: ca.SignAlgorithm_ECDSAWithSHA256,
+		},
 	})
 	if nil != err {
 		t.Fatal(err)
 	}
-	if _, err := gnomon.File().Append(filepath.Join(childRootFilePath, "tls.key"), tlsPriKeyBytes, true); nil != err {
+	t.Log(crypto)
+	if _, err := gnomon.File().Append(filepath.Join(childRootFilePath, "ca.key"), crypto.PriKeyBytes, true); nil != err {
 		t.Fatal(err)
 	}
-	if _, err := gnomon.File().Append(filepath.Join(childRootFilePath, "tls.pub"), tlsPubKeyBytes, true); nil != err {
+	if _, err := gnomon.File().Append(filepath.Join(childRootFilePath, "ca.pub"), crypto.PubKeyBytes, true); nil != err {
+		t.Fatal(err)
+	}
+	// tls ca
+	tlsCrypto, err := generateCrypto(&ca.ReqCrypto{
+		Config: &ca.CryptoConfig{
+			CryptoType:    ca.CryptoType_ECDSA,
+			Algorithm:     algorithm,
+			SignAlgorithm: ca.SignAlgorithm_ECDSAWithSHA256,
+		},
+	})
+	if nil != err {
+		t.Fatal(err)
+	}
+	if _, err := gnomon.File().Append(filepath.Join(childRootFilePath, "tls.key"), tlsCrypto.PriKeyBytes, true); nil != err {
+		t.Fatal(err)
+	}
+	if _, err := gnomon.File().Append(filepath.Join(childRootFilePath, "tls.pub"), tlsCrypto.PubKeyBytes, true); nil != err {
 		t.Fatal(err)
 	}
 
 	// 签名 ca 证书
-	testSignCA(leagueDomain, orgName, orgDomain, childName, isUser, rootCertBytes, priParentBytes, pubKeyBytes, t)
+	testSignCA(leagueDomain, orgName, orgDomain, childName, isUser, false, rootCertBytes, priParentBytes, crypto.PubKeyBytes, t)
 	// 签名 tls ca 证书
-	testSignTlsCA(leagueDomain, orgName, orgDomain, childName, isUser, rootTlsCertBytes, tlsPriParentBytes, tlsPubKeyBytes, t)
+	testSignCA(leagueDomain, orgName, orgDomain, childName, isUser, true, rootTlsCertBytes, tlsPriParentBytes, tlsCrypto.PubKeyBytes, t)
 }
 
-func testSignCA(leagueDomain, orgName, orgDomain, childName string, isUser bool, rootTlsCertBytes, tlsPriParentBytes, tlsPubBytes []byte, t *testing.T) {
+func testSignCA(leagueDomain, orgName, orgDomain, childName string, isUser, isTls bool, rootTlsCertBytes, tlsPriParentBytes, tlsPubBytes []byte, t *testing.T) {
 	var (
-		commonName, certFileName string
-		certBytes                []byte
-		cc                       = &CertConfig{}
-		err                      error
+		certFileName string
+		respSC       *ca.RespSignCertificate
+		err          error
 	)
-	if isUser {
-		commonName = utils.CertUserCANameWithOutCert(orgName, orgDomain, childName)
-		certFileName = utils.CertUserCAName(orgName, orgDomain, childName)
-	} else {
-		commonName = utils.CertNodeCANameWithOutCert(orgName, orgDomain, childName)
-		certFileName = utils.CertNodeCAName(orgName, orgDomain, childName)
-	}
-	if certBytes, err = cc.generateCryptoChildCrt(rootTlsCertBytes, tlsPriParentBytes, tlsPubBytes, pkix.Name{
-		Country:            []string{"CN"},
-		Organization:       []string{orgName},
-		OrganizationalUnit: []string{childName},
-		Locality:           []string{"Beijing"},
-		Province:           []string{"Beijing"},
-		CommonName:         commonName,
-	}, x509.ECDSAWithSHA256); nil != err {
+	if respSC, err = signCertificate(&ca.ReqSignCertificate{
+		OrgName:         orgName,
+		OrgDomain:       orgDomain,
+		ChildName:       childName,
+		IsUser:          isUser,
+		ParentCertBytes: rootTlsCertBytes,
+		ParentPriBytes:  tlsPriParentBytes,
+		PubBytes:        tlsPubBytes,
+		Subject: &ca.Subject{
+			Country:  "CN",
+			Province: "Beijing",
+			Locality: "Beijing",
+			OrgUnit:  childName,
+		},
+		SignAlgorithm: ca.SignAlgorithm_ECDSAWithSHA256,
+	}); nil != err {
 		t.Error(err)
 	}
-	t.Log(string(certBytes))
+	t.Log(string(respSC.CertBytes))
 	childRootFilePath := filepath.Join(utils.ObtainDataPath(), leagueDomain, strings.Join([]string{orgName, orgDomain}, "."), childName)
-	if _, err := gnomon.File().Append(filepath.Join(childRootFilePath, certFileName), certBytes, true); nil != err {
-		t.Fatal(err)
-	}
-	if _, err := gnomon.File().Append(filepath.Join(childRootFilePath, "ca.crt"), certBytes, true); nil != err {
-		t.Fatal(err)
-	}
-}
-
-func testSignTlsCA(leagueDomain, orgName, orgDomain, childName string, isUser bool, rootTlsCertBytes, tlsPriParentBytes, tlsPubBytes []byte, t *testing.T) {
-	var (
-		commonName string
-		certBytes  []byte
-		cc         = &CertConfig{}
-		err        error
-	)
-	if isUser {
-		commonName = utils.CertUserCANameWithOutCert(orgName, orgDomain, childName)
+	if isTls {
+		certFileName = "tls.crt"
 	} else {
-		commonName = utils.CertNodeCANameWithOutCert(orgName, orgDomain, childName)
+		certFileName = "ca.crt"
 	}
-	if certBytes, err = cc.generateCryptoChildCrt(rootTlsCertBytes, tlsPriParentBytes, tlsPubBytes, pkix.Name{
-		Country:            []string{"CN"},
-		Organization:       []string{orgName},
-		OrganizationalUnit: []string{childName},
-		Locality:           []string{"Beijing"},
-		Province:           []string{"Beijing"},
-		CommonName:         commonName,
-	}, x509.ECDSAWithSHA256); nil != err {
-		t.Error(err)
-	}
-	t.Log(string(certBytes))
-	childRootFilePath := filepath.Join(utils.ObtainDataPath(), leagueDomain, strings.Join([]string{orgName, orgDomain}, "."), childName)
-	if _, err := gnomon.File().Append(filepath.Join(childRootFilePath, "tls.crt"), certBytes, true); nil != err {
+	if _, err := gnomon.File().Append(filepath.Join(childRootFilePath, certFileName), respSC.CertBytes, true); nil != err {
 		t.Fatal(err)
 	}
 }

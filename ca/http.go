@@ -15,70 +15,58 @@
 package ca
 
 import (
+	"github.com/aberic/fabric-client-go/grpc/proto/ca"
+	"github.com/aberic/fabric-client-go/utils"
 	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 func Router(r *gin.Engine) {
 	// 仓库相关路由设置
-	//vRepo := r.Group("/ca")
-	//vRepo.POST("/generate/crypto", routerGenerateCrypto)
-	//vRepo.POST("/generate/crt/league", routerGenerateLeagueCrt)
-	//vRepo.POST("/generate/csr/child", routerGenerateOrgChildCsr)
-	//vRepo.POST("/generate/crt/child", routerGenerateOrgChildCrt)
+	vRepo := r.Group("/ca")
+	vRepo.POST("/generate/crypto/root", routerGenerateRootCrypto)
+	vRepo.POST("/generate/crypto", routerGenerateCrypto)
+	vRepo.POST("/sign/crt", routerSignCertificate)
+}
+
+// routerGenerateRootCrypto 生成联盟根证书
+func routerGenerateRootCrypto(c *gin.Context) {
+	defer utils.CatchAllErr(c)
+	serviceModel := new(ca.ReqRootCrypto)
+	if err := c.ShouldBindJSON(serviceModel); err != nil {
+		resp := &utils.RespImpl{}
+		resp.Fail(err.Error())
+		c.JSON(http.StatusOK, resp)
+		return
+	}
+	resp, _ := generateRootCrypto(serviceModel)
+	c.JSON(http.StatusOK, resp)
 }
 
 // routerGenerateCrypto 生成密钥对
-//func routerGenerateCrypto(c *gin.Context) {
-//	defer utils.CatchAllErr(c)
-//	serviceModel := new(ca.ReqKeyConfig)
-//	if err := c.ShouldBindJSON(serviceModel); err != nil {
-//		resp := &utils.RespImpl{}
-//		resp.Fail(err.Error())
-//		c.JSON(http.StatusOK, resp)
-//		return
-//	}
-//	resp, _ := generateCrypto(serviceModel)
-//	c.JSON(http.StatusOK, resp)
-//}
+func routerGenerateCrypto(c *gin.Context) {
+	defer utils.CatchAllErr(c)
+	serviceModel := new(ca.ReqCrypto)
+	if err := c.ShouldBindJSON(serviceModel); err != nil {
+		resp := &utils.RespImpl{}
+		resp.Fail(err.Error())
+		c.JSON(http.StatusOK, resp)
+		return
+	}
+	resp, _ := generateCrypto(serviceModel)
+	c.JSON(http.StatusOK, resp)
+}
 
-// routerGenerateLeagueCrt 生成联盟根证书
-//func routerGenerateLeagueCrt(c *gin.Context) {
-//	defer utils.CatchAllErr(c)
-//	serviceModel := new(ca.ReqCreateLeague)
-//	if err := c.ShouldBindJSON(serviceModel); err != nil {
-//		resp := &utils.RespImpl{}
-//		resp.Fail(err.Error())
-//		c.JSON(http.StatusOK, resp)
-//		return
-//	}
-//	resp, _ := generateLeagueCrt(serviceModel)
-//	c.JSON(http.StatusOK, resp)
-//}
-//
-//// routerGenerateOrgChildCsr 生成CA请求证书文件
-//func routerGenerateOrgChildCsr(c *gin.Context) {
-//	defer utils.CatchAllErr(c)
-//	serviceModel := new(ca.ReqCreateCsr)
-//	if err := c.ShouldBindJSON(serviceModel); err != nil {
-//		resp := &utils.RespImpl{}
-//		resp.Fail(err.Error())
-//		c.JSON(http.StatusOK, resp)
-//		return
-//	}
-//	resp, _ := generateOrgChildCsr(serviceModel)
-//	c.JSON(http.StatusOK, resp)
-//}
-//
-//// routerGenerateOrgChildCrt 生成组织下子节点/用户证书
-//func routerGenerateOrgChildCrt(c *gin.Context) {
-//	defer utils.CatchAllErr(c)
-//	serviceModel := new(ca.ReqCreateOrgChild)
-//	if err := c.ShouldBindJSON(serviceModel); err != nil {
-//		resp := &utils.RespImpl{}
-//		resp.Fail(err.Error())
-//		c.JSON(http.StatusOK, resp)
-//		return
-//	}
-//	resp, _ := generateOrgChildCrt(serviceModel)
-//	c.JSON(http.StatusOK, resp)
-//}
+// routerSignCertificate 生成组织下子节点/用户证书
+func routerSignCertificate(c *gin.Context) {
+	defer utils.CatchAllErr(c)
+	serviceModel := new(ca.ReqSignCertificate)
+	if err := c.ShouldBindJSON(serviceModel); err != nil {
+		resp := &utils.RespImpl{}
+		resp.Fail(err.Error())
+		c.JSON(http.StatusOK, resp)
+		return
+	}
+	resp, _ := signCertificate(serviceModel)
+	c.JSON(http.StatusOK, resp)
+}

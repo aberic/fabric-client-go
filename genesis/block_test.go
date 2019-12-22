@@ -54,7 +54,7 @@ func TestGenesisBlock(t *testing.T) {
 
 func TestGenesisChannel(t *testing.T) {
 	genesis := testGenesisSet(t)
-	data, err := genesis.CreateChannelCreateTx("test", "mychannel01")
+	data, err := genesis.CreateChannelCreateTx("test", "mychannel02")
 	if nil != err {
 		t.Fatal(err)
 	}
@@ -94,7 +94,7 @@ func testGenesisSet(t *testing.T) *Genesis {
 		}
 		adminPath := path.Join(orgPath, "Admin")
 
-		adminCertBytes, err := ioutil.ReadFile(filepath.Join(adminPath, utils.CertUserCAName(orgName, orgDomain, "Admin")))
+		adminCertBytes, err := ioutil.ReadFile(filepath.Join(adminPath, "ca.crt"))
 		if nil != err {
 			t.Fatal(err)
 		}
@@ -126,7 +126,7 @@ func testGenesisSet(t *testing.T) *Genesis {
 		orgPath := path.Join(utils.ObtainDataPath(), leagueDomain, strings.Join([]string{orgName, orgDomain}, "."))
 		adminPath := path.Join(orgPath, "Admin")
 
-		adminCertBytes, err := ioutil.ReadFile(filepath.Join(adminPath, utils.CertUserCAName(orgName, orgDomain, "Admin")))
+		adminCertBytes, err := ioutil.ReadFile(filepath.Join(adminPath, "ca.crt"))
 		if nil != err {
 			t.Fatal(err)
 		}

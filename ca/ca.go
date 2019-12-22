@@ -27,58 +27,71 @@ import (
 
 func generateRootCrypto(org *ca.ReqRootCrypto) (*ca.RespRootCrypto, error) {
 	var (
-		caCommonName                          = utils.CertOrgCaNameWithOutCert(org.Name, org.Domain)
-		tlscaCommonName                       = utils.CertOrgTlsCaNameWithOutCert(org.Name, org.Domain)
-		skName                                string
-		priBytes, pubBytes, certBytes         []byte
-		tlsPriBytes, tlsPubBytes, tlsCertByte []byte
-		cc                                    = &CertConfig{}
-		err                                   error
+		caCommonName           = utils.CertOrgCaNameWithOutCert(org.Name, org.Domain)
+		tlscaCommonName        = utils.CertOrgTlsCaNameWithOutCert(org.Name, org.Domain)
+		crypto, tlsCrypto      *ca.RespCrypto
+		certBytes, tlsCertByte []byte
+		cc                     = &CertConfig{}
+		err                    error
 	)
 	// ca
-	if priBytes, pubBytes, err = generateCryptoTlsCa(org.Config); nil != err {
-		return nil, err
-	}
-	if skName, err = utils.SKI("leagueDomain", org.Domain, org.Name, "childName", false, priBytes); nil != err {
+	if crypto, err = generateCrypto(&ca.ReqCrypto{Config: org.Config}); nil != err {
 		return nil, err
 	}
 	// ca cert
-	if certBytes, err = cc.generateCryptoRootCrt(priBytes, getSub(org.Name, caCommonName, org.Subject),
+	if certBytes, err = cc.generateCryptoRootCrt(crypto.PriKeyBytes, getSub(org.Name, caCommonName, org.Subject),
 		getSignAlgorithm(org.Config.SignAlgorithm), filepath.Join(os.TempDir(), strconv.FormatInt(time.Now().UnixNano(), 10))); nil != err {
 		return &ca.RespRootCrypto{Code: ca.Code_Fail, ErrMsg: err.Error()}, err
 	}
 	// tls ca
-	if tlsPriBytes, tlsPubBytes, err = generateCryptoTlsCa(org.Config); nil != err {
+	if tlsCrypto, err = generateCrypto(&ca.ReqCrypto{Config: org.TlsConfig}); nil != err {
 		return nil, err
 	}
 	// tls ca cert
-	if tlsCertByte, err = cc.generateCryptoRootCrt(tlsPriBytes, getSub(org.Name, tlscaCommonName, org.Subject),
-		getSignAlgorithm(org.Config.SignAlgorithm), filepath.Join(os.TempDir(), strconv.FormatInt(time.Now().UnixNano(), 10))); nil != err {
+	if tlsCertByte, err = cc.generateCryptoRootCrt(tlsCrypto.PriKeyBytes, getSub(org.Name, tlscaCommonName, org.Subject),
+		getSignAlgorithm(org.TlsConfig.SignAlgorithm), filepath.Join(os.TempDir(), strconv.FormatInt(time.Now().UnixNano(), 10))); nil != err {
 		return &ca.RespRootCrypto{Code: ca.Code_Fail, ErrMsg: err.Error()}, err
 	}
 	return &ca.RespRootCrypto{
 		Code:           ca.Code_Success,
-		SkName:         skName,
-		PriKeyBytes:    priBytes,
-		PubKeyBytes:    pubBytes,
+		PriKeyBytes:    crypto.PriKeyBytes,
+		PubKeyBytes:    crypto.PubKeyBytes,
 		CertBytes:      certBytes,
-		TlsPriKeyBytes: tlsPriBytes,
-		TlsPubKeyBytes: tlsPubBytes,
+		TlsPriKeyBytes: tlsCrypto.PriKeyBytes,
+		TlsPubKeyBytes: tlsCrypto.PubKeyBytes,
 		TlsCertBytes:   tlsCertByte,
 	}, nil
 }
 
-// generateCryptoCa 生成密钥对
-func generateCryptoCa(childName string) (skName string, priKeyBytes, pubKeyBytes []byte, err error) {
+// generateCrypto 生成密钥对
+func generateCrypto(crypto *ca.ReqCrypto) (*ca.RespCrypto, error) {
 	kc := &keyConfig{}
-	return kc.generateCryptoCa(childName)
+	cryptoType, cryptoAlgorithm := generateCryptoParams(crypto.Config)
+	priKeyBytes, pubKeyBytes, err := kc.generateCrypto(cryptoType, cryptoAlgorithm)
+	if nil != err {
+		return &ca.RespCrypto{Code: ca.Code_Fail, ErrMsg: err.Error()}, err
+	}
+	return &ca.RespCrypto{Code: ca.Code_Success, PriKeyBytes: priKeyBytes, PubKeyBytes: pubKeyBytes}, nil
 }
 
-// generateCryptoTlsCa 生成密钥对
-func generateCryptoTlsCa(config *ca.CryptoConfig) (priBytes, pubBytes []byte, err error) {
-	kc := &keyConfig{}
-	cryptoType, cryptoAlgorithm := generateCryptoParams(config)
-	return kc.generateCrypto(cryptoType, cryptoAlgorithm)
+// signCertificate 签名证书
+func signCertificate(rsc *ca.ReqSignCertificate) (*ca.RespSignCertificate, error) {
+	var (
+		commonName string
+		certBytes  []byte
+		cc         = &CertConfig{}
+		err        error
+	)
+	if rsc.IsUser {
+		commonName = utils.CertUserCANameWithOutCert(rsc.OrgName, rsc.OrgDomain, rsc.ChildName)
+	} else {
+		commonName = utils.CertNodeCANameWithOutCert(rsc.OrgName, rsc.OrgDomain, rsc.ChildName)
+	}
+	if certBytes, err = cc.generateCryptoChildCrt(rsc.ParentCertBytes, rsc.ParentPriBytes, rsc.PubBytes,
+		getSub(rsc.OrgName, commonName, rsc.Subject), getSignAlgorithm(rsc.SignAlgorithm)); nil != err {
+		return &ca.RespSignCertificate{Code: ca.Code_Fail, ErrMsg: err.Error()}, err
+	}
+	return &ca.RespSignCertificate{Code: ca.Code_Success, CertBytes: certBytes}, nil
 }
 
 func generateCryptoParams(config *ca.CryptoConfig) (ct cryptoType, cal cryptoAlgorithm) {

@@ -14,35 +14,25 @@
 
 package ca
 
+import (
+	"context"
+	"github.com/aberic/fabric-client-go/grpc/proto/ca"
+)
+
 // GenerateServer grpc生成服务结构
 type GenerateServer struct{}
 
-// GenerateCrypto 生成密钥对
-//func (gc *GenerateServer) GenerateRootCrypto(ctx context.Context, req *ca.ReqRootCrypto) (*ca.RespRootCrypto, error) {
-//	return generateCrypto(req)
-//}
+// GenerateRootCrypto 生成联盟根证书
+func (gc *GenerateServer) GenerateRootCrypto(ctx context.Context, req *ca.ReqRootCrypto) (*ca.RespRootCrypto, error) {
+	return generateRootCrypto(req)
+}
 
-//// GenerateLeagueCrt 生成联盟根证书
-//func (gc *GenerateServer) GenerateLeagueCrt(ctx context.Context, league *ca.ReqCreateLeague) (*ca.RespCreateLeague, error) {
-//	return generateLeagueCrt(league)
-//}
-//
-//// GenerateOrgChildCsr 生成CA请求证书文件
-//func (gc *GenerateServer) GenerateOrgChildCsr(ctx context.Context, csr *ca.ReqCreateCsr) (*ca.RespCreateCsr, error) {
-//	return generateOrgChildCsr(csr)
-//}
-//
-//// GenerateOrgChildCrt 生成组织下子节点/用户证书
-//func (gc *GenerateServer) GenerateOrgChildCrt(ctx context.Context, child *ca.ReqCreateOrgChild) (*ca.RespCreateOrgChild, error) {
-//	return generateOrgChildCrt(child)
-//}
-//
-//// GenerateOrgChildCrt 生成组织下子节点/用户证书
-//func (gc *GenerateServer) GenerateOrgChildCrtCa(ctx context.Context, child *ca.ReqCreateOrgChildCa) (*ca.RespCreateOrgChildCa, error) {
-//	return generateOrgChildCaCrt(child)
-//}
-//
-//// GenerateOrgChildCrt 生成组织下子节点/用户证书
-//func (gc *GenerateServer) GenerateOrgChildCrtTlsCa(ctx context.Context, child *ca.ReqCreateOrgChildTlsCa) (*ca.RespCreateOrgChildTlsCa, error) {
-//	return generateOrgChildTlsCaCrt(child)
-//}
+// GenerateCrypto 生成密钥对
+func (gc *GenerateServer) GenerateCrypto(ctx context.Context, league *ca.ReqCrypto) (*ca.RespCrypto, error) {
+	return generateCrypto(league)
+}
+
+// SignCertificate 生成组织下子节点/用户证书
+func (gc *GenerateServer) SignCertificate(ctx context.Context, child *ca.ReqSignCertificate) (*ca.RespSignCertificate, error) {
+	return signCertificate(child)
+}

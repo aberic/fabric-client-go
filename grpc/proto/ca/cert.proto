@@ -13,6 +13,7 @@ message ReqRootCrypto {
     string domain = 2;
     Subject subject = 3;
     CryptoConfig config = 4;
+    CryptoConfig tlsConfig = 5;
 }
 
 message RespRootCrypto {
@@ -20,13 +21,46 @@ message RespRootCrypto {
     Code code = 1;
     // 当且仅当返回码为1时，此处包含错误信息
     string errMsg = 2;
-    string skName = 3;
     bytes priKeyBytes = 4;
     bytes pubKeyBytes = 5;
     bytes certBytes = 6;
     bytes tlsPriKeyBytes = 7;
     bytes tlsPubKeyBytes = 8;
     bytes tlsCertBytes = 9;
+}
+
+message ReqCrypto {
+    CryptoConfig config = 1;
+}
+
+message RespCrypto {
+    // 请求返回结果：success=0；fail=1
+    Code code = 1;
+    // 当且仅当返回码为1时，此处包含错误信息
+    string errMsg = 2;
+    bytes priKeyBytes = 4;
+    bytes pubKeyBytes = 5;
+}
+
+message ReqSignCertificate {
+    string orgName = 1;
+    string orgDomain = 2;
+    string childName = 3;
+    bool isUser = 4;
+    bytes parentCertBytes = 5;
+    bytes parentPriBytes = 6;
+    bytes pubBytes = 7;
+    Subject subject = 8;
+    // 签名算法
+    SignAlgorithm signAlgorithm = 9;
+}
+
+message RespSignCertificate {
+    // 请求返回结果：success=0；fail=1
+    Code code = 1;
+    // 当且仅当返回码为1时，此处包含错误信息
+    string errMsg = 2;
+    bytes certBytes = 4;
 }
 
 message ReqChildCa {
