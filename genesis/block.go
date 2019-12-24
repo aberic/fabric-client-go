@@ -33,12 +33,12 @@ type Genesis struct {
 	allOrganizations   []*genesisconfig.Organization
 }
 
-func (g *Genesis) Set() (err error) {
+func (g *Genesis) set() (err error) {
 	g.orderOrganizations, g.peerOrganizations, g.allOrganizations, err = g.organizations(g.Info.Orgs)
 	return
 }
 
-func (g *Genesis) ObtainGenesisBlockData(consortium string) ([]byte, error) {
+func (g *Genesis) obtainGenesisBlockData(consortium string) ([]byte, error) {
 	data, err := resource.CreateGenesisBlock(g.genesisBlockConfigProfile(consortium), consortium)
 	if nil != err {
 		return nil, err
@@ -46,7 +46,7 @@ func (g *Genesis) ObtainGenesisBlockData(consortium string) ([]byte, error) {
 	return data, err
 }
 
-func (g *Genesis) CreateGenesisBlock(consortium string) ([]byte, error) {
+func (g *Genesis) createGenesisBlock(consortium string) ([]byte, error) {
 	data, err := resource.CreateGenesisBlock(g.genesisBlockConfigProfile(consortium), consortium)
 	if nil != err {
 		return nil, err
@@ -57,7 +57,7 @@ func (g *Genesis) CreateGenesisBlock(consortium string) ([]byte, error) {
 	return data, err
 }
 
-func (g *Genesis) CreateChannelCreateTx(consortium, channelID string) ([]byte, error) {
+func (g *Genesis) createChannelCreateTx(consortium, channelID string) ([]byte, error) {
 	data, err := resource.CreateChannelCreateTx(g.genesisChannelTxConfigProfile(consortium), nil, channelID)
 	if nil != err {
 		return nil, err

@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+option java_package = "cn.aberic.fabric-client.grpc.proto.genesis";
+option java_outer_classname = "ServerProto";
+option go_package = "grpc/proto/genesis";
+
+package genesis;
+
+import "grpc/proto/genesis/block.proto";
+
+// fabric组织访问相关配置服务
+service Genesis {
+    // 设置新的组织配置信息，用于访问fabric网络
+    rpc GenesisBlock (ReqGenesis) returns (RespGenesis) {
+    }
+    // 获取组织配置信息详情
+    rpc GenesisChannelTx (ReqChannelTx) returns (RespChannelTx) {
+    }
+}

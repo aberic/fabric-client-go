@@ -28,7 +28,7 @@ import (
 
 func TestGenesis_Set(t *testing.T) {
 	genesis := testGenesisSet(t)
-	blockBytes, err := genesis.ObtainGenesisBlockData("test")
+	blockBytes, err := genesis.obtainGenesisBlockData("test")
 	if nil != err {
 		t.Fatal(err)
 	}
@@ -41,7 +41,7 @@ func TestGenesis_Set(t *testing.T) {
 
 func TestGenesisBlock(t *testing.T) {
 	genesis := testGenesisSet(t)
-	data, err := genesis.CreateGenesisBlock("test")
+	data, err := genesis.createGenesisBlock("test")
 	if nil != err {
 		t.Fatal(err)
 	}
@@ -54,7 +54,7 @@ func TestGenesisBlock(t *testing.T) {
 
 func TestGenesisChannel(t *testing.T) {
 	genesis := testGenesisSet(t)
-	data, err := genesis.CreateChannelCreateTx("test", "mychannel02")
+	data, err := genesis.createChannelCreateTx("test", "mychannel02")
 	if nil != err {
 		t.Fatal(err)
 	}
@@ -191,7 +191,7 @@ func testGenesisSet(t *testing.T) *Genesis {
 			Orgs: orgs,
 		},
 	}
-	if err := genesis.Set(); nil != err {
+	if err := genesis.set(); nil != err {
 		t.Fatal(err)
 	}
 
