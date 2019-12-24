@@ -15,6 +15,7 @@
 package config
 
 import (
+	"errors"
 	"github.com/aberic/fabric-client-go/grpc/proto/config"
 	"github.com/aberic/fabric-client-go/utils"
 	"github.com/aberic/gnomon"
@@ -41,8 +42,9 @@ type Organization struct {
 }
 
 type User struct {
-	Key  *Key  `yaml:"key"`
-	Cert *Cert `yaml:"cert"`
+	IsAdmin bool
+	Key     *Key  `yaml:"key"`
+	Cert    *Cert `yaml:"cert"`
 }
 
 type Key struct {
@@ -53,7 +55,10 @@ type Cert struct {
 	Path string `yaml:"path"`
 }
 
-func (o *Organization) setOrderer(leagueDomain string, orderer *config.Orderer) {
+func (o *Organization) setOrderer(leagueDomain string, orderer *config.Orderer) error {
+	if nil == orderer.User || len(orderer.Nodes) <= 0 {
+		return errors.New("node or user can't be empty")
+	}
 	if gnomon.String().IsNotEmpty(orderer.MspID) {
 		o.MspID = orderer.MspID
 	} else {
@@ -64,12 +69,17 @@ func (o *Organization) setOrderer(leagueDomain string, orderer *config.Orderer) 
 	o.Users = map[string]*User{}
 	userPemFileName := utils.CertUserCAName(orderer.Name, orderer.Domain, orderer.Username)
 	o.Users[orderer.Username] = &User{
-		Key:  &Key{Path: filepath.Join(userPath, "msp", "keystore", "ca_sk")},
-		Cert: &Cert{Path: filepath.Join(userPath, "msp", "signcerts", userPemFileName)},
+		IsAdmin: true,
+		Key:     &Key{Path: filepath.Join(userPath, "msp", "keystore", "ca_sk")},
+		Cert:    &Cert{Path: filepath.Join(userPath, "msp", "signcerts", userPemFileName)},
 	}
+	return nil
 }
 
-func (o *Organization) setOrg(leagueDomain string, org *config.Org) {
+func (o *Organization) setOrg(leagueDomain string, org *config.Org) error {
+	if len(org.Peers) <= 0 || len(org.Users) <= 0 {
+		return errors.New("peer or user can't be empty")
+	}
 	if gnomon.String().IsNotEmpty(org.MspID) {
 		o.MspID = org.MspID
 	} else {
@@ -86,12 +96,14 @@ func (o *Organization) setOrg(leagueDomain string, org *config.Org) {
 		_, userPath := utils.CryptoOrgAndUserPath(leagueDomain, org.Domain, org.Name, user.Name, true)
 		userPemFileName := utils.CertUserCAName(org.Name, org.Domain, user.Name)
 		o.Users[user.Name] = &User{
-			Key:  &Key{Path: filepath.Join(userPath, "msp", "keystore", "ca_sk")},
-			Cert: &Cert{Path: filepath.Join(userPath, "msp", "signcerts", userPemFileName)},
+			IsAdmin: user.IsAdmin,
+			Key:     &Key{Path: filepath.Join(userPath, "msp", "keystore", "ca_sk")},
+			Cert:    &Cert{Path: filepath.Join(userPath, "msp", "signcerts", userPemFileName)},
 		}
 	}
 	o.CertificateAuthorities = []string{}
 	for _, ca := range org.Cas {
 		o.CertificateAuthorities = append(o.CertificateAuthorities, ca.Name)
 	}
+	return nil
 }

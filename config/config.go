@@ -50,109 +50,115 @@ type Config struct {
 	lock                   sync.RWMutex
 }
 
-func (c *Config) padding(init *config.ReqConfigInit) error {
+func (c *Config) ObtainOrders() ([]*Order, []*Org) {
+	var orders []*Order
+	var orgs []*Org
+	for orgName, organization := range c.Organizations {
+		if organization.Peers == nil {
+			for userName := range organization.Users {
+				orders = append(orders, &Order{OrgName: orgName, UserName: userName})
+			}
+		} else {
+			for userName, user := range organization.Users {
+				if user.IsAdmin {
+					orgs = append(orgs, &Org{OrgName: orgName, UserName: userName})
+				}
+			}
+		}
+	}
+	return orders, orgs
+}
+
+func (c *Config) padding(configSet *config.ReqConfigSet) (*config.RespConfigSet, error) {
 	var err error
-	if gnomon.String().IsEmpty(init.Version) {
+	if gnomon.String().IsEmpty(configSet.Version) {
 		err = errors.New("version can't be nil")
 		goto ERR
 	}
-	if nil == init.Org || gnomon.String().IsEmpty(init.Org.Domain) || gnomon.String().IsEmpty(init.Org.Name) ||
-		gnomon.String().IsEmpty(init.Org.Username) {
-		return errors.New("org or org require params can't be nil")
+	if nil == configSet.Org || gnomon.String().IsEmpty(configSet.Org.Domain) || gnomon.String().IsEmpty(configSet.Org.Name) ||
+		gnomon.String().IsEmpty(configSet.Org.Username) {
+		err = errors.New("org or org require params can't be nil")
+		return &config.RespConfigSet{Code: config.Code_Fail, ErrMsg: err.Error()}, err
 	}
-	c.Version = init.Version
-	if err = c.setClient(init); nil != err {
+	c.Version = configSet.Version
+	if err = c.setClient(configSet); nil != err {
 		goto ERR
 	}
-	c.setChannels(init)
-	c.setOrganizations(init)
-	if err = c.setOrderers(init); nil != err {
+	c.setChannels(configSet)
+	if err = c.setOrganizations(configSet); nil != err {
 		goto ERR
 	}
-	if err = c.setPeers(init); nil != err {
+	if err = c.setOrderers(configSet); nil != err {
 		goto ERR
 	}
-	if err = c.setCertificateAuthorities(init); nil != err {
+	if err = c.setPeers(configSet); nil != err {
 		goto ERR
 	}
-	return nil
+	if err = c.setCertificateAuthorities(configSet); nil != err {
+		goto ERR
+	}
+	return &config.RespConfigSet{Code: config.Code_Success}, nil
 ERR:
-	return fmt.Errorf("config set error: %w", err)
+	err = fmt.Errorf("config set error: %w", err)
+	return &config.RespConfigSet{Code: config.Code_Fail, ErrMsg: err.Error()}, err
 }
 
-func (c *Config) set(init *config.ReqConfigInit) error {
-	var err error
-	if gnomon.String().IsEmpty(init.Version) {
-		err = errors.New("version can't be nil")
-		goto ERR
+func (c *Config) set(configSet *config.ReqConfigSet) (resp *config.RespConfigSet, err error) {
+	if resp, err = c.padding(configSet); nil != err {
+		return
 	}
-	if nil == init.Org || gnomon.String().IsEmpty(init.Org.Domain) || gnomon.String().IsEmpty(init.Org.Name) ||
-		gnomon.String().IsEmpty(init.Org.Username) {
-		return errors.New("org or org require params can't be nil")
+	if err = c.mkAllDir(configSet); nil != err {
+		err = fmt.Errorf("config set error: %w", err)
+		return &config.RespConfigSet{Code: config.Code_Fail, ErrMsg: err.Error()}, err
 	}
-	c.Version = init.Version
-	if err = c.setClient(init); nil != err {
-		goto ERR
-	}
-	c.setChannels(init)
-	c.setOrganizations(init)
-	if err = c.setOrderers(init); nil != err {
-		goto ERR
-	}
-	if err = c.setPeers(init); nil != err {
-		goto ERR
-	}
-	if err = c.setCertificateAuthorities(init); nil != err {
-		goto ERR
-	}
-	if err = c.mkAllDir(init); nil != err {
-		goto ERR
-	}
-	return nil
-ERR:
-	return fmt.Errorf("config set error: %w", err)
+	return
 }
 
-func (c *Config) setClient(init *config.ReqConfigInit) error {
-	client, orgUserPath, err := NewConfigClient(init.LeagueDomain, init.Org)
+func (c *Config) setClient(configSet *config.ReqConfigSet) error {
+	client, orgUserPath, err := NewConfigClient(configSet.LeagueDomain, configSet.Org)
 	if nil != err {
 		return fmt.Errorf("client set error: %w", err)
 	}
-	client.set(init.Client, orgUserPath)
+	client.set(configSet.Client, orgUserPath)
 	c.Client = client
 	return nil
 }
 
-func (c *Config) setChannels(init *config.ReqConfigInit) {
+func (c *Config) setChannels(configSet *config.ReqConfigSet) {
 	c.Channels = make(map[string]*Channel)
 	c.Channels["_default"] = NewConfigChannel()
-	for channelName, channel := range init.Channels {
+	for channelName, channel := range configSet.Channels {
 		ch := NewConfigChannel()
-		ch.set(init.Org, channel)
+		ch.set(configSet.Org, channel)
 		c.Channels[channelName] = ch
 	}
 }
 
-func (c *Config) setOrganizations(init *config.ReqConfigInit) {
+func (c *Config) setOrganizations(configSet *config.ReqConfigSet) error {
 	c.Organizations = make(map[string]*Organization)
 	// 设置orderer
-	if nil != init.Orderer {
+	if nil != configSet.Orderer {
 		orderer := &Organization{}
-		orderer.setOrderer(init.LeagueDomain, init.Orderer)
-		c.Organizations[init.Orderer.Name] = orderer
+		if err := orderer.setOrderer(configSet.LeagueDomain, configSet.Orderer); nil != err {
+			return err
+		}
+		c.Organizations[configSet.Orderer.Name] = orderer
 	}
 	// 设置org
 	org := &Organization{}
-	org.setOrg(init.LeagueDomain, init.Org)
-	c.Organizations[init.Org.Name] = org
+	if err := org.setOrg(configSet.LeagueDomain, configSet.Org); nil != err {
+		return err
+	}
+	c.Organizations[configSet.Org.Name] = org
+	return nil
 }
 
-func (c *Config) setOrderers(init *config.ReqConfigInit) error {
+func (c *Config) setOrderers(configSet *config.ReqConfigSet) error {
 	c.Orderers = make(map[string]*Orderer)
-	if nil != init.Orderer {
-		for _, node := range init.Orderer.Nodes {
+	if nil != configSet.Orderer {
+		for _, node := range configSet.Orderer.Nodes {
 			order := &Orderer{GRPCOptions: &OrdererGRPCOptions{}, TLSCACerts: &OrdererTLSCACerts{}}
-			if err := order.set(init.LeagueDomain, init.Orderer, node); nil != err {
+			if err := order.set(configSet.LeagueDomain, configSet.Orderer, node); nil != err {
 				return fmt.Errorf("orderers set error: %w", err)
 			}
 			c.Orderers[node.Name] = order
@@ -161,14 +167,14 @@ func (c *Config) setOrderers(init *config.ReqConfigInit) error {
 	return nil
 }
 
-func (c *Config) setPeers(init *config.ReqConfigInit) error {
+func (c *Config) setPeers(configSet *config.ReqConfigSet) error {
 	c.Peers = make(map[string]*Peer)
-	if nil != init.Org {
+	if nil != configSet.Org {
 
 	}
-	for _, peer := range init.Org.Peers {
+	for _, peer := range configSet.Org.Peers {
 		p := &Peer{GRPCOptions: &PeerGRPCOptions{}, TLSCACerts: &PeerTLSCACerts{}}
-		if err := p.set(init.LeagueDomain, init.Org, peer); nil != err {
+		if err := p.set(configSet.LeagueDomain, configSet.Org, peer); nil != err {
 			return fmt.Errorf("peers set error: %w", err)
 		}
 		c.Peers[peer.Name] = p
@@ -176,9 +182,9 @@ func (c *Config) setPeers(init *config.ReqConfigInit) error {
 	return nil
 }
 
-func (c *Config) setCertificateAuthorities(init *config.ReqConfigInit) error {
+func (c *Config) setCertificateAuthorities(configSet *config.ReqConfigSet) error {
 	c.CertificateAuthorities = make(map[string]*CertificateAuthority)
-	for _, certificateAuthority := range init.Org.Cas {
+	for _, certificateAuthority := range configSet.Org.Cas {
 		ca := &CertificateAuthority{
 			TLSCACerts: &CertificateAuthorityTLSCACerts{Client: &CertificateAuthorityTLSCACertsClient{
 				Key:  &CertificateAuthorityTLSCACertsClientKey{},
@@ -186,7 +192,7 @@ func (c *Config) setCertificateAuthorities(init *config.ReqConfigInit) error {
 			}},
 			Registrar: &CertificateAuthorityRegistrar{},
 		}
-		if err := ca.set(init.LeagueDomain, init.Org, certificateAuthority); nil != err {
+		if err := ca.set(configSet.LeagueDomain, configSet.Org, certificateAuthority); nil != err {
 			return fmt.Errorf("ca set error: %w", err)
 		}
 		c.CertificateAuthorities[certificateAuthority.Name] = ca
@@ -197,11 +203,11 @@ func (c *Config) setCertificateAuthorities(init *config.ReqConfigInit) error {
 // mkAllDir 创建crypto相关文件及信息，按照fabric的官方模板和格式
 //
 // 优先创建用户相关证书信息，以便后续创建组织和组织子节点内容时拷贝
-func (c *Config) mkAllDir(init *config.ReqConfigInit) error {
-	if err := c.mkOrdererDir(init.LeagueDomain, init.Orderer); nil != err {
+func (c *Config) mkAllDir(configSet *config.ReqConfigSet) error {
+	if err := c.mkOrdererDir(configSet.LeagueDomain, configSet.Orderer); nil != err {
 		return err
 	}
-	return c.mkPeerDir(init.LeagueDomain, init.Org)
+	return c.mkPeerDir(configSet.LeagueDomain, configSet.Org)
 }
 
 func (c *Config) mkOrdererDir(leagueDomain string, orderer *config.Orderer) error {

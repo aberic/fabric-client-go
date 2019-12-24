@@ -6,7 +6,10 @@ option go_package = "grpc/proto/config";
 
 package config;
 
-message ReqConfigInit {
+import "grpc/proto/config/enums.proto";
+
+// fabric网络配置请求
+message ReqConfigSet {
     // Version 内容的版本。用于SDK应用相应的解析规则
     string version = 1;
     // 联盟根域名，如：example.com
@@ -21,16 +24,57 @@ message ReqConfigInit {
     map<string, Channel> channels = 6;
 }
 
+// fabric网络配置请求返回
+message RespConfigSet {
+    // 请求返回结果：success=0；fail=1
+    Code code = 1;
+    // 当且仅当返回码为1时，此处包含错误信息
+    string errMsg = 2;
+}
+
+message ReqConfigObtain {
+    // 联盟根域名，如：example.com
+    string leagueDomain = 1;
+    // 组织域名，如org.com
+    string orgDomain = 2;
+}
+
+message RespConfigObtain {
+    // 请求返回结果：success=0；fail=1
+    Code code = 1;
+    // 当且仅当返回码为1时，此处包含错误信息
+    string errMsg = 2;
+    bytes configBytes = 3;
+}
+
 message ReqConfigList {
-    int32 list = 1;
 }
 
-message ReqConfig {
-    string configID = 1;
+message RespConfigList {
+    // 请求返回结果：success=0；fail=1
+    Code code = 1;
+    // 当且仅当返回码为1时，此处包含错误信息
+    string errMsg = 2;
+    repeated OrgConfig configs = 3;
 }
 
-message ReqConfigRecover {
-    repeated string configIDs = 1;
+message ReqConfigDelete {
+    repeated OrgConfig configs = 1;
+}
+
+// fabric网络配置请求返回
+message RespConfigDelete {
+    // 请求返回结果：success=0；fail=1
+    Code code = 1;
+    // 当且仅当返回码为1时，此处包含错误信息
+    string errMsg = 2;
+}
+
+message OrgConfig {
+    // 联盟根域名，如：example.com
+    string leagueDomain = 1;
+    // 组织域名，如org.com
+    string orgDomain = 2;
 }
 
 // 组织节点信息

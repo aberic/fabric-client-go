@@ -12,11 +12,13 @@
  * limitations under the License.
  */
 
-package config
+package core
 
 import (
 	"encoding/json"
+	config2 "github.com/aberic/fabric-client-go/config"
 	"github.com/aberic/fabric-client-go/grpc/proto/config"
+	"github.com/aberic/fabric-client-go/grpc/proto/core"
 	"github.com/aberic/fabric-client-go/utils"
 	"io/ioutil"
 	"path"
@@ -26,20 +28,54 @@ import (
 	"testing"
 )
 
-func TestConfigSet(t *testing.T) {
-	testConfig(t)
+func TestChannelCreate(t *testing.T) {
+	_ = testPaddingConfig(t)
+	channelConfig, err := ioutil.ReadFile(filepath.Join(utils.ObtainDataPath(), "league.com", "channel-artifacts", "mychannel02.tx"))
+	if nil != err {
+		t.Fatal(err)
+	}
+	resp, err := ChannelCreate(&core.ReqChannelCreate{
+		LeagueDomain:   "league.com",
+		OrgDomain:      "example1.com",
+		ChannelID:      "mychannel02",
+		ChannelTxBytes: channelConfig,
+	})
+	t.Log(resp, err)
 }
 
-func testConfig(t *testing.T) {
+func TestChannelJoin(t *testing.T) {
+	_ = testPaddingConfig(t)
+	resp, err := ChannelJoin(&core.ReqChannelJoin{
+		LeagueDomain: "league.com",
+		OrgDomain:    "example1.com",
+		PeerName:     "peer0",
+		ChannelID:    "mychannel02",
+	})
+	t.Log(resp, err)
+}
+
+func TestChannelList(t *testing.T) {
+	_ = testPaddingConfig(t)
+	resp, err := ChannelList(&core.ReqChannelList{
+		LeagueDomain: "league.com",
+		OrgDomain:    "example1.com",
+		PeerName:     "peer0",
+	})
+	t.Log(resp, err)
+}
+
+func testPaddingConfig(t *testing.T) *config2.Config {
 	var (
+		conf         *config2.Config
 		leagueDomain = "league.com"
 		orderDomain  = "example1.com"
 		orderName    = "orderer1"
 		orgDomain    = "example1.com"
 		orgName      = "org1"
 		peerNames    = []string{"peer0", "peer1", "peer2"}
+		err          error
 	)
-	if resp, err := setConfig(&config.ReqConfigSet{
+	if conf, err = config2.Mock(&config.ReqConfigSet{
 		Version:      "1.0.0",
 		LeagueDomain: leagueDomain,
 		Orderer:      testOrder(leagueDomain, orderName, orderDomain, "Admin", t),
@@ -54,17 +90,25 @@ func testConfig(t *testing.T) {
 		},
 	}); nil != err {
 		t.Fatal(err)
-	} else {
-		t.Log(resp)
-	}
-	conf, err := Obtain(leagueDomain, orgDomain)
-	if nil != err {
-		t.Fatal(err)
 	}
 	if data, err := json.Marshal(conf); nil == err {
 		t.Log(string(data))
 	}
+	config2.Set(leagueDomain, orgDomain, conf)
+	return conf
 }
+
+//func TestGrpcGenerateCrypto(t *testing.T) {
+//	gs := GenerateServer{}
+//	if respKeyConfig, err := gs.GenerateCrypto(nil, &ca.ReqKeyConfig{
+//		CryptoType: ca.CryptoType_ECDSA,
+//		Algorithm:  algorithm,
+//	}); nil != err {
+//		t.Error(err)
+//	} else {
+//		t.Log(respKeyConfig)
+//	}
+//}
 
 func testOrder(leagueDomain, ordererName, ordererDomain, userName string, t *testing.T) *config.Orderer {
 	ordererPath := path.Join(utils.ObtainDataPath(), leagueDomain, strings.Join([]string{ordererName, ordererDomain}, "."))
@@ -280,16 +324,3 @@ func testOrgPeers(orgName, orgDomain, orgPath string, t *testing.T) []*config.Pe
 	}
 	return peers
 }
-
-//func TestSKI(t *testing.T) {
-//	priKeyBytes, err := ioutil.ReadFile(filepath.Join(utils.ObtainDataPath(), "league.com", "orderer1.example1.com", "Admin", "6ca36df7aa474f6824633d567e1528e08db32929480c63395eb2f2b446a29258_sk"))
-//	if nil != err {
-//		t.Fatal(err)
-//	}
-//	t.Log(string(priKeyBytes))
-//	str, err := utils.SKI("league.com", "example1.com", "orderer1", "order0", false, priKeyBytes)
-//	if nil != err {
-//		t.Fatal(err)
-//	}
-//	t.Log(str)
-//}

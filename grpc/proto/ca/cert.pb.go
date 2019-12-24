@@ -18,13 +18,19 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
+const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 
+// 生成根密钥、tls密钥及两者自签名根证书内容请求
 type ReqRootCrypto struct {
-	Name                 string        `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Domain               string        `protobuf:"bytes,2,opt,name=domain,proto3" json:"domain,omitempty"`
-	Subject              *Subject      `protobuf:"bytes,3,opt,name=subject,proto3" json:"subject,omitempty"`
-	Config               *CryptoConfig `protobuf:"bytes,4,opt,name=config,proto3" json:"config,omitempty"`
+	// 组织名称，如org1
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// 组织域名，如example.com
+	Domain string `protobuf:"bytes,2,opt,name=domain,proto3" json:"domain,omitempty"`
+	// 生成csr请求证书转译pkix.Name
+	Subject *Subject `protobuf:"bytes,3,opt,name=subject,proto3" json:"subject,omitempty"`
+	// ca密钥生成配置结构
+	Config *CryptoConfig `protobuf:"bytes,4,opt,name=config,proto3" json:"config,omitempty"`
+	// tls ca密钥生成配置结构
 	TlsConfig            *CryptoConfig `protobuf:"bytes,5,opt,name=tlsConfig,proto3" json:"tlsConfig,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
 	XXX_unrecognized     []byte        `json:"-"`
@@ -91,6 +97,7 @@ func (m *ReqRootCrypto) GetTlsConfig() *CryptoConfig {
 	return nil
 }
 
+// 生成根密钥、tls密钥及两者自签名根证书内容返回结构
 type RespRootCrypto struct {
 	// 请求返回结果：success=0；fail=1
 	Code Code `protobuf:"varint,1,opt,name=code,proto3,enum=ca.Code" json:"code,omitempty"`
@@ -188,7 +195,9 @@ func (m *RespRootCrypto) GetTlsCertBytes() []byte {
 	return nil
 }
 
+// 生成密钥对请求
 type ReqCrypto struct {
+	// 密钥生成配置结构
 	Config               *CryptoConfig `protobuf:"bytes,1,opt,name=config,proto3" json:"config,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
 	XXX_unrecognized     []byte        `json:"-"`
@@ -227,6 +236,7 @@ func (m *ReqCrypto) GetConfig() *CryptoConfig {
 	return nil
 }
 
+// 生成密钥对返回结构
 type RespCrypto struct {
 	// 请求返回结果：success=0；fail=1
 	Code Code `protobuf:"varint,1,opt,name=code,proto3,enum=ca.Code" json:"code,omitempty"`
@@ -292,6 +302,7 @@ func (m *RespCrypto) GetPubKeyBytes() []byte {
 	return nil
 }
 
+// 生成组织下子节点/用户CA请求证书文件请求
 type ReqSignCertificate struct {
 	OrgName         string   `protobuf:"bytes,1,opt,name=orgName,proto3" json:"orgName,omitempty"`
 	OrgDomain       string   `protobuf:"bytes,2,opt,name=orgDomain,proto3" json:"orgDomain,omitempty"`
@@ -396,6 +407,7 @@ func (m *ReqSignCertificate) GetSignAlgorithm() SignAlgorithm {
 	return SignAlgorithm_SHA256WithRSA
 }
 
+// 生成组织下子节点/用户CA请求证书文件返回结构
 type RespSignCertificate struct {
 	// 请求返回结果：success=0；fail=1
 	Code Code `protobuf:"varint,1,opt,name=code,proto3,enum=ca.Code" json:"code,omitempty"`
@@ -453,248 +465,9 @@ func (m *RespSignCertificate) GetCertBytes() []byte {
 	return nil
 }
 
-type ReqChildCa struct {
-	// 如peer0，User0，Admin等
-	ChildName            string   `protobuf:"bytes,1,opt,name=childName,proto3" json:"childName,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *ReqChildCa) Reset()         { *m = ReqChildCa{} }
-func (m *ReqChildCa) String() string { return proto.CompactTextString(m) }
-func (*ReqChildCa) ProtoMessage()    {}
-func (*ReqChildCa) Descriptor() ([]byte, []int) {
-	return fileDescriptor_42249d15fbfb5bb8, []int{6}
-}
-
-func (m *ReqChildCa) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ReqChildCa.Unmarshal(m, b)
-}
-func (m *ReqChildCa) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ReqChildCa.Marshal(b, m, deterministic)
-}
-func (m *ReqChildCa) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ReqChildCa.Merge(m, src)
-}
-func (m *ReqChildCa) XXX_Size() int {
-	return xxx_messageInfo_ReqChildCa.Size(m)
-}
-func (m *ReqChildCa) XXX_DiscardUnknown() {
-	xxx_messageInfo_ReqChildCa.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_ReqChildCa proto.InternalMessageInfo
-
-func (m *ReqChildCa) GetChildName() string {
-	if m != nil {
-		return m.ChildName
-	}
-	return ""
-}
-
-type RespChildCa struct {
-	// 请求返回结果：success=0；fail=1
-	Code Code `protobuf:"varint,1,opt,name=code,proto3,enum=ca.Code" json:"code,omitempty"`
-	// 当且仅当返回码为1时，此处包含错误信息
-	ErrMsg               string   `protobuf:"bytes,2,opt,name=errMsg,proto3" json:"errMsg,omitempty"`
-	SkName               string   `protobuf:"bytes,3,opt,name=skName,proto3" json:"skName,omitempty"`
-	PriKeyBytes          []byte   `protobuf:"bytes,4,opt,name=priKeyBytes,proto3" json:"priKeyBytes,omitempty"`
-	PubKeyBytes          []byte   `protobuf:"bytes,5,opt,name=pubKeyBytes,proto3" json:"pubKeyBytes,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *RespChildCa) Reset()         { *m = RespChildCa{} }
-func (m *RespChildCa) String() string { return proto.CompactTextString(m) }
-func (*RespChildCa) ProtoMessage()    {}
-func (*RespChildCa) Descriptor() ([]byte, []int) {
-	return fileDescriptor_42249d15fbfb5bb8, []int{7}
-}
-
-func (m *RespChildCa) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_RespChildCa.Unmarshal(m, b)
-}
-func (m *RespChildCa) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_RespChildCa.Marshal(b, m, deterministic)
-}
-func (m *RespChildCa) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_RespChildCa.Merge(m, src)
-}
-func (m *RespChildCa) XXX_Size() int {
-	return xxx_messageInfo_RespChildCa.Size(m)
-}
-func (m *RespChildCa) XXX_DiscardUnknown() {
-	xxx_messageInfo_RespChildCa.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_RespChildCa proto.InternalMessageInfo
-
-func (m *RespChildCa) GetCode() Code {
-	if m != nil {
-		return m.Code
-	}
-	return Code_Success
-}
-
-func (m *RespChildCa) GetErrMsg() string {
-	if m != nil {
-		return m.ErrMsg
-	}
-	return ""
-}
-
-func (m *RespChildCa) GetSkName() string {
-	if m != nil {
-		return m.SkName
-	}
-	return ""
-}
-
-func (m *RespChildCa) GetPriKeyBytes() []byte {
-	if m != nil {
-		return m.PriKeyBytes
-	}
-	return nil
-}
-
-func (m *RespChildCa) GetPubKeyBytes() []byte {
-	if m != nil {
-		return m.PubKeyBytes
-	}
-	return nil
-}
-
-type ReqChildTlsCa struct {
-	OrgName              string        `protobuf:"bytes,1,opt,name=orgName,proto3" json:"orgName,omitempty"`
-	OrgDomain            string        `protobuf:"bytes,2,opt,name=orgDomain,proto3" json:"orgDomain,omitempty"`
-	Name                 string        `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
-	Config               *CryptoConfig `protobuf:"bytes,4,opt,name=config,proto3" json:"config,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
-	XXX_unrecognized     []byte        `json:"-"`
-	XXX_sizecache        int32         `json:"-"`
-}
-
-func (m *ReqChildTlsCa) Reset()         { *m = ReqChildTlsCa{} }
-func (m *ReqChildTlsCa) String() string { return proto.CompactTextString(m) }
-func (*ReqChildTlsCa) ProtoMessage()    {}
-func (*ReqChildTlsCa) Descriptor() ([]byte, []int) {
-	return fileDescriptor_42249d15fbfb5bb8, []int{8}
-}
-
-func (m *ReqChildTlsCa) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ReqChildTlsCa.Unmarshal(m, b)
-}
-func (m *ReqChildTlsCa) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ReqChildTlsCa.Marshal(b, m, deterministic)
-}
-func (m *ReqChildTlsCa) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ReqChildTlsCa.Merge(m, src)
-}
-func (m *ReqChildTlsCa) XXX_Size() int {
-	return xxx_messageInfo_ReqChildTlsCa.Size(m)
-}
-func (m *ReqChildTlsCa) XXX_DiscardUnknown() {
-	xxx_messageInfo_ReqChildTlsCa.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_ReqChildTlsCa proto.InternalMessageInfo
-
-func (m *ReqChildTlsCa) GetOrgName() string {
-	if m != nil {
-		return m.OrgName
-	}
-	return ""
-}
-
-func (m *ReqChildTlsCa) GetOrgDomain() string {
-	if m != nil {
-		return m.OrgDomain
-	}
-	return ""
-}
-
-func (m *ReqChildTlsCa) GetName() string {
-	if m != nil {
-		return m.Name
-	}
-	return ""
-}
-
-func (m *ReqChildTlsCa) GetConfig() *CryptoConfig {
-	if m != nil {
-		return m.Config
-	}
-	return nil
-}
-
-type RespChildTlsCa struct {
-	// 请求返回结果：success=0；fail=1
-	Code Code `protobuf:"varint,1,opt,name=code,proto3,enum=ca.Code" json:"code,omitempty"`
-	// 当且仅当返回码为1时，此处包含错误信息
-	ErrMsg               string   `protobuf:"bytes,2,opt,name=errMsg,proto3" json:"errMsg,omitempty"`
-	TlsPriKeyBytes       []byte   `protobuf:"bytes,3,opt,name=tlsPriKeyBytes,proto3" json:"tlsPriKeyBytes,omitempty"`
-	TlsPubKeyBytes       []byte   `protobuf:"bytes,4,opt,name=tlsPubKeyBytes,proto3" json:"tlsPubKeyBytes,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *RespChildTlsCa) Reset()         { *m = RespChildTlsCa{} }
-func (m *RespChildTlsCa) String() string { return proto.CompactTextString(m) }
-func (*RespChildTlsCa) ProtoMessage()    {}
-func (*RespChildTlsCa) Descriptor() ([]byte, []int) {
-	return fileDescriptor_42249d15fbfb5bb8, []int{9}
-}
-
-func (m *RespChildTlsCa) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_RespChildTlsCa.Unmarshal(m, b)
-}
-func (m *RespChildTlsCa) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_RespChildTlsCa.Marshal(b, m, deterministic)
-}
-func (m *RespChildTlsCa) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_RespChildTlsCa.Merge(m, src)
-}
-func (m *RespChildTlsCa) XXX_Size() int {
-	return xxx_messageInfo_RespChildTlsCa.Size(m)
-}
-func (m *RespChildTlsCa) XXX_DiscardUnknown() {
-	xxx_messageInfo_RespChildTlsCa.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_RespChildTlsCa proto.InternalMessageInfo
-
-func (m *RespChildTlsCa) GetCode() Code {
-	if m != nil {
-		return m.Code
-	}
-	return Code_Success
-}
-
-func (m *RespChildTlsCa) GetErrMsg() string {
-	if m != nil {
-		return m.ErrMsg
-	}
-	return ""
-}
-
-func (m *RespChildTlsCa) GetTlsPriKeyBytes() []byte {
-	if m != nil {
-		return m.TlsPriKeyBytes
-	}
-	return nil
-}
-
-func (m *RespChildTlsCa) GetTlsPubKeyBytes() []byte {
-	if m != nil {
-		return m.TlsPubKeyBytes
-	}
-	return nil
-}
-
+// 生成csr请求证书转译pkix.Name
 type Subject struct {
+	// 国家代号，如CN
 	Country              string   `protobuf:"bytes,4,opt,name=country,proto3" json:"country,omitempty"`
 	Province             string   `protobuf:"bytes,5,opt,name=province,proto3" json:"province,omitempty"`
 	Locality             string   `protobuf:"bytes,6,opt,name=locality,proto3" json:"locality,omitempty"`
@@ -710,7 +483,7 @@ func (m *Subject) Reset()         { *m = Subject{} }
 func (m *Subject) String() string { return proto.CompactTextString(m) }
 func (*Subject) ProtoMessage()    {}
 func (*Subject) Descriptor() ([]byte, []int) {
-	return fileDescriptor_42249d15fbfb5bb8, []int{10}
+	return fileDescriptor_42249d15fbfb5bb8, []int{6}
 }
 
 func (m *Subject) XXX_Unmarshal(b []byte) error {
@@ -773,119 +546,7 @@ func (m *Subject) GetPostalCode() string {
 	return ""
 }
 
-type ReqCa struct {
-	OrgName   string `protobuf:"bytes,1,opt,name=orgName,proto3" json:"orgName,omitempty"`
-	OrgDomain string `protobuf:"bytes,2,opt,name=orgDomain,proto3" json:"orgDomain,omitempty"`
-	// 证书名称，如：User1/peer1，最终会有一个-cert.pem的后缀
-	ChildName            string   `protobuf:"bytes,3,opt,name=childName,proto3" json:"childName,omitempty"`
-	Country              string   `protobuf:"bytes,4,opt,name=country,proto3" json:"country,omitempty"`
-	Province             string   `protobuf:"bytes,5,opt,name=province,proto3" json:"province,omitempty"`
-	Locality             string   `protobuf:"bytes,6,opt,name=locality,proto3" json:"locality,omitempty"`
-	OrgUnit              string   `protobuf:"bytes,7,opt,name=orgUnit,proto3" json:"orgUnit,omitempty"`
-	StreetAddress        string   `protobuf:"bytes,8,opt,name=streetAddress,proto3" json:"streetAddress,omitempty"`
-	PostalCode           string   `protobuf:"bytes,9,opt,name=postalCode,proto3" json:"postalCode,omitempty"`
-	IsUser               bool     `protobuf:"varint,10,opt,name=isUser,proto3" json:"isUser,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *ReqCa) Reset()         { *m = ReqCa{} }
-func (m *ReqCa) String() string { return proto.CompactTextString(m) }
-func (*ReqCa) ProtoMessage()    {}
-func (*ReqCa) Descriptor() ([]byte, []int) {
-	return fileDescriptor_42249d15fbfb5bb8, []int{11}
-}
-
-func (m *ReqCa) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ReqCa.Unmarshal(m, b)
-}
-func (m *ReqCa) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ReqCa.Marshal(b, m, deterministic)
-}
-func (m *ReqCa) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ReqCa.Merge(m, src)
-}
-func (m *ReqCa) XXX_Size() int {
-	return xxx_messageInfo_ReqCa.Size(m)
-}
-func (m *ReqCa) XXX_DiscardUnknown() {
-	xxx_messageInfo_ReqCa.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_ReqCa proto.InternalMessageInfo
-
-func (m *ReqCa) GetOrgName() string {
-	if m != nil {
-		return m.OrgName
-	}
-	return ""
-}
-
-func (m *ReqCa) GetOrgDomain() string {
-	if m != nil {
-		return m.OrgDomain
-	}
-	return ""
-}
-
-func (m *ReqCa) GetChildName() string {
-	if m != nil {
-		return m.ChildName
-	}
-	return ""
-}
-
-func (m *ReqCa) GetCountry() string {
-	if m != nil {
-		return m.Country
-	}
-	return ""
-}
-
-func (m *ReqCa) GetProvince() string {
-	if m != nil {
-		return m.Province
-	}
-	return ""
-}
-
-func (m *ReqCa) GetLocality() string {
-	if m != nil {
-		return m.Locality
-	}
-	return ""
-}
-
-func (m *ReqCa) GetOrgUnit() string {
-	if m != nil {
-		return m.OrgUnit
-	}
-	return ""
-}
-
-func (m *ReqCa) GetStreetAddress() string {
-	if m != nil {
-		return m.StreetAddress
-	}
-	return ""
-}
-
-func (m *ReqCa) GetPostalCode() string {
-	if m != nil {
-		return m.PostalCode
-	}
-	return ""
-}
-
-func (m *ReqCa) GetIsUser() bool {
-	if m != nil {
-		return m.IsUser
-	}
-	return false
-}
-
-// 密钥生成配置请求结构
+// 密钥生成配置结构
 type CryptoConfig struct {
 	// 密钥生成类型：ECDSA=0；RSA=1
 	CryptoType CryptoType `protobuf:"varint,1,opt,name=cryptoType,proto3,enum=ca.CryptoType" json:"cryptoType,omitempty"`
@@ -906,7 +567,7 @@ func (m *CryptoConfig) Reset()         { *m = CryptoConfig{} }
 func (m *CryptoConfig) String() string { return proto.CompactTextString(m) }
 func (*CryptoConfig) ProtoMessage()    {}
 func (*CryptoConfig) Descriptor() ([]byte, []int) {
-	return fileDescriptor_42249d15fbfb5bb8, []int{12}
+	return fileDescriptor_42249d15fbfb5bb8, []int{7}
 }
 
 func (m *CryptoConfig) XXX_Unmarshal(b []byte) error {
@@ -978,870 +639,68 @@ func (m *CryptoConfig) GetSignAlgorithm() SignAlgorithm {
 	return SignAlgorithm_SHA256WithRSA
 }
 
-// XXX_OneofWrappers is for the internal use of the proto package.
-func (*CryptoConfig) XXX_OneofWrappers() []interface{} {
-	return []interface{}{
+// XXX_OneofFuncs is for the internal use of the proto package.
+func (*CryptoConfig) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
+	return _CryptoConfig_OneofMarshaler, _CryptoConfig_OneofUnmarshaler, _CryptoConfig_OneofSizer, []interface{}{
 		(*CryptoConfig_EccAlgorithm)(nil),
 		(*CryptoConfig_RsaAlgorithm)(nil),
 	}
 }
 
-// 生成CA请求证书文件请求
-type ReqCreateCsr struct {
-	// 联盟根域名
-	LeagueDomain string `protobuf:"bytes,2,opt,name=leagueDomain,proto3" json:"leagueDomain,omitempty"`
-	// 节点/用户名称
-	ChildName string `protobuf:"bytes,3,opt,name=childName,proto3" json:"childName,omitempty"`
-	// 组织根域名
-	OrgDomain string `protobuf:"bytes,4,opt,name=orgDomain,proto3" json:"orgDomain,omitempty"`
-	// 私钥，pem格式化
-	PriKeyBytes []byte `protobuf:"bytes,5,opt,name=priKeyBytes,proto3" json:"priKeyBytes,omitempty"`
-	// 证书请求申请内容
-	Csr                  *CSR          `protobuf:"bytes,6,opt,name=csr,proto3" json:"csr,omitempty"`
-	SignAlgorithm        SignAlgorithm `protobuf:"varint,7,opt,name=signAlgorithm,proto3,enum=ca.SignAlgorithm" json:"signAlgorithm,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
-	XXX_unrecognized     []byte        `json:"-"`
-	XXX_sizecache        int32         `json:"-"`
-}
-
-func (m *ReqCreateCsr) Reset()         { *m = ReqCreateCsr{} }
-func (m *ReqCreateCsr) String() string { return proto.CompactTextString(m) }
-func (*ReqCreateCsr) ProtoMessage()    {}
-func (*ReqCreateCsr) Descriptor() ([]byte, []int) {
-	return fileDescriptor_42249d15fbfb5bb8, []int{13}
-}
-
-func (m *ReqCreateCsr) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ReqCreateCsr.Unmarshal(m, b)
-}
-func (m *ReqCreateCsr) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ReqCreateCsr.Marshal(b, m, deterministic)
-}
-func (m *ReqCreateCsr) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ReqCreateCsr.Merge(m, src)
-}
-func (m *ReqCreateCsr) XXX_Size() int {
-	return xxx_messageInfo_ReqCreateCsr.Size(m)
-}
-func (m *ReqCreateCsr) XXX_DiscardUnknown() {
-	xxx_messageInfo_ReqCreateCsr.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_ReqCreateCsr proto.InternalMessageInfo
-
-func (m *ReqCreateCsr) GetLeagueDomain() string {
-	if m != nil {
-		return m.LeagueDomain
-	}
-	return ""
-}
-
-func (m *ReqCreateCsr) GetChildName() string {
-	if m != nil {
-		return m.ChildName
-	}
-	return ""
-}
-
-func (m *ReqCreateCsr) GetOrgDomain() string {
-	if m != nil {
-		return m.OrgDomain
-	}
-	return ""
-}
-
-func (m *ReqCreateCsr) GetPriKeyBytes() []byte {
-	if m != nil {
-		return m.PriKeyBytes
+func _CryptoConfig_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
+	m := msg.(*CryptoConfig)
+	// Algorithm
+	switch x := m.Algorithm.(type) {
+	case *CryptoConfig_EccAlgorithm:
+		b.EncodeVarint(2<<3 | proto.WireVarint)
+		b.EncodeVarint(uint64(x.EccAlgorithm))
+	case *CryptoConfig_RsaAlgorithm:
+		b.EncodeVarint(3<<3 | proto.WireVarint)
+		b.EncodeVarint(uint64(x.RsaAlgorithm))
+	case nil:
+	default:
+		return fmt.Errorf("CryptoConfig.Algorithm has unexpected type %T", x)
 	}
 	return nil
 }
 
-func (m *ReqCreateCsr) GetCsr() *CSR {
-	if m != nil {
-		return m.Csr
+func _CryptoConfig_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
+	m := msg.(*CryptoConfig)
+	switch tag {
+	case 2: // Algorithm.eccAlgorithm
+		if wire != proto.WireVarint {
+			return true, proto.ErrInternalBadWireType
+		}
+		x, err := b.DecodeVarint()
+		m.Algorithm = &CryptoConfig_EccAlgorithm{EccAlgorithm(x)}
+		return true, err
+	case 3: // Algorithm.rsaAlgorithm
+		if wire != proto.WireVarint {
+			return true, proto.ErrInternalBadWireType
+		}
+		x, err := b.DecodeVarint()
+		m.Algorithm = &CryptoConfig_RsaAlgorithm{RsaAlgorithm(x)}
+		return true, err
+	default:
+		return false, nil
 	}
-	return nil
 }
 
-func (m *ReqCreateCsr) GetSignAlgorithm() SignAlgorithm {
-	if m != nil {
-		return m.SignAlgorithm
+func _CryptoConfig_OneofSizer(msg proto.Message) (n int) {
+	m := msg.(*CryptoConfig)
+	// Algorithm
+	switch x := m.Algorithm.(type) {
+	case *CryptoConfig_EccAlgorithm:
+		n += 1 // tag and wire
+		n += proto.SizeVarint(uint64(x.EccAlgorithm))
+	case *CryptoConfig_RsaAlgorithm:
+		n += 1 // tag and wire
+		n += proto.SizeVarint(uint64(x.RsaAlgorithm))
+	case nil:
+	default:
+		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
 	}
-	return SignAlgorithm_SHA256WithRSA
-}
-
-// 生成CA请求证书文件返回
-type RespCreateCsr struct {
-	// 请求返回结果：success=0；fail=1
-	Code Code `protobuf:"varint,1,opt,name=code,proto3,enum=ca.Code" json:"code,omitempty"`
-	// 当且仅当返回码为1时，此处包含错误信息
-	ErrMsg string `protobuf:"bytes,2,opt,name=errMsg,proto3" json:"errMsg,omitempty"`
-	// CA请求证书文件，直接转string得到pem格式化后内容
-	CsrBytes             []byte   `protobuf:"bytes,3,opt,name=csrBytes,proto3" json:"csrBytes,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *RespCreateCsr) Reset()         { *m = RespCreateCsr{} }
-func (m *RespCreateCsr) String() string { return proto.CompactTextString(m) }
-func (*RespCreateCsr) ProtoMessage()    {}
-func (*RespCreateCsr) Descriptor() ([]byte, []int) {
-	return fileDescriptor_42249d15fbfb5bb8, []int{14}
-}
-
-func (m *RespCreateCsr) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_RespCreateCsr.Unmarshal(m, b)
-}
-func (m *RespCreateCsr) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_RespCreateCsr.Marshal(b, m, deterministic)
-}
-func (m *RespCreateCsr) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_RespCreateCsr.Merge(m, src)
-}
-func (m *RespCreateCsr) XXX_Size() int {
-	return xxx_messageInfo_RespCreateCsr.Size(m)
-}
-func (m *RespCreateCsr) XXX_DiscardUnknown() {
-	xxx_messageInfo_RespCreateCsr.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_RespCreateCsr proto.InternalMessageInfo
-
-func (m *RespCreateCsr) GetCode() Code {
-	if m != nil {
-		return m.Code
-	}
-	return Code_Success
-}
-
-func (m *RespCreateCsr) GetErrMsg() string {
-	if m != nil {
-		return m.ErrMsg
-	}
-	return ""
-}
-
-func (m *RespCreateCsr) GetCsrBytes() []byte {
-	if m != nil {
-		return m.CsrBytes
-	}
-	return nil
-}
-
-// 组织子节点/用户
-type ReqCreateOrgChild struct {
-	// 用户公钥
-	PubTlsBytes []byte `protobuf:"bytes,7,opt,name=pubTlsBytes,proto3" json:"pubTlsBytes,omitempty"`
-	// 联盟tls私钥
-	PriTlsParentBytes []byte `protobuf:"bytes,6,opt,name=priTlsParentBytes,proto3" json:"priTlsParentBytes,omitempty"`
-	// 联盟tls根证书
-	RootTlsCaCertBytes []byte `protobuf:"bytes,9,opt,name=rootTlsCaCertBytes,proto3" json:"rootTlsCaCertBytes,omitempty"`
-	// 传输签名算法
-	SignAlgorithm SignAlgorithm `protobuf:"varint,10,opt,name=signAlgorithm,proto3,enum=ca.SignAlgorithm" json:"signAlgorithm,omitempty"`
-	// fabric ca 登记信息1
-	EnrollInfo           *EnrollInfo `protobuf:"bytes,11,opt,name=enrollInfo,proto3" json:"enrollInfo,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
-	XXX_unrecognized     []byte      `json:"-"`
-	XXX_sizecache        int32       `json:"-"`
-}
-
-func (m *ReqCreateOrgChild) Reset()         { *m = ReqCreateOrgChild{} }
-func (m *ReqCreateOrgChild) String() string { return proto.CompactTextString(m) }
-func (*ReqCreateOrgChild) ProtoMessage()    {}
-func (*ReqCreateOrgChild) Descriptor() ([]byte, []int) {
-	return fileDescriptor_42249d15fbfb5bb8, []int{15}
-}
-
-func (m *ReqCreateOrgChild) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ReqCreateOrgChild.Unmarshal(m, b)
-}
-func (m *ReqCreateOrgChild) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ReqCreateOrgChild.Marshal(b, m, deterministic)
-}
-func (m *ReqCreateOrgChild) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ReqCreateOrgChild.Merge(m, src)
-}
-func (m *ReqCreateOrgChild) XXX_Size() int {
-	return xxx_messageInfo_ReqCreateOrgChild.Size(m)
-}
-func (m *ReqCreateOrgChild) XXX_DiscardUnknown() {
-	xxx_messageInfo_ReqCreateOrgChild.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_ReqCreateOrgChild proto.InternalMessageInfo
-
-func (m *ReqCreateOrgChild) GetPubTlsBytes() []byte {
-	if m != nil {
-		return m.PubTlsBytes
-	}
-	return nil
-}
-
-func (m *ReqCreateOrgChild) GetPriTlsParentBytes() []byte {
-	if m != nil {
-		return m.PriTlsParentBytes
-	}
-	return nil
-}
-
-func (m *ReqCreateOrgChild) GetRootTlsCaCertBytes() []byte {
-	if m != nil {
-		return m.RootTlsCaCertBytes
-	}
-	return nil
-}
-
-func (m *ReqCreateOrgChild) GetSignAlgorithm() SignAlgorithm {
-	if m != nil {
-		return m.SignAlgorithm
-	}
-	return SignAlgorithm_SHA256WithRSA
-}
-
-func (m *ReqCreateOrgChild) GetEnrollInfo() *EnrollInfo {
-	if m != nil {
-		return m.EnrollInfo
-	}
-	return nil
-}
-
-type RespCreateOrgChild struct {
-	Code   Code   `protobuf:"varint,1,opt,name=code,proto3,enum=ca.Code" json:"code,omitempty"`
-	ErrMsg string `protobuf:"bytes,2,opt,name=errMsg,proto3" json:"errMsg,omitempty"`
-	// 被签发证书，直接转string得到pem格式化后内容
-	Cert []byte `protobuf:"bytes,3,opt,name=cert,proto3" json:"cert,omitempty"`
-	// 被签发tls证书，直接转string得到pem格式化后内容
-	TlsCert              []byte   `protobuf:"bytes,4,opt,name=tlsCert,proto3" json:"tlsCert,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *RespCreateOrgChild) Reset()         { *m = RespCreateOrgChild{} }
-func (m *RespCreateOrgChild) String() string { return proto.CompactTextString(m) }
-func (*RespCreateOrgChild) ProtoMessage()    {}
-func (*RespCreateOrgChild) Descriptor() ([]byte, []int) {
-	return fileDescriptor_42249d15fbfb5bb8, []int{16}
-}
-
-func (m *RespCreateOrgChild) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_RespCreateOrgChild.Unmarshal(m, b)
-}
-func (m *RespCreateOrgChild) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_RespCreateOrgChild.Marshal(b, m, deterministic)
-}
-func (m *RespCreateOrgChild) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_RespCreateOrgChild.Merge(m, src)
-}
-func (m *RespCreateOrgChild) XXX_Size() int {
-	return xxx_messageInfo_RespCreateOrgChild.Size(m)
-}
-func (m *RespCreateOrgChild) XXX_DiscardUnknown() {
-	xxx_messageInfo_RespCreateOrgChild.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_RespCreateOrgChild proto.InternalMessageInfo
-
-func (m *RespCreateOrgChild) GetCode() Code {
-	if m != nil {
-		return m.Code
-	}
-	return Code_Success
-}
-
-func (m *RespCreateOrgChild) GetErrMsg() string {
-	if m != nil {
-		return m.ErrMsg
-	}
-	return ""
-}
-
-func (m *RespCreateOrgChild) GetCert() []byte {
-	if m != nil {
-		return m.Cert
-	}
-	return nil
-}
-
-func (m *RespCreateOrgChild) GetTlsCert() []byte {
-	if m != nil {
-		return m.TlsCert
-	}
-	return nil
-}
-
-// 组织子节点/用户
-type ReqCreateOrgChildCa struct {
-	// fabric ca 登记信息1
-	EnrollInfo           *EnrollInfo `protobuf:"bytes,11,opt,name=enrollInfo,proto3" json:"enrollInfo,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
-	XXX_unrecognized     []byte      `json:"-"`
-	XXX_sizecache        int32       `json:"-"`
-}
-
-func (m *ReqCreateOrgChildCa) Reset()         { *m = ReqCreateOrgChildCa{} }
-func (m *ReqCreateOrgChildCa) String() string { return proto.CompactTextString(m) }
-func (*ReqCreateOrgChildCa) ProtoMessage()    {}
-func (*ReqCreateOrgChildCa) Descriptor() ([]byte, []int) {
-	return fileDescriptor_42249d15fbfb5bb8, []int{17}
-}
-
-func (m *ReqCreateOrgChildCa) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ReqCreateOrgChildCa.Unmarshal(m, b)
-}
-func (m *ReqCreateOrgChildCa) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ReqCreateOrgChildCa.Marshal(b, m, deterministic)
-}
-func (m *ReqCreateOrgChildCa) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ReqCreateOrgChildCa.Merge(m, src)
-}
-func (m *ReqCreateOrgChildCa) XXX_Size() int {
-	return xxx_messageInfo_ReqCreateOrgChildCa.Size(m)
-}
-func (m *ReqCreateOrgChildCa) XXX_DiscardUnknown() {
-	xxx_messageInfo_ReqCreateOrgChildCa.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_ReqCreateOrgChildCa proto.InternalMessageInfo
-
-func (m *ReqCreateOrgChildCa) GetEnrollInfo() *EnrollInfo {
-	if m != nil {
-		return m.EnrollInfo
-	}
-	return nil
-}
-
-type RespCreateOrgChildCa struct {
-	Code   Code   `protobuf:"varint,1,opt,name=code,proto3,enum=ca.Code" json:"code,omitempty"`
-	ErrMsg string `protobuf:"bytes,2,opt,name=errMsg,proto3" json:"errMsg,omitempty"`
-	// 被签发证书，直接转string得到pem格式化后内容
-	Cert                 []byte   `protobuf:"bytes,3,opt,name=cert,proto3" json:"cert,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *RespCreateOrgChildCa) Reset()         { *m = RespCreateOrgChildCa{} }
-func (m *RespCreateOrgChildCa) String() string { return proto.CompactTextString(m) }
-func (*RespCreateOrgChildCa) ProtoMessage()    {}
-func (*RespCreateOrgChildCa) Descriptor() ([]byte, []int) {
-	return fileDescriptor_42249d15fbfb5bb8, []int{18}
-}
-
-func (m *RespCreateOrgChildCa) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_RespCreateOrgChildCa.Unmarshal(m, b)
-}
-func (m *RespCreateOrgChildCa) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_RespCreateOrgChildCa.Marshal(b, m, deterministic)
-}
-func (m *RespCreateOrgChildCa) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_RespCreateOrgChildCa.Merge(m, src)
-}
-func (m *RespCreateOrgChildCa) XXX_Size() int {
-	return xxx_messageInfo_RespCreateOrgChildCa.Size(m)
-}
-func (m *RespCreateOrgChildCa) XXX_DiscardUnknown() {
-	xxx_messageInfo_RespCreateOrgChildCa.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_RespCreateOrgChildCa proto.InternalMessageInfo
-
-func (m *RespCreateOrgChildCa) GetCode() Code {
-	if m != nil {
-		return m.Code
-	}
-	return Code_Success
-}
-
-func (m *RespCreateOrgChildCa) GetErrMsg() string {
-	if m != nil {
-		return m.ErrMsg
-	}
-	return ""
-}
-
-func (m *RespCreateOrgChildCa) GetCert() []byte {
-	if m != nil {
-		return m.Cert
-	}
-	return nil
-}
-
-// 组织子节点/用户
-type ReqCreateOrgChildTlsCa struct {
-	// 用户公钥
-	PubTlsBytes []byte `protobuf:"bytes,7,opt,name=pubTlsBytes,proto3" json:"pubTlsBytes,omitempty"`
-	// 联盟tls私钥
-	PriTlsParentBytes []byte `protobuf:"bytes,6,opt,name=priTlsParentBytes,proto3" json:"priTlsParentBytes,omitempty"`
-	// 联盟tls根证书
-	RootTlsCaCertBytes []byte `protobuf:"bytes,9,opt,name=rootTlsCaCertBytes,proto3" json:"rootTlsCaCertBytes,omitempty"`
-	// 传输签名算法
-	SignAlgorithm SignAlgorithm `protobuf:"varint,10,opt,name=signAlgorithm,proto3,enum=ca.SignAlgorithm" json:"signAlgorithm,omitempty"`
-	// 证书请求申请内容
-	Csr                  *CSR     `protobuf:"bytes,3,opt,name=csr,proto3" json:"csr,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *ReqCreateOrgChildTlsCa) Reset()         { *m = ReqCreateOrgChildTlsCa{} }
-func (m *ReqCreateOrgChildTlsCa) String() string { return proto.CompactTextString(m) }
-func (*ReqCreateOrgChildTlsCa) ProtoMessage()    {}
-func (*ReqCreateOrgChildTlsCa) Descriptor() ([]byte, []int) {
-	return fileDescriptor_42249d15fbfb5bb8, []int{19}
-}
-
-func (m *ReqCreateOrgChildTlsCa) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ReqCreateOrgChildTlsCa.Unmarshal(m, b)
-}
-func (m *ReqCreateOrgChildTlsCa) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ReqCreateOrgChildTlsCa.Marshal(b, m, deterministic)
-}
-func (m *ReqCreateOrgChildTlsCa) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ReqCreateOrgChildTlsCa.Merge(m, src)
-}
-func (m *ReqCreateOrgChildTlsCa) XXX_Size() int {
-	return xxx_messageInfo_ReqCreateOrgChildTlsCa.Size(m)
-}
-func (m *ReqCreateOrgChildTlsCa) XXX_DiscardUnknown() {
-	xxx_messageInfo_ReqCreateOrgChildTlsCa.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_ReqCreateOrgChildTlsCa proto.InternalMessageInfo
-
-func (m *ReqCreateOrgChildTlsCa) GetPubTlsBytes() []byte {
-	if m != nil {
-		return m.PubTlsBytes
-	}
-	return nil
-}
-
-func (m *ReqCreateOrgChildTlsCa) GetPriTlsParentBytes() []byte {
-	if m != nil {
-		return m.PriTlsParentBytes
-	}
-	return nil
-}
-
-func (m *ReqCreateOrgChildTlsCa) GetRootTlsCaCertBytes() []byte {
-	if m != nil {
-		return m.RootTlsCaCertBytes
-	}
-	return nil
-}
-
-func (m *ReqCreateOrgChildTlsCa) GetSignAlgorithm() SignAlgorithm {
-	if m != nil {
-		return m.SignAlgorithm
-	}
-	return SignAlgorithm_SHA256WithRSA
-}
-
-func (m *ReqCreateOrgChildTlsCa) GetCsr() *CSR {
-	if m != nil {
-		return m.Csr
-	}
-	return nil
-}
-
-type RespCreateOrgChildTlsCa struct {
-	Code   Code   `protobuf:"varint,1,opt,name=code,proto3,enum=ca.Code" json:"code,omitempty"`
-	ErrMsg string `protobuf:"bytes,2,opt,name=errMsg,proto3" json:"errMsg,omitempty"`
-	// 被签发tls证书，直接转string得到pem格式化后内容
-	TlsCert              []byte   `protobuf:"bytes,4,opt,name=tlsCert,proto3" json:"tlsCert,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *RespCreateOrgChildTlsCa) Reset()         { *m = RespCreateOrgChildTlsCa{} }
-func (m *RespCreateOrgChildTlsCa) String() string { return proto.CompactTextString(m) }
-func (*RespCreateOrgChildTlsCa) ProtoMessage()    {}
-func (*RespCreateOrgChildTlsCa) Descriptor() ([]byte, []int) {
-	return fileDescriptor_42249d15fbfb5bb8, []int{20}
-}
-
-func (m *RespCreateOrgChildTlsCa) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_RespCreateOrgChildTlsCa.Unmarshal(m, b)
-}
-func (m *RespCreateOrgChildTlsCa) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_RespCreateOrgChildTlsCa.Marshal(b, m, deterministic)
-}
-func (m *RespCreateOrgChildTlsCa) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_RespCreateOrgChildTlsCa.Merge(m, src)
-}
-func (m *RespCreateOrgChildTlsCa) XXX_Size() int {
-	return xxx_messageInfo_RespCreateOrgChildTlsCa.Size(m)
-}
-func (m *RespCreateOrgChildTlsCa) XXX_DiscardUnknown() {
-	xxx_messageInfo_RespCreateOrgChildTlsCa.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_RespCreateOrgChildTlsCa proto.InternalMessageInfo
-
-func (m *RespCreateOrgChildTlsCa) GetCode() Code {
-	if m != nil {
-		return m.Code
-	}
-	return Code_Success
-}
-
-func (m *RespCreateOrgChildTlsCa) GetErrMsg() string {
-	if m != nil {
-		return m.ErrMsg
-	}
-	return ""
-}
-
-func (m *RespCreateOrgChildTlsCa) GetTlsCert() []byte {
-	if m != nil {
-		return m.TlsCert
-	}
-	return nil
-}
-
-// fabric ca 登记信息
-type EnrollInfo struct {
-	// csr pem 请求内容
-	CsrPemBytes []byte `protobuf:"bytes,1,opt,name=csrPemBytes,proto3" json:"csrPemBytes,omitempty"`
-	// fabric ca url
-	FabricCaServerURL string `protobuf:"bytes,2,opt,name=fabricCaServerURL,proto3" json:"fabricCaServerURL,omitempty"`
-	// 在多少天前无效
-	NotBefore int64 `protobuf:"varint,3,opt,name=notBefore,proto3" json:"notBefore,omitempty"`
-	// 在多少天后无效
-	NotAfter int64 `protobuf:"varint,4,opt,name=notAfter,proto3" json:"notAfter,omitempty"`
-	// fabric ca 登记请求
-	EnrollRequest        *EnrollRequest `protobuf:"bytes,5,opt,name=enrollRequest,proto3" json:"enrollRequest,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}       `json:"-"`
-	XXX_unrecognized     []byte         `json:"-"`
-	XXX_sizecache        int32          `json:"-"`
-}
-
-func (m *EnrollInfo) Reset()         { *m = EnrollInfo{} }
-func (m *EnrollInfo) String() string { return proto.CompactTextString(m) }
-func (*EnrollInfo) ProtoMessage()    {}
-func (*EnrollInfo) Descriptor() ([]byte, []int) {
-	return fileDescriptor_42249d15fbfb5bb8, []int{21}
-}
-
-func (m *EnrollInfo) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_EnrollInfo.Unmarshal(m, b)
-}
-func (m *EnrollInfo) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_EnrollInfo.Marshal(b, m, deterministic)
-}
-func (m *EnrollInfo) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_EnrollInfo.Merge(m, src)
-}
-func (m *EnrollInfo) XXX_Size() int {
-	return xxx_messageInfo_EnrollInfo.Size(m)
-}
-func (m *EnrollInfo) XXX_DiscardUnknown() {
-	xxx_messageInfo_EnrollInfo.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_EnrollInfo proto.InternalMessageInfo
-
-func (m *EnrollInfo) GetCsrPemBytes() []byte {
-	if m != nil {
-		return m.CsrPemBytes
-	}
-	return nil
-}
-
-func (m *EnrollInfo) GetFabricCaServerURL() string {
-	if m != nil {
-		return m.FabricCaServerURL
-	}
-	return ""
-}
-
-func (m *EnrollInfo) GetNotBefore() int64 {
-	if m != nil {
-		return m.NotBefore
-	}
-	return 0
-}
-
-func (m *EnrollInfo) GetNotAfter() int64 {
-	if m != nil {
-		return m.NotAfter
-	}
-	return 0
-}
-
-func (m *EnrollInfo) GetEnrollRequest() *EnrollRequest {
-	if m != nil {
-		return m.EnrollRequest
-	}
-	return nil
-}
-
-// fabric ca 等级请求
-type EnrollRequest struct {
-	// fabric ca 登记ID
-	EnrollID string `protobuf:"bytes,1,opt,name=enrollID,proto3" json:"enrollID,omitempty"`
-	// fabric ca 登记密码
-	Secret string `protobuf:"bytes,2,opt,name=secret,proto3" json:"secret,omitempty"`
-	// 证书请求申请内容
-	Csr *CSR `protobuf:"bytes,3,opt,name=csr,proto3" json:"csr,omitempty"`
-	// tls，非必须
-	Profile string `protobuf:"bytes,4,opt,name=profile,proto3" json:"profile,omitempty"`
-	// 标签，非必须
-	Label string `protobuf:"bytes,5,opt,name=label,proto3" json:"label,omitempty"`
-	// ca name，非必须
-	CaName string `protobuf:"bytes,6,opt,name=caName,proto3" json:"caName,omitempty"`
-	// example.com，非必须
-	Hosts []string `protobuf:"bytes,7,rep,name=hosts,proto3" json:"hosts,omitempty"`
-	// fabric ca 登记属性，非必须
-	Attrs                []*EnrollAttribute `protobuf:"bytes,8,rep,name=attrs,proto3" json:"attrs,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}           `json:"-"`
-	XXX_unrecognized     []byte             `json:"-"`
-	XXX_sizecache        int32              `json:"-"`
-}
-
-func (m *EnrollRequest) Reset()         { *m = EnrollRequest{} }
-func (m *EnrollRequest) String() string { return proto.CompactTextString(m) }
-func (*EnrollRequest) ProtoMessage()    {}
-func (*EnrollRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_42249d15fbfb5bb8, []int{22}
-}
-
-func (m *EnrollRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_EnrollRequest.Unmarshal(m, b)
-}
-func (m *EnrollRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_EnrollRequest.Marshal(b, m, deterministic)
-}
-func (m *EnrollRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_EnrollRequest.Merge(m, src)
-}
-func (m *EnrollRequest) XXX_Size() int {
-	return xxx_messageInfo_EnrollRequest.Size(m)
-}
-func (m *EnrollRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_EnrollRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_EnrollRequest proto.InternalMessageInfo
-
-func (m *EnrollRequest) GetEnrollID() string {
-	if m != nil {
-		return m.EnrollID
-	}
-	return ""
-}
-
-func (m *EnrollRequest) GetSecret() string {
-	if m != nil {
-		return m.Secret
-	}
-	return ""
-}
-
-func (m *EnrollRequest) GetCsr() *CSR {
-	if m != nil {
-		return m.Csr
-	}
-	return nil
-}
-
-func (m *EnrollRequest) GetProfile() string {
-	if m != nil {
-		return m.Profile
-	}
-	return ""
-}
-
-func (m *EnrollRequest) GetLabel() string {
-	if m != nil {
-		return m.Label
-	}
-	return ""
-}
-
-func (m *EnrollRequest) GetCaName() string {
-	if m != nil {
-		return m.CaName
-	}
-	return ""
-}
-
-func (m *EnrollRequest) GetHosts() []string {
-	if m != nil {
-		return m.Hosts
-	}
-	return nil
-}
-
-func (m *EnrollRequest) GetAttrs() []*EnrollAttribute {
-	if m != nil {
-		return m.Attrs
-	}
-	return nil
-}
-
-// fabric ca 登记属性
-type EnrollAttribute struct {
-	Name                 string   `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Optional             bool     `protobuf:"varint,2,opt,name=optional,proto3" json:"optional,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *EnrollAttribute) Reset()         { *m = EnrollAttribute{} }
-func (m *EnrollAttribute) String() string { return proto.CompactTextString(m) }
-func (*EnrollAttribute) ProtoMessage()    {}
-func (*EnrollAttribute) Descriptor() ([]byte, []int) {
-	return fileDescriptor_42249d15fbfb5bb8, []int{23}
-}
-
-func (m *EnrollAttribute) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_EnrollAttribute.Unmarshal(m, b)
-}
-func (m *EnrollAttribute) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_EnrollAttribute.Marshal(b, m, deterministic)
-}
-func (m *EnrollAttribute) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_EnrollAttribute.Merge(m, src)
-}
-func (m *EnrollAttribute) XXX_Size() int {
-	return xxx_messageInfo_EnrollAttribute.Size(m)
-}
-func (m *EnrollAttribute) XXX_DiscardUnknown() {
-	xxx_messageInfo_EnrollAttribute.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_EnrollAttribute proto.InternalMessageInfo
-
-func (m *EnrollAttribute) GetName() string {
-	if m != nil {
-		return m.Name
-	}
-	return ""
-}
-
-func (m *EnrollAttribute) GetOptional() bool {
-	if m != nil {
-		return m.Optional
-	}
-	return false
-}
-
-// 证书请求申请内容
-type CSR struct {
-	// 国家代号，如CN
-	Country []string `protobuf:"bytes,1,rep,name=country,proto3" json:"country,omitempty"`
-	// 组织机构代号，如HyperLedger
-	Organization []string `protobuf:"bytes,2,rep,name=organization,proto3" json:"organization,omitempty"`
-	// 组织机构下部门代号，如Fabric（非必须）
-	OrganizationalUnit []string `protobuf:"bytes,3,rep,name=organizationalUnit,proto3" json:"organizationalUnit,omitempty"`
-	// 位置坐标信息（非必须）
-	Locality []string `protobuf:"bytes,4,rep,name=locality,proto3" json:"locality,omitempty"`
-	// 省份名称（非必须）
-	Province []string `protobuf:"bytes,5,rep,name=province,proto3" json:"province,omitempty"`
-	// 街道信息（非必须）
-	StreetAddress []string `protobuf:"bytes,6,rep,name=streetAddress,proto3" json:"streetAddress,omitempty"`
-	// 邮政编码（非必须）
-	PostalCode []string `protobuf:"bytes,7,rep,name=postalCode,proto3" json:"postalCode,omitempty"`
-	// 序列号（非必须）
-	SerialNumber string `protobuf:"bytes,8,opt,name=serialNumber,proto3" json:"serialNumber,omitempty"`
-	// 当前待申请证书最终受访域名，如example.com、org1.example.com等
-	CommonName           string   `protobuf:"bytes,9,opt,name=commonName,proto3" json:"commonName,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *CSR) Reset()         { *m = CSR{} }
-func (m *CSR) String() string { return proto.CompactTextString(m) }
-func (*CSR) ProtoMessage()    {}
-func (*CSR) Descriptor() ([]byte, []int) {
-	return fileDescriptor_42249d15fbfb5bb8, []int{24}
-}
-
-func (m *CSR) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_CSR.Unmarshal(m, b)
-}
-func (m *CSR) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_CSR.Marshal(b, m, deterministic)
-}
-func (m *CSR) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_CSR.Merge(m, src)
-}
-func (m *CSR) XXX_Size() int {
-	return xxx_messageInfo_CSR.Size(m)
-}
-func (m *CSR) XXX_DiscardUnknown() {
-	xxx_messageInfo_CSR.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_CSR proto.InternalMessageInfo
-
-func (m *CSR) GetCountry() []string {
-	if m != nil {
-		return m.Country
-	}
-	return nil
-}
-
-func (m *CSR) GetOrganization() []string {
-	if m != nil {
-		return m.Organization
-	}
-	return nil
-}
-
-func (m *CSR) GetOrganizationalUnit() []string {
-	if m != nil {
-		return m.OrganizationalUnit
-	}
-	return nil
-}
-
-func (m *CSR) GetLocality() []string {
-	if m != nil {
-		return m.Locality
-	}
-	return nil
-}
-
-func (m *CSR) GetProvince() []string {
-	if m != nil {
-		return m.Province
-	}
-	return nil
-}
-
-func (m *CSR) GetStreetAddress() []string {
-	if m != nil {
-		return m.StreetAddress
-	}
-	return nil
-}
-
-func (m *CSR) GetPostalCode() []string {
-	if m != nil {
-		return m.PostalCode
-	}
-	return nil
-}
-
-func (m *CSR) GetSerialNumber() string {
-	if m != nil {
-		return m.SerialNumber
-	}
-	return ""
-}
-
-func (m *CSR) GetCommonName() string {
-	if m != nil {
-		return m.CommonName
-	}
-	return ""
+	return n
 }
 
 func init() {
@@ -1851,110 +710,54 @@ func init() {
 	proto.RegisterType((*RespCrypto)(nil), "ca.RespCrypto")
 	proto.RegisterType((*ReqSignCertificate)(nil), "ca.ReqSignCertificate")
 	proto.RegisterType((*RespSignCertificate)(nil), "ca.RespSignCertificate")
-	proto.RegisterType((*ReqChildCa)(nil), "ca.ReqChildCa")
-	proto.RegisterType((*RespChildCa)(nil), "ca.RespChildCa")
-	proto.RegisterType((*ReqChildTlsCa)(nil), "ca.ReqChildTlsCa")
-	proto.RegisterType((*RespChildTlsCa)(nil), "ca.RespChildTlsCa")
 	proto.RegisterType((*Subject)(nil), "ca.Subject")
-	proto.RegisterType((*ReqCa)(nil), "ca.ReqCa")
 	proto.RegisterType((*CryptoConfig)(nil), "ca.CryptoConfig")
-	proto.RegisterType((*ReqCreateCsr)(nil), "ca.ReqCreateCsr")
-	proto.RegisterType((*RespCreateCsr)(nil), "ca.RespCreateCsr")
-	proto.RegisterType((*ReqCreateOrgChild)(nil), "ca.ReqCreateOrgChild")
-	proto.RegisterType((*RespCreateOrgChild)(nil), "ca.RespCreateOrgChild")
-	proto.RegisterType((*ReqCreateOrgChildCa)(nil), "ca.ReqCreateOrgChildCa")
-	proto.RegisterType((*RespCreateOrgChildCa)(nil), "ca.RespCreateOrgChildCa")
-	proto.RegisterType((*ReqCreateOrgChildTlsCa)(nil), "ca.ReqCreateOrgChildTlsCa")
-	proto.RegisterType((*RespCreateOrgChildTlsCa)(nil), "ca.RespCreateOrgChildTlsCa")
-	proto.RegisterType((*EnrollInfo)(nil), "ca.EnrollInfo")
-	proto.RegisterType((*EnrollRequest)(nil), "ca.EnrollRequest")
-	proto.RegisterType((*EnrollAttribute)(nil), "ca.EnrollAttribute")
-	proto.RegisterType((*CSR)(nil), "ca.CSR")
 }
 
 func init() { proto.RegisterFile("grpc/proto/ca/cert.proto", fileDescriptor_42249d15fbfb5bb8) }
 
 var fileDescriptor_42249d15fbfb5bb8 = []byte{
-	// 1295 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xd4, 0x58, 0x4f, 0x6f, 0x23, 0xb5,
-	0x1b, 0xfe, 0x4d, 0x26, 0x69, 0x93, 0x37, 0x69, 0xf7, 0xd7, 0xd9, 0xd5, 0x92, 0xad, 0x56, 0x68,
-	0x35, 0x62, 0x51, 0x41, 0x90, 0x95, 0x8a, 0x80, 0x73, 0x9b, 0x5d, 0x09, 0x04, 0x2c, 0x95, 0xdb,
-	0xbd, 0x70, 0xc2, 0x71, 0x9d, 0xd4, 0x30, 0x19, 0x4f, 0x6d, 0x67, 0x45, 0xb9, 0xc3, 0x47, 0xe0,
-	0x84, 0xc4, 0x91, 0x4f, 0xc0, 0x09, 0xbe, 0x03, 0x7c, 0x08, 0x24, 0x2e, 0x1c, 0x39, 0x72, 0x40,
-	0x7e, 0xed, 0xcc, 0x78, 0x32, 0xdd, 0x52, 0x02, 0x08, 0xed, 0x6d, 0xde, 0x3f, 0xae, 0xed, 0xe7,
-	0x7d, 0xfc, 0xbc, 0x6f, 0x03, 0xc3, 0x99, 0x2a, 0xd8, 0x83, 0x42, 0x49, 0x23, 0x1f, 0x30, 0xfa,
-	0x80, 0x71, 0x65, 0x46, 0x68, 0x25, 0x2d, 0x46, 0x77, 0xef, 0xd4, 0xa3, 0x3c, 0x5f, 0xcc, 0xb5,
-	0x0b, 0xa7, 0x3f, 0x44, 0xb0, 0x45, 0xf8, 0x39, 0x91, 0xd2, 0x8c, 0xd5, 0x45, 0x61, 0x64, 0x92,
-	0x40, 0x3b, 0xa7, 0x73, 0x3e, 0x8c, 0xee, 0x45, 0x7b, 0x3d, 0x82, 0xdf, 0xc9, 0x6d, 0xd8, 0x38,
-	0x95, 0x73, 0x2a, 0xf2, 0x61, 0x0b, 0xbd, 0xde, 0x4a, 0xee, 0xc3, 0xa6, 0x5e, 0x4c, 0x3e, 0xe1,
-	0xcc, 0x0c, 0xe3, 0x7b, 0xd1, 0x5e, 0x7f, 0xbf, 0x3f, 0x62, 0x74, 0x74, 0xec, 0x5c, 0x64, 0x19,
-	0x4b, 0xf6, 0x60, 0x83, 0xc9, 0x7c, 0x2a, 0x66, 0xc3, 0x36, 0x66, 0xfd, 0xdf, 0x66, 0xb9, 0xed,
-	0xc6, 0xe8, 0x27, 0x3e, 0x9e, 0x8c, 0xa0, 0x67, 0x32, 0xed, 0x9c, 0xc3, 0xce, 0x33, 0x92, 0xab,
-	0x94, 0xf4, 0xeb, 0x16, 0x6c, 0x13, 0xae, 0x8b, 0xe0, 0xfc, 0x77, 0xa1, 0xcd, 0xe4, 0xa9, 0x3b,
-	0xff, 0xf6, 0x7e, 0x17, 0x57, 0xcb, 0x53, 0x4e, 0xd0, 0x6b, 0x6f, 0xc2, 0x95, 0xfa, 0x40, 0xcf,
-	0x96, 0x37, 0x71, 0x56, 0x72, 0x0f, 0xfa, 0x85, 0x12, 0xef, 0xf1, 0x8b, 0xc3, 0x0b, 0xc3, 0x35,
-	0x9e, 0x73, 0x40, 0x42, 0x17, 0x66, 0x2c, 0x26, 0x65, 0x46, 0xc7, 0x67, 0x54, 0xae, 0xe4, 0x2e,
-	0xf4, 0x2c, 0xf0, 0x2e, 0xbe, 0x81, 0xf1, 0xca, 0x91, 0xbc, 0x0c, 0xdb, 0x26, 0xd3, 0x47, 0xc1,
-	0x26, 0x9b, 0x98, 0xb2, 0xe2, 0x5d, 0xe6, 0x05, 0x5b, 0x75, 0xab, 0xbc, 0x60, 0xb7, 0x14, 0x06,
-	0x16, 0x87, 0x72, 0xc3, 0x1e, 0x66, 0xd5, 0x7c, 0xe9, 0x9b, 0xd0, 0x23, 0xfc, 0xdc, 0x03, 0x53,
-	0x55, 0x21, 0xba, 0xba, 0x0a, 0xe9, 0x97, 0x11, 0x80, 0x45, 0xf5, 0xbf, 0x46, 0x34, 0xfd, 0xa9,
-	0x05, 0x09, 0xe1, 0xe7, 0xc7, 0x62, 0x96, 0xdb, 0x4b, 0x89, 0xa9, 0x60, 0xd4, 0xf0, 0x64, 0x08,
-	0x9b, 0x52, 0xcd, 0x1e, 0x57, 0x2c, 0x5d, 0x9a, 0xb6, 0x04, 0x52, 0xcd, 0x1e, 0x86, 0x5c, 0xad,
-	0x1c, 0x58, 0xa0, 0x33, 0x91, 0x9d, 0xe2, 0xca, 0xd8, 0x45, 0x4b, 0x87, 0xbd, 0x88, 0xd0, 0x4f,
-	0x34, 0x57, 0x78, 0xd6, 0x2e, 0xf1, 0x56, 0xb2, 0x07, 0x37, 0x0a, 0xaa, 0x78, 0x6e, 0x2a, 0xac,
-	0xdd, 0x51, 0x57, 0xdd, 0xb6, 0x74, 0xce, 0x75, 0xa4, 0x44, 0xc8, 0x82, 0x15, 0x6f, 0xb2, 0x0b,
-	0xdd, 0x62, 0x31, 0x09, 0x49, 0x50, 0xda, 0xe1, 0x93, 0xea, 0x5e, 0xf1, 0xa4, 0xde, 0x86, 0x2d,
-	0x2d, 0x66, 0xf9, 0x41, 0x36, 0x93, 0x4a, 0x98, 0xb3, 0x39, 0x96, 0x7f, 0x7b, 0x7f, 0x07, 0x93,
-	0xc3, 0x00, 0xa9, 0xe7, 0xa5, 0x02, 0x6e, 0xda, 0xd2, 0xae, 0x42, 0xba, 0x5e, 0x8d, 0x6b, 0x8c,
-	0x6f, 0xaf, 0x30, 0x3e, 0x7d, 0xd5, 0xb2, 0xe8, 0x7c, 0x6c, 0x01, 0x1e, 0xd3, 0x3a, 0xf8, 0xd1,
-	0x0a, 0xf8, 0xe9, 0x37, 0x11, 0xf4, 0x91, 0x72, 0x65, 0xf6, 0x3a, 0xe7, 0xb9, 0x0d, 0x1b, 0xfa,
-	0xd3, 0xa0, 0xba, 0xde, 0xfa, 0x47, 0xb8, 0xf8, 0x85, 0x53, 0x4a, 0x3c, 0xe0, 0x49, 0xa6, 0xc7,
-	0x74, 0x6d, 0x1a, 0x2e, 0x15, 0x36, 0x0e, 0x14, 0xf6, 0xda, 0x12, 0x99, 0x7e, 0x15, 0x39, 0xc9,
-	0x0b, 0x0e, 0xb2, 0x1e, 0x58, 0x4d, 0x41, 0x8a, 0xaf, 0x29, 0x48, 0xed, 0xcb, 0x04, 0x29, 0xfd,
-	0x3e, 0x82, 0x4d, 0xcf, 0x53, 0x0b, 0x0d, 0x93, 0x8b, 0xdc, 0xa8, 0x0b, 0x4c, 0xee, 0x91, 0xa5,
-	0x89, 0xdc, 0x57, 0xf2, 0xa9, 0xc8, 0x19, 0x47, 0x94, 0x7b, 0xa4, 0xb4, 0x6d, 0x2c, 0x93, 0x8c,
-	0x66, 0xc2, 0x5c, 0xe0, 0xcb, 0xe9, 0x91, 0xd2, 0xf6, 0x60, 0x3f, 0xc9, 0x85, 0xc1, 0x27, 0xe3,
-	0xc0, 0xb6, 0x66, 0xf2, 0x12, 0x6c, 0x69, 0xa3, 0x38, 0x37, 0x07, 0xa7, 0xa7, 0x8a, 0x6b, 0xa7,
-	0x97, 0x3d, 0x52, 0x77, 0x26, 0x2f, 0x02, 0x14, 0x52, 0x1b, 0x9a, 0x59, 0x64, 0xf0, 0xb5, 0xf4,
-	0x48, 0xe0, 0x49, 0xbf, 0x6d, 0x41, 0xc7, 0x96, 0x97, 0xfe, 0x4b, 0xea, 0xf2, 0xdc, 0x21, 0x12,
-	0xe8, 0x21, 0x84, 0x7a, 0x98, 0xfe, 0x16, 0xc1, 0x20, 0x64, 0x66, 0x32, 0x02, 0x60, 0x68, 0x9f,
-	0x5c, 0x14, 0x4b, 0x12, 0x6e, 0x57, 0xfc, 0xb5, 0x5e, 0x12, 0x64, 0x24, 0x6f, 0xc1, 0x80, 0x33,
-	0x56, 0x49, 0x57, 0x0b, 0x57, 0x20, 0xe3, 0x1f, 0x05, 0xfe, 0x77, 0xfe, 0x47, 0x6a, 0x79, 0x76,
-	0x9d, 0xd2, 0xb4, 0x5a, 0x17, 0x57, 0xeb, 0x48, 0xe0, 0xb7, 0xeb, 0xc2, 0xbc, 0xa6, 0x56, 0x76,
-	0xae, 0xa7, 0x95, 0x87, 0x7d, 0xe8, 0x55, 0xc2, 0xf9, 0x73, 0x04, 0x03, 0x6c, 0xa6, 0x9c, 0x1a,
-	0x3e, 0xd6, 0xca, 0x36, 0xe0, 0x8c, 0xd3, 0xd9, 0x82, 0xd7, 0x08, 0x51, 0xf3, 0xfd, 0x09, 0x27,
-	0x6a, 0x7c, 0x6a, 0xaf, 0xf2, 0x69, 0x45, 0xb4, 0x3a, 0x4d, 0xd1, 0xba, 0x03, 0x31, 0xd3, 0x0a,
-	0x89, 0xd1, 0xdf, 0xdf, 0x44, 0xc4, 0x8f, 0x09, 0xb1, 0xbe, 0xe6, 0x9d, 0x37, 0xaf, 0xd9, 0x1f,
-	0xa8, 0x55, 0x39, 0xdb, 0xfa, 0x97, 0xd7, 0x5c, 0x4f, 0x5c, 0x76, 0xa1, 0xcb, 0xb4, 0x0a, 0x65,
-	0xa5, 0xb4, 0xd3, 0xdf, 0x23, 0xd8, 0x29, 0x91, 0xfc, 0x50, 0xcd, 0x50, 0xc9, 0xbc, 0x02, 0x9f,
-	0x64, 0x3a, 0xec, 0x8b, 0xa1, 0x2b, 0x79, 0x0d, 0x76, 0x0a, 0x25, 0x4e, 0x32, 0x7d, 0x84, 0xed,
-	0x34, 0xec, 0xb0, 0xcd, 0x40, 0x32, 0x82, 0x44, 0x49, 0x69, 0x50, 0x21, 0x57, 0xa7, 0xa4, 0x4b,
-	0x22, 0x4d, 0xc4, 0xe0, 0x7a, 0x88, 0x59, 0xfa, 0xf3, 0x5c, 0xc9, 0x2c, 0x7b, 0x37, 0x9f, 0xca,
-	0x61, 0x1f, 0x8b, 0x81, 0xf4, 0x7f, 0x54, 0x7a, 0x49, 0x90, 0x91, 0x7e, 0x66, 0x67, 0x9a, 0x25,
-	0xc2, 0xe5, 0xf5, 0xd7, 0x83, 0x39, 0x81, 0xb6, 0xed, 0xb7, 0x1e, 0x62, 0xfc, 0xb6, 0xba, 0xe0,
-	0x87, 0x40, 0x2f, 0xd4, 0x4b, 0x33, 0x7d, 0x64, 0x7b, 0xff, 0x0a, 0xee, 0x63, 0xfa, 0x97, 0x2f,
-	0xf0, 0x31, 0xdc, 0x6a, 0x5e, 0x60, 0xed, 0x36, 0x74, 0xc9, 0x15, 0xd2, 0x5f, 0x23, 0xb8, 0xdd,
-	0x38, 0xa9, 0xeb, 0x75, 0xcf, 0x2d, 0x4d, 0xfc, 0x63, 0x8d, 0x9b, 0x8f, 0x35, 0x15, 0xf0, 0x42,
-	0x13, 0xd0, 0xbf, 0xd3, 0xda, 0x9f, 0x4d, 0x81, 0x1f, 0x23, 0x80, 0xaa, 0xac, 0x16, 0x4d, 0xa6,
-	0xd5, 0x11, 0x9f, 0xbb, 0x6b, 0x47, 0x0e, 0xcd, 0xc0, 0x65, 0xd1, 0x9c, 0xd2, 0x89, 0x12, 0x6c,
-	0x4c, 0x8f, 0xb9, 0x7a, 0xca, 0xd5, 0x13, 0xf2, 0xbe, 0xdf, 0xad, 0x19, 0xb0, 0x8a, 0x96, 0x4b,
-	0x73, 0xc8, 0xa7, 0x52, 0x39, 0xbd, 0x8b, 0x49, 0xe5, 0xb0, 0xa2, 0x90, 0x4b, 0x73, 0x30, 0x35,
-	0x7e, 0xc6, 0x8e, 0x49, 0x69, 0x5b, 0x5c, 0x1d, 0xc5, 0x08, 0x3f, 0x5f, 0x70, 0x6d, 0xfc, 0x7f,
-	0x7f, 0x3b, 0x15, 0x0f, 0x7d, 0x80, 0xd4, 0xf3, 0xd2, 0x5f, 0x22, 0xd8, 0xaa, 0x25, 0xd8, 0x6d,
-	0x3c, 0x5b, 0x1f, 0xfa, 0x0e, 0x5e, 0xda, 0x38, 0x21, 0x72, 0xa6, 0xb8, 0x59, 0x22, 0xe6, 0xac,
-	0x2b, 0xaa, 0x63, 0xc1, 0x2c, 0x94, 0x9c, 0x8a, 0x8c, 0x2f, 0x3b, 0xb7, 0x37, 0x93, 0x5b, 0xd0,
-	0xc9, 0xe8, 0x84, 0x67, 0xbe, 0x6d, 0x3b, 0xc3, 0x6e, 0xc1, 0x28, 0x0a, 0xbe, 0xeb, 0xd8, 0xde,
-	0xb2, 0xd9, 0x67, 0x52, 0x1b, 0xcb, 0xd9, 0xd8, 0x66, 0xa3, 0x91, 0xbc, 0x02, 0x1d, 0x6a, 0x8c,
-	0xb2, 0x3d, 0x3a, 0xde, 0xeb, 0xef, 0xdf, 0xac, 0xee, 0x7b, 0x60, 0x8c, 0x12, 0x93, 0x85, 0xe1,
-	0xc4, 0x65, 0xa4, 0x07, 0x70, 0x63, 0x25, 0x72, 0xe9, 0x3f, 0xeb, 0xbb, 0xd0, 0x95, 0x85, 0x11,
-	0x32, 0xa7, 0x19, 0x5e, 0xb2, 0x4b, 0x4a, 0x3b, 0xfd, 0xae, 0x05, 0xf1, 0xf8, 0x98, 0x84, 0xd3,
-	0x48, 0x84, 0xa7, 0x29, 0xa7, 0x91, 0x14, 0x06, 0x52, 0xcd, 0x68, 0x2e, 0x3e, 0xa7, 0x76, 0xcd,
-	0xb0, 0x85, 0xe1, 0x9a, 0xcf, 0xbe, 0x99, 0xd0, 0xa6, 0x19, 0x0e, 0x21, 0x31, 0x66, 0x5e, 0x12,
-	0xa9, 0x4d, 0x31, 0x6d, 0xcc, 0xaa, 0xa6, 0x98, 0xfa, 0xf4, 0x13, 0xd7, 0xa6, 0x9f, 0xc6, 0x1c,
-	0xb3, 0x81, 0x09, 0x57, 0xce, 0x31, 0x0e, 0xdc, 0x70, 0x8e, 0x49, 0x61, 0xa0, 0xb9, 0x12, 0x34,
-	0x7b, 0xbc, 0x98, 0x4f, 0xb8, 0xf2, 0xc3, 0x50, 0xcd, 0x67, 0xff, 0x06, 0x93, 0xf3, 0xb9, 0xcc,
-	0xb1, 0x6e, 0x7e, 0x16, 0xaa, 0x3c, 0x87, 0x07, 0x70, 0x9f, 0xe5, 0x23, 0x3a, 0xe1, 0x4a, 0xb0,
-	0x91, 0xa3, 0xfd, 0xeb, 0x2c, 0x13, 0x3c, 0x37, 0xa3, 0x99, 0x2a, 0x98, 0xfb, 0x31, 0x65, 0xc4,
-	0xe8, 0x61, 0xcf, 0xbe, 0xb2, 0x23, 0x6b, 0x7d, 0xb4, 0x55, 0xfb, 0xd5, 0x65, 0xb2, 0x81, 0x5f,
-	0x6f, 0xfc, 0x11, 0x00, 0x00, 0xff, 0xff, 0x3f, 0x0c, 0xef, 0xe0, 0xab, 0x11, 0x00, 0x00,
+	// 658 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xc4, 0x55, 0xdf, 0x6e, 0xd3, 0x3e,
+	0x14, 0xfe, 0xa5, 0xeb, 0xda, 0xe6, 0xf4, 0xcf, 0x0f, 0x8c, 0x84, 0xc2, 0x34, 0xa1, 0x29, 0x62,
+	0xa8, 0x37, 0x64, 0xd2, 0x10, 0x70, 0xbd, 0x0d, 0x24, 0x24, 0x04, 0x9a, 0x3c, 0x76, 0xc3, 0x5d,
+	0xea, 0x7a, 0x99, 0x51, 0x1a, 0x67, 0xb6, 0x8b, 0xd4, 0x17, 0xe0, 0x29, 0x78, 0x13, 0x78, 0x08,
+	0x1e, 0x86, 0x07, 0x40, 0x3e, 0x4e, 0x6b, 0xa7, 0x88, 0x09, 0x71, 0xc3, 0x5d, 0xbe, 0xef, 0x7c,
+	0x47, 0xb6, 0xbf, 0xf3, 0x1d, 0x05, 0x92, 0x42, 0xd5, 0xec, 0xa8, 0x56, 0xd2, 0xc8, 0x23, 0x96,
+	0x1f, 0x31, 0xae, 0x4c, 0x86, 0x88, 0x74, 0x58, 0xbe, 0xf7, 0xa0, 0x5d, 0xe5, 0xd5, 0x72, 0xa1,
+	0x5d, 0x39, 0xfd, 0x16, 0xc1, 0x98, 0xf2, 0x1b, 0x2a, 0xa5, 0x39, 0x53, 0xab, 0xda, 0x48, 0x42,
+	0xa0, 0x5b, 0xe5, 0x0b, 0x9e, 0x44, 0x07, 0xd1, 0x34, 0xa6, 0xf8, 0x4d, 0xee, 0x43, 0x6f, 0x2e,
+	0x17, 0xb9, 0xa8, 0x92, 0x0e, 0xb2, 0x0d, 0x22, 0x87, 0xd0, 0xd7, 0xcb, 0xd9, 0x47, 0xce, 0x4c,
+	0xb2, 0x73, 0x10, 0x4d, 0x87, 0xc7, 0xc3, 0x8c, 0xe5, 0xd9, 0x85, 0xa3, 0xe8, 0xba, 0x46, 0xa6,
+	0xd0, 0x63, 0xb2, 0xba, 0x12, 0x45, 0xd2, 0x45, 0xd5, 0x1d, 0xab, 0x72, 0xc7, 0x9d, 0x21, 0x4f,
+	0x9b, 0x3a, 0xc9, 0x20, 0x36, 0xa5, 0x76, 0x64, 0xb2, 0xfb, 0x1b, 0xb1, 0x97, 0xa4, 0x5f, 0x3a,
+	0x30, 0xa1, 0x5c, 0xd7, 0xc1, 0xfd, 0xf7, 0xa1, 0xcb, 0xe4, 0xdc, 0xdd, 0x7f, 0x72, 0x3c, 0xc0,
+	0x6e, 0x39, 0xe7, 0x14, 0x59, 0xfb, 0x12, 0xae, 0xd4, 0x5b, 0x5d, 0xac, 0x5f, 0xe2, 0x10, 0x39,
+	0x80, 0x61, 0xad, 0xc4, 0x1b, 0xbe, 0x3a, 0x5d, 0x19, 0xae, 0xf1, 0x9e, 0x23, 0x1a, 0x52, 0xa8,
+	0x58, 0xce, 0x36, 0x8a, 0xdd, 0x46, 0xe1, 0x29, 0xb2, 0x0f, 0xb1, 0x35, 0xde, 0xd5, 0x7b, 0x58,
+	0xf7, 0x04, 0x79, 0x0c, 0x13, 0x53, 0xea, 0xf3, 0xe0, 0x90, 0x3e, 0x4a, 0xb6, 0xd8, 0xb5, 0x2e,
+	0x38, 0x6a, 0xe0, 0x75, 0xc1, 0x69, 0x29, 0x8c, 0xac, 0x0f, 0x9b, 0x03, 0x63, 0x54, 0xb5, 0xb8,
+	0xf4, 0x19, 0xc4, 0x94, 0xdf, 0x34, 0xc6, 0xf8, 0x29, 0x44, 0xb7, 0x4f, 0x21, 0xfd, 0x1c, 0x01,
+	0x58, 0x57, 0xff, 0xb5, 0xa3, 0xe9, 0xf7, 0x0e, 0x10, 0xca, 0x6f, 0x2e, 0x44, 0x51, 0xd9, 0x47,
+	0x89, 0x2b, 0xc1, 0x72, 0xc3, 0x49, 0x02, 0x7d, 0xa9, 0x8a, 0x77, 0x3e, 0xa5, 0x6b, 0x68, 0x47,
+	0x20, 0x55, 0xf1, 0x32, 0xcc, 0xaa, 0x27, 0x70, 0x40, 0xd7, 0xa2, 0x9c, 0x63, 0xe7, 0x8e, 0xab,
+	0x6e, 0x08, 0xfb, 0x10, 0xa1, 0x2f, 0x35, 0x57, 0x78, 0xd7, 0x01, 0x6d, 0x10, 0x99, 0xc2, 0xff,
+	0x75, 0xae, 0x78, 0x65, 0xbc, 0xd7, 0xee, 0xaa, 0xdb, 0xb4, 0x1d, 0x9d, 0xa3, 0xce, 0x95, 0x08,
+	0x53, 0xb0, 0xc5, 0x92, 0x3d, 0x18, 0xd4, 0xcb, 0x59, 0x18, 0x82, 0x0d, 0x0e, 0x57, 0x6a, 0x70,
+	0xcb, 0x4a, 0xbd, 0x80, 0xb1, 0x16, 0x45, 0x75, 0x52, 0x16, 0x52, 0x09, 0x73, 0xbd, 0xc0, 0xf1,
+	0x4f, 0x8e, 0xef, 0xa2, 0x38, 0x2c, 0xd0, 0xb6, 0x2e, 0x15, 0x70, 0xcf, 0x8e, 0x76, 0xdb, 0xd2,
+	0xbf, 0x9b, 0x71, 0x2b, 0xf1, 0xdd, 0xad, 0xc4, 0xa7, 0x5f, 0x23, 0xe8, 0x37, 0x17, 0xb7, 0x23,
+	0x63, 0x72, 0x59, 0x19, 0xb5, 0x42, 0x5d, 0x4c, 0xd7, 0x10, 0xcd, 0x50, 0xf2, 0x93, 0xa8, 0x18,
+	0x47, 0x5f, 0x63, 0xba, 0xc1, 0xb6, 0x56, 0x4a, 0x96, 0x97, 0xc2, 0xac, 0xd0, 0xca, 0x98, 0x6e,
+	0x70, 0x13, 0x82, 0xcb, 0x4a, 0x18, 0xf4, 0xd0, 0x85, 0xc0, 0x42, 0xf2, 0x08, 0xc6, 0xda, 0x28,
+	0xce, 0xcd, 0xc9, 0x7c, 0xae, 0xb8, 0x76, 0x0b, 0x14, 0xd3, 0x36, 0x49, 0x1e, 0x02, 0xd4, 0x52,
+	0x9b, 0xbc, 0xb4, 0xef, 0x44, 0xfb, 0x62, 0x1a, 0x30, 0xe9, 0x8f, 0x08, 0x46, 0xe1, 0x76, 0x90,
+	0x0c, 0x80, 0x21, 0x7e, 0xbf, 0xaa, 0xd7, 0x46, 0x4d, 0xfc, 0x0e, 0x59, 0x96, 0x06, 0x0a, 0xf2,
+	0x1c, 0x46, 0x9c, 0x31, 0x3f, 0xa1, 0x0e, 0x76, 0xe0, 0xd6, 0xbd, 0x0a, 0xf8, 0xd7, 0xff, 0xd1,
+	0x96, 0xce, 0xf6, 0x29, 0x9d, 0xfb, 0xbe, 0x1d, 0xdf, 0x47, 0x03, 0xde, 0xf6, 0x85, 0xba, 0x5f,
+	0x23, 0xb1, 0xfb, 0x67, 0x91, 0x38, 0x1d, 0x42, 0xec, 0xc1, 0x09, 0x1c, 0xb2, 0x2a, 0xcb, 0x67,
+	0x5c, 0x09, 0x96, 0x5d, 0xe5, 0x33, 0x25, 0xd8, 0x13, 0x56, 0x0a, 0x5e, 0x99, 0xcc, 0xfe, 0x45,
+	0xdc, 0x6f, 0x23, 0x63, 0xf9, 0x69, 0x6c, 0xe3, 0x73, 0x6e, 0xd1, 0x87, 0x71, 0xeb, 0xff, 0x32,
+	0xeb, 0xe1, 0xd7, 0xd3, 0x9f, 0x01, 0x00, 0x00, 0xff, 0xff, 0xa2, 0xc2, 0xcb, 0x20, 0x95, 0x06,
+	0x00, 0x00,
 }

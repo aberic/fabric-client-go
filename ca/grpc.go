@@ -28,11 +28,11 @@ func (gc *GenerateServer) GenerateRootCrypto(ctx context.Context, req *ca.ReqRoo
 }
 
 // GenerateCrypto 生成密钥对
-func (gc *GenerateServer) GenerateCrypto(ctx context.Context, league *ca.ReqCrypto) (*ca.RespCrypto, error) {
-	return generateCrypto(league)
+func (gc *GenerateServer) GenerateCrypto(ctx context.Context, req *ca.ReqCrypto) (*ca.RespCrypto, error) {
+	return generateCrypto(req)
 }
 
 // SignCertificate 生成组织下子节点/用户证书
-func (gc *GenerateServer) SignCertificate(ctx context.Context, child *ca.ReqSignCertificate) (*ca.RespSignCertificate, error) {
-	return signCertificate(child)
+func (gc *GenerateServer) SignCertificate(ctx context.Context, req *ca.ReqSignCertificate) (*ca.RespSignCertificate, error) {
+	return signCertificate(req)
 }

@@ -1,0 +1,61 @@
+syntax = "proto3";
+
+option java_package = "cn.aberic.fabric-client.grpc.proto.core";
+option java_outer_classname = "CoreProto";
+option go_package = "grpc/proto/core";
+
+package core;
+
+import "grpc/proto/core/enums.proto";
+
+// fabric网络配置请求
+message ReqChannelCreate {
+    // 联盟根域名，如：example.com
+    string leagueDomain = 1;
+    // 组织域名，如org.com
+    string orgDomain = 2;
+    string channelID = 3;
+    bytes channelTxBytes = 4;
+}
+
+message RespChannelCreate {
+    // 请求返回结果：success=0；fail=1
+    Code code = 1;
+    // 当且仅当返回码为1时，此处包含错误信息
+    string errMsg = 2;
+    string txId = 3;
+}
+
+// fabric网络配置请求
+message ReqChannelJoin {
+    // 联盟根域名，如：example.com
+    string leagueDomain = 1;
+    // 组织域名，如org.com
+    string orgDomain = 2;
+    string peerName = 3;
+    string channelID = 4;
+}
+
+message RespChannelJoin {
+    // 请求返回结果：success=0；fail=1
+    Code code = 1;
+    // 当且仅当返回码为1时，此处包含错误信息
+    string errMsg = 2;
+}
+
+// fabric网络配置请求
+message ReqChannelList {
+    // 联盟根域名，如：example.com
+    string leagueDomain = 1;
+    // 组织域名，如org.com
+    string orgDomain = 2;
+    string peerName = 3;
+}
+
+message RespChannelList {
+    // 请求返回结果：success=0；fail=1
+    Code code = 1;
+    // 当且仅当返回码为1时，此处包含错误信息
+    string errMsg = 2;
+    repeated string channelIDs = 3;
+}

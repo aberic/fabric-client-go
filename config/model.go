@@ -44,3 +44,13 @@ type adminCrypto struct {
 	certFileName string
 	certBytes    []byte
 }
+
+type Order struct {
+	OrgName  string
+	UserName string
+}
+
+type Org struct {
+	OrgName  string
+	UserName string
+}

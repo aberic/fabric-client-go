@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+option java_package = "cn.aberic.fabric-client.grpc.proto.config";
+option java_outer_classname = "ServerProto";
+option go_package = "grpc/proto/config";
+
+package config;
+
+import "grpc/proto/config/config.proto";
+
+// fabric组织访问相关配置服务
+service Config {
+    // 设置新的组织配置信息，用于访问fabric网络
+    rpc ConfigSet (ReqConfigSet) returns (RespConfigSet) {
+    }
+    // 获取组织配置信息详情
+    rpc ConfigObtain (ReqConfigObtain) returns (RespConfigObtain) {
+    }
+    // 列出已有组织信息集合
+    rpc ConfigList (ReqConfigList) returns (RespConfigList) {
+    }
+    // 删除指定组织配置信息
+    rpc ConfigDelete (ReqConfigDelete) returns (RespConfigDelete) {
+    }
+}

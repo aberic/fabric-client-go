@@ -15,6 +15,8 @@
 package config
 
 import (
+	"encoding/json"
+	"errors"
 	"github.com/aberic/fabric-client-go/grpc/proto/config"
 	"strings"
 	"sync"
@@ -29,18 +31,76 @@ func init() {
 	Configs = map[string]*Config{}
 }
 
-func obtain(configID string) *Config {
-	return Configs[configID]
+func setConfig(req *config.ReqConfigSet) (resp *config.RespConfigSet, err error) {
+	conf := &Config{}
+	if resp, err = conf.set(req); nil != err {
+		return &config.RespConfigSet{Code: config.Code_Fail, ErrMsg: err.Error()}, err
+	}
+	Set(req.LeagueDomain, req.Org.Domain, conf)
+	return &config.RespConfigSet{Code: config.Code_Success}, nil
 }
 
-func set(init *config.ReqConfigInit) error {
-	conf := &Config{}
-	if err := conf.set(init); nil != err {
-		return err
+func obtainConfig(req *config.ReqConfigObtain) (resp *config.RespConfigObtain, err error) {
+	var (
+		conf        *Config
+		configBytes []byte
+	)
+	if conf, err = Obtain(req.LeagueDomain, req.OrgDomain); nil != err {
+		return &config.RespConfigObtain{Code: config.Code_Fail, ErrMsg: err.Error()}, err
 	}
-	configID := strings.Join([]string{init.LeagueDomain, init.Org.Domain}, "-")
+	if configBytes, err = json.Marshal(conf); nil != err {
+		return &config.RespConfigObtain{Code: config.Code_Fail, ErrMsg: err.Error()}, err
+	}
+	return &config.RespConfigObtain{Code: config.Code_Success, ConfigBytes: configBytes}, nil
+}
+
+func listConfig(req *config.ReqConfigList) (resp *config.RespConfigList, err error) {
+	var orgConfigs []*config.OrgConfig
 	lockConfig.Lock()
-	Configs[configID] = conf
+	for configID := range Configs {
+		configIDSplits := strings.Split(configID, "-")
+		orgConfigs = append(orgConfigs, &config.OrgConfig{LeagueDomain: configIDSplits[0], OrgDomain: configIDSplits[1]})
+	}
 	lockConfig.Unlock()
-	return nil
+	return &config.RespConfigList{Code: config.Code_Success, Configs: orgConfigs}, nil
+}
+
+func deleteConfig(req *config.ReqConfigDelete) (resp *config.RespConfigDelete, err error) {
+	lockConfig.Lock()
+	for configID := range Configs {
+		configIDSplits := strings.Split(configID, "-")
+		for _, orgConfig := range req.Configs {
+			if orgConfig.LeagueDomain == configIDSplits[0] && orgConfig.OrgDomain == configIDSplits[1] {
+				delete(Configs, configID)
+			}
+		}
+	}
+	lockConfig.Unlock()
+	return &config.RespConfigDelete{Code: config.Code_Success}, nil
+}
+
+func Obtain(leagueDomain, orgDomain string) (*Config, error) {
+	conf, ok := Configs[obtainConfigID(leagueDomain, orgDomain)]
+	if ok {
+		return conf, nil
+	}
+	return nil, errors.New("config doesn't exist")
+}
+
+func Mock(req *config.ReqConfigSet) (*Config, error) {
+	conf := &Config{}
+	if _, err := conf.padding(req); nil != err {
+		return nil, err
+	}
+	return conf, nil
+}
+
+func Set(leagueDomain, orgDomain string, conf *Config) {
+	lockConfig.Lock()
+	Configs[obtainConfigID(leagueDomain, orgDomain)] = conf
+	lockConfig.Unlock()
+}
+
+func obtainConfigID(leagueDomain, orgDomain string) string {
+	return strings.Join([]string{leagueDomain, orgDomain}, "-")
 }

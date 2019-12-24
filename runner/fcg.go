@@ -16,7 +16,9 @@ package main
 
 import (
 	"github.com/aberic/fabric-client-go/ca"
+	"github.com/aberic/fabric-client-go/config"
 	gCa "github.com/aberic/fabric-client-go/grpc/proto/ca"
+	gConfig "github.com/aberic/fabric-client-go/grpc/proto/config"
 	"github.com/aberic/fabric-client-go/utils"
 	"github.com/aberic/gnomon"
 	"github.com/gin-gonic/gin"
@@ -36,6 +38,7 @@ func httpListener() {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
 	ca.Router(router)
+	config.Router(router)
 	port := strconv.Itoa(utils.HttpPort)
 	gnomon.Log().Info(strings.Join([]string{"main http listener start with port ", port}, ""))
 	if err := router.Run(strings.Join([]string{":", port}, "")); nil != err {
@@ -58,6 +61,7 @@ func grpcListener() {
 
 	//  注册服务
 	gCa.RegisterGenerateServer(rpcServer, &ca.GenerateServer{})
+	gConfig.RegisterConfigServer(rpcServer, &config.ConfServer{})
 
 	gnomon.Log().Info(strings.Join([]string{"main grpc listener start with port ", port}, ""))
 	//  启动grpc服务
