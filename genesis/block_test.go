@@ -17,6 +17,7 @@ package genesis
 import (
 	gen "github.com/aberic/fabric-client-go/grpc/proto/genesis"
 	"github.com/aberic/fabric-client-go/utils"
+	"github.com/aberic/gnomon"
 	"github.com/hyperledger/fabric-sdk-go/pkg/fab/resource"
 	"io/ioutil"
 	"path"
@@ -26,51 +27,50 @@ import (
 	"testing"
 )
 
-func TestGenesis_Set(t *testing.T) {
-	genesis := testGenesisSet(t)
-	blockBytes, err := genesis.obtainGenesisBlockData("test")
-	if nil != err {
-		t.Fatal(err)
-	}
-	blockStr, err := resource.InspectBlock(blockBytes)
-	if nil != err {
-		t.Fatal(err)
-	}
-	t.Log(blockStr)
-}
-
 func TestGenesisBlock(t *testing.T) {
-	genesis := testGenesisSet(t)
-	data, err := genesis.createGenesisBlock("test")
+	var leagueDomain = "league.com"
+	genesisBlock, _ := testGenesisSet(leagueDomain, "", t)
+	resp, err := createGenesisBlock(genesisBlock)
 	if nil != err {
 		t.Fatal(err)
 	}
-	blockStr, err := resource.InspectBlock(data)
+	blockStr, err := resource.InspectBlock(resp.BlockData)
 	if nil != err {
 		t.Fatal(err)
 	}
 	t.Log(blockStr)
+	if _, err = gnomon.File().Append(utils.GenesisBlockFilePath(leagueDomain), resp.BlockData, true); nil != err {
+		t.Fatal(err)
+	}
 }
 
 func TestGenesisChannel(t *testing.T) {
-	genesis := testGenesisSet(t)
-	data, err := genesis.createChannelCreateTx("test", "mychannel02")
+	var (
+		leagueDomain = "league.com"
+		channelID    = "mychannel02"
+	)
+	_, channelTx := testGenesisSet(leagueDomain, channelID, t)
+	resp, err := createChannelTx(channelTx)
 	if nil != err {
 		t.Fatal(err)
 	}
-	channelStr, err := resource.InspectChannelCreateTx(data)
+	channelStr, err := resource.InspectChannelCreateTx(resp.ChannelTxData)
 	if nil != err {
 		t.Fatal(err)
 	}
 	t.Log(channelStr)
+	if _, err = gnomon.File().Append(utils.ChannelTXFilePath(leagueDomain, channelID), resp.ChannelTxData, true); nil != err {
+		t.Fatal(err)
+	}
 }
 
-func testGenesisSet(t *testing.T) *Genesis {
+func testGenesisSet(leagueDomain, channelID string, t *testing.T) (genesisBlock *gen.ReqGenesisBlock, channelTx *gen.ReqChannelTx) {
 	var (
-		leagueDomain = "league.com"
-		addresses    []string
-		consenters   []*gen.Consenter
-		orgs         []*gen.OrgInBlock
+		addresses   []string
+		consenters  []*gen.Consenter
+		ordererOrgs []*gen.OrdererOrg
+		peerOrgs    []*gen.PeerOrg
+		consortiums []*gen.Consortium
 	)
 	for i := 1; i < 2; i++ {
 		orgName := strings.Join([]string{"orderer", strconv.Itoa(i)}, "")
@@ -107,10 +107,9 @@ func testGenesisSet(t *testing.T) *Genesis {
 			t.Fatal(err)
 		}
 
-		orgs = append(orgs, &gen.OrgInBlock{
+		ordererOrgs = append(ordererOrgs, &gen.OrdererOrg{
 			Domain: orgDomain,
 			Name:   orgName,
-			Type:   gen.OrgType_Order,
 			Cert: &gen.MspCert{
 				AdminCert: adminCertBytes,
 				CaCert:    caCertBytes,
@@ -150,11 +149,10 @@ func testGenesisSet(t *testing.T) *Genesis {
 			port++
 		}
 
-		orgs = append(orgs, &gen.OrgInBlock{
+		peerOrgs = append(peerOrgs, &gen.PeerOrg{
 			Domain:           orgDomain,
 			Name:             orgName,
 			OrdererEndpoints: addresses,
-			Type:             gen.OrgType_Peer,
 			Cert: &gen.MspCert{
 				AdminCert: adminCertBytes,
 				CaCert:    caCertBytes,
@@ -165,35 +163,50 @@ func testGenesisSet(t *testing.T) *Genesis {
 
 	}
 
-	genesis := &Genesis{
-		Info: &gen.ReqGenesis{
-			League: &gen.LeagueInBlock{
-				Domain:       leagueDomain,
-				Addresses:    addresses,
-				BatchTimeout: 2,
-				BatchSize: &gen.BatchSize{
-					MaxMessageCount:   1000,
-					AbsoluteMaxBytes:  10 * 1024 * 1024,
-					PreferredMaxBytes: 2 * 1024 * 1024,
-				},
-				EtcdRaft: &gen.EtcdRaft{
-					Consenters: consenters,
-					Options: &gen.Options{
-						TickInterval:         "500ms",
-						ElectionTick:         10,
-						HeartbeatTick:        1,
-						MaxInflightBlocks:    5,
-						SnapshotIntervalSize: 20,
-					},
-				},
-				MaxChannels: 1000,
-			},
-			Orgs: orgs,
+	orderer := &gen.Orderer{
+		Addresses:    addresses,
+		BatchTimeout: 2,
+		BatchSize: &gen.BatchSize{
+			MaxMessageCount:   1000,
+			AbsoluteMaxBytes:  10 * 1024 * 1024,
+			PreferredMaxBytes: 2 * 1024 * 1024,
 		},
+		EtcdRaft: &gen.EtcdRaft{
+			Consenters: consenters,
+			Options: &gen.Options{
+				TickInterval:         "500ms",
+				ElectionTick:         10,
+				HeartbeatTick:        1,
+				MaxInflightBlocks:    5,
+				SnapshotIntervalSize: 20,
+			},
+		},
+		MaxChannels: 1000,
 	}
-	if err := genesis.set(); nil != err {
-		t.Fatal(err)
-	}
+	consortiums = append(consortiums, &gen.Consortium{
+		Name:     "testone",
+		PeerOrgs: peerOrgs,
+	})
+	consortiums = append(consortiums, &gen.Consortium{
+		Name:     "testtwo",
+		PeerOrgs: peerOrgs,
+	})
+	consortiums = append(consortiums, &gen.Consortium{
+		Name:     "testthree",
+		PeerOrgs: peerOrgs,
+	})
 
-	return genesis
+	league := &gen.League{Domain: leagueDomain, Version: gen.Version_V1_4_4}
+	return &gen.ReqGenesisBlock{
+			League:           league,
+			Orderer:          orderer,
+			DefaultChannelID: "channeldefault",
+			OrdererOrgs:      ordererOrgs,
+			Consortiums:      consortiums,
+		}, &gen.ReqChannelTx{
+			League:     league,
+			Consortium: "testone",
+			ChannelID:  channelID,
+			PeerOrgs:   peerOrgs,
+		}
 }

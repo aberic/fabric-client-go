@@ -60,7 +60,7 @@ func ChannelJoin(req *core.ReqChannelJoin) (resp *core.RespChannelJoin, err erro
 		return &core.RespChannelJoin{Code: core.Code_Fail, ErrMsg: err.Error()}, err
 	}
 	if confData, err = yaml.Marshal(&conf); nil != err {
-		return
+		return &core.RespChannelJoin{Code: core.Code_Fail, ErrMsg: err.Error()}, err
 	}
 	_, orgs := conf.ObtainOrders()
 	for _, org := range orgs {

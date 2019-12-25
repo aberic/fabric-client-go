@@ -30,14 +30,14 @@ import (
 
 func TestChannelCreate(t *testing.T) {
 	_ = testPaddingConfig(t)
-	channelConfig, err := ioutil.ReadFile(filepath.Join(utils.ObtainDataPath(), "league.com", "channel-artifacts", "mychannel02.tx"))
+	channelConfig, err := ioutil.ReadFile(filepath.Join(utils.ObtainDataPath(), "league.com", "channel-artifacts", "mychannel01.tx"))
 	if nil != err {
 		t.Fatal(err)
 	}
 	resp, err := ChannelCreate(&core.ReqChannelCreate{
 		LeagueDomain:   "league.com",
 		OrgDomain:      "example1.com",
-		ChannelID:      "mychannel02",
+		ChannelID:      "mychannel01",
 		ChannelTxBytes: channelConfig,
 	})
 	t.Log(resp, err)
@@ -97,18 +97,6 @@ func testPaddingConfig(t *testing.T) *config2.Config {
 	config2.Set(leagueDomain, orgDomain, conf)
 	return conf
 }
-
-//func TestGrpcGenerateCrypto(t *testing.T) {
-//	gs := GenerateServer{}
-//	if respKeyConfig, err := gs.GenerateCrypto(nil, &ca.ReqKeyConfig{
-//		CryptoType: ca.CryptoType_ECDSA,
-//		Algorithm:  algorithm,
-//	}); nil != err {
-//		t.Error(err)
-//	} else {
-//		t.Log(respKeyConfig)
-//	}
-//}
 
 func testOrder(leagueDomain, ordererName, ordererDomain, userName string, t *testing.T) *config.Orderer {
 	ordererPath := path.Join(utils.ObtainDataPath(), leagueDomain, strings.Join([]string{ordererName, ordererDomain}, "."))

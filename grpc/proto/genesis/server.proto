@@ -10,10 +10,10 @@ import "grpc/proto/genesis/block.proto";
 
 // fabric组织访问相关配置服务
 service Genesis {
-    // 设置新的组织配置信息，用于访问fabric网络
-    rpc GenesisBlock (ReqGenesis) returns (RespGenesis) {
+    // 生成创世区块
+    rpc CreateGenesisBlock (ReqGenesisBlock) returns (RespGenesisBlock) {
     }
-    // 获取组织配置信息详情
-    rpc GenesisChannelTx (ReqChannelTx) returns (RespChannelTx) {
+    // 生成通道/账本初始区块
+    rpc CreateChannelTx (ReqChannelTx) returns (RespChannelTx) {
     }
 }

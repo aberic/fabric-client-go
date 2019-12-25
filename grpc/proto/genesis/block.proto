@@ -8,33 +8,74 @@ package genesis;
 
 import "grpc/proto/genesis/enums.proto";
 
-message ReqGenesis {
+message ReqGenesisBlock {
+    // fabric联盟基本信息
+    League league = 1;
     // 联盟部署信息
-    LeagueInBlock league = 1;
-    // 联盟下组织机构信息
-    repeated OrgInBlock orgs = 2;
+    Orderer orderer = 2;
+    // 跟随创世区块一同创建的默认通道
+    string defaultChannelID = 3;
+    // 联盟下排序服务集合
+    repeated OrdererOrg ordererOrgs = 4;
+    // 联盟下协会集合
+    repeated Consortium consortiums = 5;
 }
 
-message RespGenesis {
+message RespGenesisBlock {
+    // 请求返回结果：success=0；fail=1
     Code code = 1;
+    // 当且仅当返回码为1时，此处包含错误信息
     string errMsg = 2;
+    // 创世区块数据，解析使用InspectBlock即可
+    bytes blockData = 3;
 }
 
 message ReqChannelTx {
-    string channelID = 1;
-    ReqGenesis genesis = 2;
+    // fabric联盟基本信息
+    League league = 1;
+    // 联盟下协会
+    string consortium = 2;
+    // 联盟下通道
+    string channelID = 3;
+    // 联盟下非orderer组织集合
+    repeated PeerOrg peerOrgs = 4;
 }
 
 message RespChannelTx {
+    // 请求返回结果：success=0；fail=1
     Code code = 1;
+    // 当且仅当返回码为1时，此处包含错误信息
     string errMsg = 2;
+    // 通道区块数据，解析使用InspectChannelCreateTx即可
+    bytes channelTxData = 3;
+}
+
+// fabric联盟基本信息
+message League {
+    // 联盟根域名
+    string domain = 1;
+    // fabric版本号
+    Version version = 2;
+}
+
+// Consortium 暂定翻译成协会
+//
+// 协会是区块链网络上的除了orderer组织以外的组织集合。
+//
+// 这些组织形成一个协会，协会内组织拥有自己的节点并能够加入相同通道。
+//
+// 虽然一个区块链网络可以有多个协会，但大多数区块链网络只有一个协会。
+//
+// 在通道创建时，添加到通道的所有组织都必须是协会的一部分。但是，没有在协会中定义的组织可以添加到现有的通道中。
+message Consortium {
+    // consortium名称
+    string name = 1;
+    // 联盟下非orderer组织集合
+    repeated PeerOrg peerOrgs = 2;
 }
 
 // 联盟部署信息
-message LeagueInBlock {
-    Version version = 1;
-    // 联盟主域名
-    string domain = 2;
+message Orderer {
     // 地址过去是client和peer可以连接的orderer地址列表
     //
     // 但是，这并不允许client关联orderer地址和orderer组织，这对于诸如TLS验证之类的事情是非常有用的
@@ -116,25 +157,37 @@ message Options {
     // MaxInflightBlocks在乐观复制阶段限制动态附加消息的最大数量
     uint32 MaxInflightBlocks = 4;
     // SnapshotIntervalSize定义每个快照的字节数
-    uint32 SnapshotIntervalSize  = 5;
+    uint32 SnapshotIntervalSize = 5;
 }
 
-// ReqOrderers 请求生成指定联盟默认orderer服务集合
-message OrgInBlock {
+// 请求生成指定联盟默认org服务集合
+message PeerOrg {
     // 组织主域名
-    string domain = 2;
+    string domain = 1;
     // 组织名称
-    string name = 3;
+    string name = 2;
     // ordererendpoint是这个组织运行的所有orderers的列表
     //
     // client和peer可以分别连接到这些orderers来推动事务和接收块，如：127.0.0.1:7050
-    repeated string ordererEndpoints = 4;
-    // 组织类型
-    OrgType type = 5;
+    repeated string ordererEndpoints = 5;
     // 组织证书信息
     MspCert cert = 6;
     // 锚节点定义了节点的位置，这些节点可用于跨组织的gossip通信。注意，这个值只在应用程序部分上下文的genesis块中编码
     repeated AnchorPeer anchorPeers = 7;
+}
+
+// 请求生成指定联盟默认orderer服务集合
+message OrdererOrg {
+    // 组织主域名
+    string domain = 1;
+    // 组织名称
+    string name = 2;
+    // ordererendpoint是这个组织运行的所有orderers的列表
+    //
+    // client和peer可以分别连接到这些orderers来推动事务和接收块，如：127.0.0.1:7050
+    repeated string ordererEndpoints = 5;
+    // 组织证书信息
+    MspCert cert = 6;
 }
 
 // 组织证书信息
@@ -152,4 +205,3 @@ message AnchorPeer {
     string host = 1;
     int32 port = 2;
 }
-
