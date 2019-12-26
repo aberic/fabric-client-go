@@ -130,6 +130,11 @@ func GenesisBlockFilePath(leagueName string) string {
 	return filepath.Join(dataPath, leagueName, "channel-artifacts/orderer.genesis.block")
 }
 
+// GenesisBlock4AddFilePath orderer.genesis.block路径
+func GenesisBlock4AddFilePath(leagueName string) string {
+	return filepath.Join(dataPath, leagueName, "channel-artifacts/orderer.genesis_add.block")
+}
+
 // ChannelTXFilePath 通道tx文件路径
 func ChannelTXFilePath(leagueName, channelName string) string {
 	return strings.Join([]string{ChannelArtifactsPath(leagueName), "/", channelName, ".tx"}, "")
@@ -145,4 +150,9 @@ func CryptoGenesisOrgMspPath(leagueDomain, orgDomain, orgName string, isPeer boo
 	}
 	orgPathName = strings.Join([]string{orgsName, orgName, ".", orgDomain}, "")
 	return filepath.Join(os.TempDir(), "genesis", leagueDomain, "crypto-config", orgPathName, "msp")
+}
+
+// ChannelUpdateTXFilePath 通道tx文件路径
+func ChannelUpdateTXFilePath(leagueName, channelName string) string {
+	return strings.Join([]string{ChannelArtifactsPath(leagueName), "/", channelName, "_update.pb"}, "")
 }

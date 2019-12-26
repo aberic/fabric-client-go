@@ -19,6 +19,8 @@ import (
 	"fmt"
 	"github.com/aberic/fabric-client-go/config"
 	"github.com/aberic/fabric-client-go/grpc/proto/core"
+	"github.com/golang/protobuf/proto"
+	"github.com/hyperledger/fabric-protos-go/common"
 	"github.com/hyperledger/fabric-protos-go/peer"
 	"gopkg.in/yaml.v2"
 )
@@ -99,4 +101,54 @@ func ChannelList(req *core.ReqChannelList) (resp *core.RespChannelList, err erro
 		}
 	}
 	return &core.RespChannelList{Code: core.Code_Fail, ErrMsg: errs.Error()}, errs
+}
+
+func ChannelConfigBlock(req *core.ReqChannelConfigBlock) (resp *core.RespChannelConfigBlock, err error) {
+	var (
+		conf           *config.Config
+		confData, data []byte
+		block          *common.Block
+		errs           error
+	)
+	if conf, err = config.Obtain(req.LeagueDomain, req.OrgDomain); nil != err {
+		return &core.RespChannelConfigBlock{Code: core.Code_Fail, ErrMsg: err.Error()}, err
+	}
+	if confData, err = yaml.Marshal(&conf); nil != err {
+		return
+	}
+	_, orgs := conf.ObtainOrders()
+	for _, org := range orgs {
+		if block, err = channelConfigBlockFromOrderer(req.ChannelID, org.OrgName, org.UserName, req.PeerName, confData); nil == err {
+			if data, err = proto.Marshal(block); nil == err {
+				return &core.RespChannelConfigBlock{Code: core.Code_Success, GenesisBlockBytes: data}, nil
+			}
+			errs = fmt.Errorf("error: %w", err)
+		} else {
+			errs = fmt.Errorf("error: %w", err)
+		}
+	}
+	return &core.RespChannelConfigBlock{Code: core.Code_Fail, ErrMsg: errs.Error()}, errs
+}
+
+func ChannelUpdateConfigBlock(req *core.ReqChannelUpdateBlock) (resp *core.RespChannelUpdateBlock, err error) {
+	var (
+		conf                    *config.Config
+		confData, envelopeBytes []byte
+		errs                    error
+	)
+	if conf, err = config.Obtain(req.LeagueDomain, req.OrgDomain); nil != err {
+		return &core.RespChannelUpdateBlock{Code: core.Code_Fail, ErrMsg: err.Error()}, err
+	}
+	if confData, err = yaml.Marshal(&conf); nil != err {
+		return
+	}
+	_, orgs := conf.ObtainOrders()
+	for _, org := range orgs {
+		if envelopeBytes, err = channelUpdateConfigBlock(req.ChannelID, req.Consortium, org.OrgName, org.UserName, req.PeerName, req.NewOrgName, confData, req.GenesisBlockBytes); nil == err {
+			return &core.RespChannelUpdateBlock{Code: core.Code_Success, EnvelopeBytes: envelopeBytes}, nil
+		} else {
+			errs = fmt.Errorf("error: %w", err)
+		}
+	}
+	return &core.RespChannelUpdateBlock{Code: core.Code_Fail, ErrMsg: errs.Error()}, errs
 }

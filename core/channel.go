@@ -16,6 +16,7 @@ package core
 
 import (
 	"github.com/aberic/gnomon"
+	"github.com/hyperledger/fabric-protos-go/common"
 	"github.com/hyperledger/fabric-protos-go/peer"
 	mspclient "github.com/hyperledger/fabric-sdk-go/pkg/client/msp"
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/resmgmt"
@@ -123,4 +124,36 @@ func channelList(orgName, orgUser, peerName string, configBytes []byte) ([]*peer
 			return nil, errors.Errorf("orgResMgmt error should be nil. ")
 		}
 	}
+}
+
+func channelConfigBlockFromOrderer(channelID, orgName, orgUser, peerName string, configBytes []byte) (block *common.Block, err error) {
+	sdk, err := obtainSDK(configBytes)
+	if err != nil {
+		gnomon.Log().Error("Channels", gnomon.Log().Err(err))
+		return nil, err
+	}
+	defer sdk.Close()
+	//prepare context
+	adminContext := sdk.Context(fabsdk.WithUser(orgUser), fabsdk.WithOrg(orgName))
+	// Org resource management client
+	orgResMgmt, err := resmgmt.New(adminContext)
+	if err != nil {
+		gnomon.Log().Error("queryChannels", gnomon.Log().Err(err))
+		return nil, errors.Errorf("Failed to query channels:  %v", err)
+	} else {
+		if nil != orgResMgmt {
+			return orgResMgmt.QueryConfigBlockFromOrderer(channelID, resmgmt.WithTargetEndpoints(peerName))
+		} else {
+			gnomon.Log().Error("queryChannels", gnomon.Log().Err(err))
+			return nil, errors.Errorf("orgResMgmt error should be nil. ")
+		}
+	}
+}
+
+func channelUpdateConfigBlock(channelID, consortium, orgName, orgUser, peerName, newOrgName string, configBytes, genesisBlockBytes []byte) ([]byte, error) {
+	originalBlock, err := channelConfigBlockFromOrderer(channelID, orgName, orgUser, peerName, configBytes)
+	if nil != err {
+		return nil, err
+	}
+	return addOrg(channelID, consortium, newOrgName, originalBlock, genesisBlockBytes)
 }

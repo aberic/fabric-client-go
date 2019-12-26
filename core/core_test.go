@@ -20,6 +20,7 @@ import (
 	"github.com/aberic/fabric-client-go/grpc/proto/config"
 	"github.com/aberic/fabric-client-go/grpc/proto/core"
 	"github.com/aberic/fabric-client-go/utils"
+	"github.com/aberic/gnomon"
 	"io/ioutil"
 	"path"
 	"path/filepath"
@@ -29,14 +30,15 @@ import (
 )
 
 func TestChannelCreate(t *testing.T) {
-	_ = testPaddingConfig(t)
+	var orgNum = "1"
+	_ = testPaddingConfig(orgNum, t)
 	channelConfig, err := ioutil.ReadFile(filepath.Join(utils.ObtainDataPath(), "league.com", "channel-artifacts", "mychannel01.tx"))
 	if nil != err {
 		t.Fatal(err)
 	}
 	resp, err := ChannelCreate(&core.ReqChannelCreate{
 		LeagueDomain:   "league.com",
-		OrgDomain:      "example1.com",
+		OrgDomain:      strings.Join([]string{"example", orgNum, ".com"}, ""),
 		ChannelID:      "mychannel01",
 		ChannelTxBytes: channelConfig,
 	})
@@ -44,34 +46,76 @@ func TestChannelCreate(t *testing.T) {
 }
 
 func TestChannelJoin(t *testing.T) {
-	_ = testPaddingConfig(t)
+	var orgNum = "2"
+	_ = testPaddingConfig(orgNum, t)
 	resp, err := ChannelJoin(&core.ReqChannelJoin{
 		LeagueDomain: "league.com",
-		OrgDomain:    "example1.com",
+		OrgDomain:    strings.Join([]string{"example", orgNum, ".com"}, ""),
 		PeerName:     "peer0",
-		ChannelID:    "mychannel02",
+		ChannelID:    "mychannel01",
 	})
 	t.Log(resp, err)
 }
 
 func TestChannelList(t *testing.T) {
-	_ = testPaddingConfig(t)
+	var orgNum = "1"
+	_ = testPaddingConfig(orgNum, t)
 	resp, err := ChannelList(&core.ReqChannelList{
 		LeagueDomain: "league.com",
-		OrgDomain:    "example1.com",
+		OrgDomain:    strings.Join([]string{"example", orgNum, ".com"}, ""),
 		PeerName:     "peer0",
 	})
 	t.Log(resp, err)
 }
 
-func testPaddingConfig(t *testing.T) *config2.Config {
+func TestChannelConfigBlock(t *testing.T) {
+	var orgNum = "1"
+	_ = testPaddingConfig(orgNum, t)
+	resp, err := ChannelConfigBlock(&core.ReqChannelConfigBlock{
+		LeagueDomain: "league.com",
+		OrgDomain:    strings.Join([]string{"example", orgNum, ".com"}, ""),
+		PeerName:     "peer0",
+		ChannelID:    "mychannel01",
+	})
+	t.Log(resp, err)
+}
+
+func TestChannelUpdateConfigBlock(t *testing.T) {
+	var (
+		leagueDomain         = "league.com"
+		channelID            = "mychannel01"
+		orgNum               = "1"
+		newGenesisBlockBytes []byte
+		err                  error
+	)
+	if newGenesisBlockBytes, err = ioutil.ReadFile(utils.GenesisBlock4AddFilePath(leagueDomain)); nil != err {
+		t.Fatal(err)
+	}
+	_ = testPaddingConfig(orgNum, t)
+	resp, err := ChannelUpdateConfigBlock(&core.ReqChannelUpdateBlock{
+		LeagueDomain:      leagueDomain,
+		OrgDomain:         strings.Join([]string{"example", orgNum, ".com"}, ""),
+		PeerName:          "peer0",
+		Consortium:        "testone",
+		NewOrgName:        "org3",
+		ChannelID:         channelID,
+		GenesisBlockBytes: newGenesisBlockBytes,
+	})
+	t.Log(resp, err)
+	channelUpdateFilePath := utils.ChannelUpdateTXFilePath(leagueDomain, channelID)
+	if _, err = gnomon.File().Append(channelUpdateFilePath, resp.EnvelopeBytes, true); nil != err {
+		t.Fatal(err)
+	}
+}
+
+func testPaddingConfig(orgNum string, t *testing.T) *config2.Config {
 	var (
 		conf         *config2.Config
 		leagueDomain = "league.com"
 		orderDomain  = "example1.com"
 		orderName    = "orderer1"
-		orgDomain    = "example1.com"
-		orgName      = "org1"
+		orgDomain    = strings.Join([]string{"example", orgNum, ".com"}, "")
+		orgName      = strings.Join([]string{"org", orgNum}, "")
 		peerNames    = []string{"peer0", "peer1", "peer2"}
 		err          error
 	)
