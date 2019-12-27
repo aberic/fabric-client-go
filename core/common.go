@@ -19,11 +19,14 @@ import (
 	"fmt"
 	"github.com/aberic/gnomon"
 	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/hyperledger/fabric-protos-go/common"
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/resmgmt"
 	"github.com/hyperledger/fabric-sdk-go/pkg/common/providers/context"
 	"github.com/hyperledger/fabric-sdk-go/pkg/core/config"
+	"github.com/hyperledger/fabric-sdk-go/pkg/fab/resource"
 	"github.com/hyperledger/fabric-sdk-go/pkg/fabsdk"
+	"time"
 )
 
 // SDK fabsdk.FabricSDK
@@ -40,15 +43,15 @@ func obtainSDK(configBytes []byte, sdkOpts ...fabsdk.Option) (*fabsdk.FabricSDK,
 }
 
 // ClientContext context.ClientProvider
-//func clientContext(orgName, orgUser string, configBytes []byte,
-//	sdkOpts ...fabsdk.Option) (context.ClientProvider, *fabsdk.FabricSDK) {
-//	sdk, err := obtainSDK(configBytes, sdkOpts...)
-//	if err != nil {
-//		return nil, nil
-//	}
-//	//clientContext allows creation of transactions using the supplied identity as the credential.
-//	return sdk.Context(fabsdk.WithUser(orgUser), fabsdk.WithOrg(orgName)), sdk
-//}
+func clientContext(orgName, orgUser string, configBytes []byte,
+	sdkOpts ...fabsdk.Option) (context.ClientProvider, *fabsdk.FabricSDK) {
+	sdk, err := obtainSDK(configBytes, sdkOpts...)
+	if err != nil {
+		return nil, nil
+	}
+	//clientContext allows creation of transactions using the supplied identity as the credential.
+	return sdk.Context(fabsdk.WithUser(orgUser), fabsdk.WithOrg(orgName)), sdk
+}
 
 // ResmgmtClient resmgmt.Client
 func resmgmtClient(orgName, orgUser string, configBytes []byte,
@@ -66,6 +69,122 @@ func resmgmtClient(orgName, orgUser string, configBytes []byte,
 		return nil, nil, nil, err
 	}
 	return clientContext, orgResMgmt, sdk, nil
+}
+
+// envelopeBytes为类mychannel_update.pb性质文件直接读取值，是通道比对后的更新文件
+func signChannelTx(orgName, orgUser, channelID string, configBytes, envelopeBytes []byte) ([]byte, error) {
+	var (
+		envelope                                                                  *common.Envelope
+		payload                                                                   *common.Payload
+		ch                                                                        *common.ChannelHeader
+		configUpdateEnv                                                           *common.ConfigUpdateEnvelope
+		signatureHeader                                                           *common.SignatureHeader
+		ctx                                                                       context.Client
+		configSig, payloadSig                                                     *common.ConfigSignature
+		configUpdateBytes, channelHeaderBytes, signatureHeaderBytes, payloadBytes []byte
+		newEnvelopeBytes                                                          []byte
+		err                                                                       error
+	)
+	// 根据本次操作用户及所属组织信息，通过全局配置获取其操作具体客户端上下文
+	clientContext, _ := clientContext(orgName, orgUser, configBytes)
+	if ctx, err = clientContext(); nil != err {
+		return nil, err
+	}
+	// 签名数据获取签名结果 common.ConfigSignature
+	if configSig, signatureHeader, err = sign(ctx, envelopeBytes); nil != err {
+		return nil, err
+	}
+
+	// 解析结构为 common.Envelope
+	if envelope, err = unmarshalEnvelope(envelopeBytes); nil != err {
+		return nil, err
+	}
+	// 解析结构为 common.Payload
+	if payload, err = extractPayload(envelope); nil != err {
+		return nil, err
+	}
+	// 判空
+	if payload.Header == nil || payload.Header.ChannelHeader == nil {
+		return nil, errors.New("bad header")
+	}
+	// 解析结构为 common.ChannelHeader
+	if ch, err = unmarshalChannelHeader(payload.Header.ChannelHeader); err != nil {
+		return nil, errors.New("could not unmarshall channel header")
+	}
+	// 判定本次通道执行类型
+	if ch.Type != int32(common.HeaderType_CONFIG_UPDATE) {
+		return nil, errors.New("bad type")
+	}
+	// 判定本次执行通道名称是否为空
+	if ch.ChannelId == "" {
+		return nil, errors.New("empty channel id")
+	}
+	// 判定本次执行通道名称是否与待执行通道名称一致
+	if ch.ChannelId != channelID {
+		return nil, errors.New(fmt.Sprintf("mismatched channel ID %s != %s", ch.ChannelId, channelID))
+	}
+	// 解析结构为 common.ConfigUpdateEnvelope
+	if configUpdateEnv, err = unmarshalConfigUpdateEnvelope(payload.Data); err != nil {
+		return nil, errors.New("bad config update env")
+	}
+	// 将开头执行的签名结果追加到 envelope 的签名集合中
+	configUpdateEnv.Signatures = append(configUpdateEnv.Signatures, configSig)
+	if configUpdateBytes, err = proto.Marshal(configUpdateEnv); nil != err {
+		return nil, err
+	}
+	// 拼接新的payload
+	channelHeader := &common.ChannelHeader{
+		Type:    ch.Type,
+		Version: 0,
+		Timestamp: &timestamp.Timestamp{
+			Seconds: time.Now().Unix(),
+			Nanos:   0,
+		},
+		ChannelId: channelID,
+		Epoch:     0,
+	}
+	if channelHeaderBytes, err = proto.Marshal(channelHeader); nil != err {
+		return nil, err
+	}
+	if signatureHeaderBytes, err = proto.Marshal(signatureHeader); nil != err {
+		return nil, err
+	}
+	payload.Data = configUpdateBytes
+	payload.Header = &common.Header{
+		ChannelHeader:   channelHeaderBytes,
+		SignatureHeader: signatureHeaderBytes,
+	}
+	if payloadBytes, err = proto.Marshal(payload); nil != err {
+		return nil, err
+	}
+	// 签名数据获取签名结果 common.Payload
+	if payloadSig, _, err = sign(ctx, payloadBytes); nil != err {
+		return nil, err
+	}
+	newEnvelope := &common.Envelope{
+		Payload:   payloadBytes,
+		Signature: payloadSig.Signature,
+	}
+	if newEnvelopeBytes, err = proto.Marshal(newEnvelope); nil != err {
+		return nil, err
+	}
+	return newEnvelopeBytes, nil
+}
+
+func sign(ctx context.Client, message []byte) (*common.ConfigSignature, *common.SignatureHeader, error) {
+	var (
+		cfd resource.ConfigSignatureData
+		err error
+	)
+	if cfd, err = resource.GetConfigSignatureData(ctx, message); err != nil {
+		return nil, nil, err
+	}
+	signingMgr := ctx.SigningManager()
+	signature, err := signingMgr.Sign(cfd.SigningBytes, ctx.PrivateKey())
+	return &common.ConfigSignature{
+		SignatureHeader: cfd.SignatureHeaderBytes,
+		Signature:       signature,
+	}, &cfd.SignatureHeader, err
 }
 
 // addOrg 新增org group
@@ -242,4 +361,35 @@ func marshalCommonConfigEnvelope(payload *common.Payload) (*common.ConfigEnvelop
 	configEnvelope := &common.ConfigEnvelope{}
 	err := proto.Unmarshal(payload.Data, configEnvelope)
 	return configEnvelope, err
+}
+
+// unmarshalEnvelope unmarshals bytes to an Envelope structure
+func unmarshalEnvelope(encoded []byte) (*common.Envelope, error) {
+	envelope := &common.Envelope{}
+	err := proto.Unmarshal(encoded, envelope)
+	return envelope, err
+}
+
+// extractPayload retrieves the payload of a given envelope and unmarshals it.
+func extractPayload(envelope *common.Envelope) (*common.Payload, error) {
+	payload := &common.Payload{}
+	err := proto.Unmarshal(envelope.Payload, payload)
+	return payload, err
+}
+
+// unmarshalChannelHeader returns a ChannelHeader from bytes
+func unmarshalChannelHeader(bytes []byte) (*common.ChannelHeader, error) {
+	chdr := &common.ChannelHeader{}
+	err := proto.Unmarshal(bytes, chdr)
+	return chdr, err
+}
+
+// unmarshalConfigUpdateEnvelope attempts to unmarshal bytes to a *cb.ConfigUpdate
+func unmarshalConfigUpdateEnvelope(data []byte) (*common.ConfigUpdateEnvelope, error) {
+	configUpdateEnvelope := &common.ConfigUpdateEnvelope{}
+	err := proto.Unmarshal(data, configUpdateEnvelope)
+	if err != nil {
+		return nil, err
+	}
+	return configUpdateEnvelope, nil
 }

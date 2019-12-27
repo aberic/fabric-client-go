@@ -21,6 +21,7 @@ import (
 	"github.com/aberic/fabric-client-go/grpc/proto/core"
 	"github.com/aberic/fabric-client-go/utils"
 	"github.com/aberic/gnomon"
+	"github.com/hyperledger/fabric-sdk-go/pkg/fab/resource"
 	"io/ioutil"
 	"path"
 	"path/filepath"
@@ -29,37 +30,39 @@ import (
 	"testing"
 )
 
+var (
+	channelID = "mychannel02"
+	orgNum    = "2"
+)
+
 func TestChannelCreate(t *testing.T) {
-	var orgNum = "1"
-	_ = testPaddingConfig(orgNum, t)
-	channelConfig, err := ioutil.ReadFile(filepath.Join(utils.ObtainDataPath(), "league.com", "channel-artifacts", "mychannel01.tx"))
+	_ = testPaddingConfig(t)
+	channelConfig, err := ioutil.ReadFile(filepath.Join(utils.ObtainDataPath(), "league.com", "channel-artifacts", strings.Join([]string{channelID, "tx"}, ".")))
 	if nil != err {
 		t.Fatal(err)
 	}
 	resp, err := ChannelCreate(&core.ReqChannelCreate{
 		LeagueDomain:   "league.com",
 		OrgDomain:      strings.Join([]string{"example", orgNum, ".com"}, ""),
-		ChannelID:      "mychannel01",
+		ChannelID:      channelID,
 		ChannelTxBytes: channelConfig,
 	})
 	t.Log(resp, err)
 }
 
 func TestChannelJoin(t *testing.T) {
-	var orgNum = "2"
-	_ = testPaddingConfig(orgNum, t)
+	_ = testPaddingConfig(t)
 	resp, err := ChannelJoin(&core.ReqChannelJoin{
 		LeagueDomain: "league.com",
 		OrgDomain:    strings.Join([]string{"example", orgNum, ".com"}, ""),
 		PeerName:     "peer0",
-		ChannelID:    "mychannel01",
+		ChannelID:    channelID,
 	})
 	t.Log(resp, err)
 }
 
 func TestChannelList(t *testing.T) {
-	var orgNum = "1"
-	_ = testPaddingConfig(orgNum, t)
+	_ = testPaddingConfig(t)
 	resp, err := ChannelList(&core.ReqChannelList{
 		LeagueDomain: "league.com",
 		OrgDomain:    strings.Join([]string{"example", orgNum, ".com"}, ""),
@@ -69,29 +72,29 @@ func TestChannelList(t *testing.T) {
 }
 
 func TestChannelConfigBlock(t *testing.T) {
-	var orgNum = "1"
-	_ = testPaddingConfig(orgNum, t)
-	resp, err := ChannelConfigBlock(&core.ReqChannelConfigBlock{
+	_ = testPaddingConfig(t)
+	if resp, err := ChannelConfigBlock(&core.ReqChannelConfigBlock{
 		LeagueDomain: "league.com",
 		OrgDomain:    strings.Join([]string{"example", orgNum, ".com"}, ""),
 		PeerName:     "peer0",
-		ChannelID:    "mychannel01",
-	})
-	t.Log(resp, err)
+		ChannelID:    channelID,
+	}); nil != err {
+		t.Fatal(err)
+	} else {
+		t.Log(resource.InspectBlock(resp.GenesisBlockBytes))
+	}
 }
 
 func TestChannelUpdateConfigBlock(t *testing.T) {
 	var (
 		leagueDomain         = "league.com"
-		channelID            = "mychannel01"
-		orgNum               = "1"
 		newGenesisBlockBytes []byte
 		err                  error
 	)
 	if newGenesisBlockBytes, err = ioutil.ReadFile(utils.GenesisBlock4AddFilePath(leagueDomain)); nil != err {
 		t.Fatal(err)
 	}
-	_ = testPaddingConfig(orgNum, t)
+	_ = testPaddingConfig(t)
 	resp, err := ChannelUpdateConfigBlock(&core.ReqChannelUpdateBlock{
 		LeagueDomain:      leagueDomain,
 		OrgDomain:         strings.Join([]string{"example", orgNum, ".com"}, ""),
@@ -101,14 +104,21 @@ func TestChannelUpdateConfigBlock(t *testing.T) {
 		ChannelID:         channelID,
 		GenesisBlockBytes: newGenesisBlockBytes,
 	})
-	t.Log(resp, err)
+	if nil != err {
+		t.Fatal(err)
+	}
+	t.Log(resource.InspectBlock(resp.EnvelopeBytes))
 	channelUpdateFilePath := utils.ChannelUpdateTXFilePath(leagueDomain, channelID)
 	if _, err = gnomon.File().Append(channelUpdateFilePath, resp.EnvelopeBytes, true); nil != err {
 		t.Fatal(err)
 	}
 }
 
-func testPaddingConfig(orgNum string, t *testing.T) *config2.Config {
+//func TestSignChannelTx(t *testing.T) {
+//	newChannelTxBytes, err := signChannelTx(strings.Join([]string{"org", orgNum}, ""), "Admin", channelID, configBytes, envelopeBytes []byte)
+//}
+
+func testPaddingConfig(t *testing.T) *config2.Config {
 	var (
 		conf         *config2.Config
 		leagueDomain = "league.com"
@@ -256,7 +266,7 @@ func testOrg(leagueDomain, orgName, orgDomain, username string, t *testing.T) *c
 		MspID:        utils.MspID(orgName),
 		Username:     username,
 		Users:        testOrgUsers(username, orgPath, t),
-		Peers:        testOrgPeers(orgName, orgDomain, orgPath, t),
+		Peers:        testOrgPeers(orgNum, orgName, orgDomain, orgPath, t),
 		CertBytes:    certBytes,
 		TlsCertBytes: tlsCertBytes,
 	}
@@ -303,10 +313,22 @@ func testOrgUsers(username, orgPath string, t *testing.T) []*config.User {
 	return users
 }
 
-func testOrgPeers(orgName, orgDomain, orgPath string, t *testing.T) []*config.Peer {
-	var peers []*config.Peer
-	urlPort := 7051
-	eventUrlPort := 7053
+func testOrgPeers(orgNum, orgName, orgDomain, orgPath string, t *testing.T) []*config.Peer {
+	var (
+		peers                 []*config.Peer
+		urlPort, eventUrlPort int
+	)
+	switch orgNum {
+	default:
+		urlPort = 7051
+		eventUrlPort = 7053
+	case "2":
+		urlPort = 8051
+		eventUrlPort = 8053
+	case "3":
+		urlPort = 9051
+		eventUrlPort = 9053
+	}
 	for i := 0; i < 3; i++ {
 		urlPort += i
 		eventUrlPort += i
