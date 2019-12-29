@@ -100,3 +100,27 @@ message RespChannelUpdateBlock {
     // 通道配置区块更新信息
     bytes envelopeBytes = 3;
 }
+
+message ReqChannelSign {
+    // 联盟根域名，如：example.com
+    string leagueDomain = 1;
+    // 组织域名，如org.com
+    string orgDomain = 2;
+    // 组织名称，如org0
+    string orgName = 3;
+    // 组织用户名称，如Admin
+    string orgUser = 4;
+    // 计划更新的通道名称
+    string channelID = 5;
+    // 通道配置区块更新信息
+    bytes envelopeBytes = 6;
+}
+
+message RespChannelSign {
+    // 请求返回结果：success=0；fail=1
+    Code code = 1;
+    // 当且仅当返回码为1时，此处包含错误信息
+    string errMsg = 2;
+    // 通道配置区块更新信息
+    bytes envelopeBytes = 3;
+}

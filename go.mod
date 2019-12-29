@@ -6,7 +6,7 @@ require (
 	github.com/aberic/gnomon v0.0.0-20191114033429-ff735ad64f4d
 	github.com/gin-gonic/gin v1.5.0
 	github.com/go-playground/universal-translator v0.17.0 // indirect
-	github.com/gogo/protobuf v1.2.1 // indirect
+	github.com/gogo/protobuf v1.2.1
 	github.com/golang/protobuf v1.3.2
 	github.com/google/go-cmp v0.3.1 // indirect
 	github.com/hyperledger/fabric v1.4.4

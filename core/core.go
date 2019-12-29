@@ -152,3 +152,21 @@ func ChannelUpdateConfigBlock(req *core.ReqChannelUpdateBlock) (resp *core.RespC
 	}
 	return &core.RespChannelUpdateBlock{Code: core.Code_Fail, ErrMsg: errs.Error()}, errs
 }
+
+func ChannelSign(req *core.ReqChannelSign) (resp *core.RespChannelSign, err error) {
+	var (
+		conf                    *config.Config
+		confData, envelopeBytes []byte
+		errs                    error
+	)
+	if conf, err = config.Obtain(req.LeagueDomain, req.OrgDomain); nil != err {
+		return &core.RespChannelSign{Code: core.Code_Fail, ErrMsg: err.Error()}, err
+	}
+	if confData, err = yaml.Marshal(&conf); nil != err {
+		return
+	}
+	if envelopeBytes, err = channelSign(req.OrgName, req.OrgUser, req.ChannelID, confData, req.EnvelopeBytes); nil == err {
+		return &core.RespChannelSign{Code: core.Code_Success, EnvelopeBytes: envelopeBytes}, nil
+	}
+	return &core.RespChannelSign{Code: core.Code_Fail, ErrMsg: errs.Error()}, errs
+}

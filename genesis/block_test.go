@@ -27,8 +27,12 @@ import (
 	"testing"
 )
 
+var (
+	leagueDomain = "league.com"
+	channelID    = "mychannel01"
+)
+
 func TestGenesisBlock(t *testing.T) {
-	var leagueDomain = "league.com"
 	genesisBlock, _ := testGenesisSet(leagueDomain, "", t)
 	resp, err := createGenesisBlock(genesisBlock)
 	if nil != err {
@@ -45,10 +49,6 @@ func TestGenesisBlock(t *testing.T) {
 }
 
 func TestGenesisChannel(t *testing.T) {
-	var (
-		leagueDomain = "league.com"
-		channelID    = "mychannel01"
-	)
 	_, channelTx := testGenesisSet(leagueDomain, channelID, t)
 	resp, err := createChannelTx(channelTx)
 	if nil != err {
@@ -65,7 +65,6 @@ func TestGenesisChannel(t *testing.T) {
 }
 
 func TestGenesisBlock4Add(t *testing.T) {
-	var leagueDomain = "league.com"
 	genesisBlock, _ := testGenesisSet4Add(leagueDomain, "", t)
 	resp, err := createGenesisBlock(genesisBlock)
 	if nil != err {
@@ -79,6 +78,18 @@ func TestGenesisBlock4Add(t *testing.T) {
 	if _, err = gnomon.File().Append(utils.GenesisBlock4AddFilePath(leagueDomain), resp.BlockData, true); nil != err {
 		t.Fatal(err)
 	}
+}
+
+func TestInspectChannelBlock(t *testing.T) {
+	data, err := ioutil.ReadFile(utils.ChannelUpdateTXFilePath(leagueDomain, channelID))
+	if nil != err {
+		t.Fatal(err)
+	}
+	dataStr, err := resource.InspectChannelCreateTx(data)
+	if nil != err {
+		t.Fatal(err)
+	}
+	t.Log(dataStr)
 }
 
 func testGenesisSet(leagueDomain, channelID string, t *testing.T) (genesisBlock *gen.ReqGenesisBlock, channelTx *gen.ReqChannelTx) {

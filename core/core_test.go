@@ -21,6 +21,9 @@ import (
 	"github.com/aberic/fabric-client-go/grpc/proto/core"
 	"github.com/aberic/fabric-client-go/utils"
 	"github.com/aberic/gnomon"
+	"github.com/gogo/protobuf/proto"
+	"github.com/hyperledger/fabric-protos-go/common"
+	pb_msp "github.com/hyperledger/fabric-protos-go/msp"
 	"github.com/hyperledger/fabric-sdk-go/pkg/fab/resource"
 	"io/ioutil"
 	"path"
@@ -31,8 +34,9 @@ import (
 )
 
 var (
-	channelID = "mychannel02"
-	orgNum    = "2"
+	leagueDomain = "league.com"
+	channelID    = "mychannel01"
+	orgNum       = "2"
 )
 
 func TestChannelCreate(t *testing.T) {
@@ -42,7 +46,7 @@ func TestChannelCreate(t *testing.T) {
 		t.Fatal(err)
 	}
 	resp, err := ChannelCreate(&core.ReqChannelCreate{
-		LeagueDomain:   "league.com",
+		LeagueDomain:   leagueDomain,
 		OrgDomain:      strings.Join([]string{"example", orgNum, ".com"}, ""),
 		ChannelID:      channelID,
 		ChannelTxBytes: channelConfig,
@@ -53,7 +57,7 @@ func TestChannelCreate(t *testing.T) {
 func TestChannelJoin(t *testing.T) {
 	_ = testPaddingConfig(t)
 	resp, err := ChannelJoin(&core.ReqChannelJoin{
-		LeagueDomain: "league.com",
+		LeagueDomain: leagueDomain,
 		OrgDomain:    strings.Join([]string{"example", orgNum, ".com"}, ""),
 		PeerName:     "peer0",
 		ChannelID:    channelID,
@@ -64,7 +68,7 @@ func TestChannelJoin(t *testing.T) {
 func TestChannelList(t *testing.T) {
 	_ = testPaddingConfig(t)
 	resp, err := ChannelList(&core.ReqChannelList{
-		LeagueDomain: "league.com",
+		LeagueDomain: leagueDomain,
 		OrgDomain:    strings.Join([]string{"example", orgNum, ".com"}, ""),
 		PeerName:     "peer0",
 	})
@@ -74,7 +78,7 @@ func TestChannelList(t *testing.T) {
 func TestChannelConfigBlock(t *testing.T) {
 	_ = testPaddingConfig(t)
 	if resp, err := ChannelConfigBlock(&core.ReqChannelConfigBlock{
-		LeagueDomain: "league.com",
+		LeagueDomain: leagueDomain,
 		OrgDomain:    strings.Join([]string{"example", orgNum, ".com"}, ""),
 		PeerName:     "peer0",
 		ChannelID:    channelID,
@@ -87,7 +91,6 @@ func TestChannelConfigBlock(t *testing.T) {
 
 func TestChannelUpdateConfigBlock(t *testing.T) {
 	var (
-		leagueDomain         = "league.com"
 		newGenesisBlockBytes []byte
 		err                  error
 	)
@@ -114,20 +117,85 @@ func TestChannelUpdateConfigBlock(t *testing.T) {
 	}
 }
 
-//func TestSignChannelTx(t *testing.T) {
-//	newChannelTxBytes, err := signChannelTx(strings.Join([]string{"org", orgNum}, ""), "Admin", channelID, configBytes, envelopeBytes []byte)
-//}
+func TestSignChannelTx(t *testing.T) {
+	var (
+		envelopeBytes []byte
+		err           error
+	)
+	if envelopeBytes, err = ioutil.ReadFile(utils.ChannelUpdateTXFilePath(leagueDomain, channelID)); nil != err {
+		t.Fatal(err)
+	}
+	_ = testPaddingConfig(t)
+	resp, err := ChannelSign(&core.ReqChannelSign{
+		LeagueDomain:  leagueDomain,
+		OrgDomain:     strings.Join([]string{"example", orgNum, ".com"}, ""),
+		OrgName:       strings.Join([]string{"org", orgNum}, ""),
+		OrgUser:       "Admin",
+		ChannelID:     channelID,
+		EnvelopeBytes: envelopeBytes,
+	})
+	if nil != err {
+		t.Fatal(err)
+	}
+	t.Log(resource.InspectChannelCreateTx(resp.EnvelopeBytes))
+	channelUpdateFilePath := utils.ChannelUpdateTXFilePath(leagueDomain, strings.Join([]string{channelID, "add"}, "_"))
+	if _, err = gnomon.File().Append(channelUpdateFilePath, resp.EnvelopeBytes, true); nil != err {
+		t.Fatal(err)
+	}
+}
+
+func TestPBMessage(t *testing.T) {
+	var (
+		envelope        *common.Envelope
+		payload         *common.Payload
+		configUpdateEnv *common.ConfigUpdateEnvelope
+		err             error
+	)
+	envelopeBytes, err := ioutil.ReadFile(utils.ChannelUpdateTXFilePath(leagueDomain, channelID))
+	if nil != err {
+		t.Fatal(err)
+	}
+	// 解析结构为 common.Envelope
+	if envelope, err = unmarshalEnvelope(envelopeBytes); nil != err {
+		t.Fatal(err)
+	}
+	// 解析结构为 common.Payload
+	if payload, err = extractPayload(envelope); nil != err {
+		t.Fatal(err)
+	}
+	// 解析结构为 common.ConfigUpdateEnvelope
+	if configUpdateEnv, err = unmarshalConfigUpdateEnvelope(payload.Data); err != nil {
+		t.Fatal(err)
+	}
+	for _, signature := range configUpdateEnv.Signatures {
+		signatureHeader := &common.SignatureHeader{}
+		if err = proto.Unmarshal(signature.SignatureHeader, signatureHeader); err != nil {
+			t.Fatal(err)
+		}
+		serializedIdentity := &pb_msp.SerializedIdentity{}
+		if err = proto.Unmarshal(signatureHeader.Creator, serializedIdentity); err != nil {
+			t.Fatal(err)
+		}
+		t.Log(string(serializedIdentity.IdBytes))
+	}
+	//var pbMsg = `LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUNiekNDQWhhZ0F3SUJBZ0lJS1UwOGpGSW1QRjh3Q2dZSUtvWkl6ajBFQXdJd2daUXhDekFKQmdOVkJBWVQKQWtOT01RNHdEQVlEVlFRSUV3VklkV0psYVRFUU1BNEdBMVVFQnhNSFdXbGphR0Z1WnpFVk1CTUdBMVVFQ1JNTQpVMmhsYm1kc2FTQnliMkZrTVE4d0RRWURWUVFSRXdZME5ETXdNREF4RFRBTEJnTlZCQW9UQkc5eVp6TXhEVEFMCkJnTlZCQXNUQkc5eVp6TXhIVEFiQmdOVkJBTVRGR05oTG05eVp6TXVaWGhoYlhCc1pUTXVZMjl0TUI0WERURTUKTVRJeU1qRXpNemMwTUZvWERUTXpNRGd6TURFek16YzBNRm93Z1pReEN6QUpCZ05WQkFZVEFrTk9NUTR3REFZRApWUVFJRXdWSWRXSmxhVEVRTUE0R0ExVUVCeE1IV1dsamFHRnVaekVWTUJNR0ExVUVDUk1NVTJobGJtZHNhU0J5CmIyRmtNUTh3RFFZRFZRUVJFd1kwTkRNd01EQXhEVEFMQmdOVkJBb1RCRzl5WnpNeERUQUxCZ05WQkFzVEJHOXkKWnpNeEhUQWJCZ05WQkFNVEZHTmhMbTl5WnpNdVpYaGhiWEJzWlRNdVkyOXRNRmt3RXdZSEtvWkl6ajBDQVFZSQpLb1pJemowREFRY0RRZ0FFOW1wOCtNL3RoTlg4VS9rc25WL2ttOHN5NWtVZ2QwZmNwZGVYMmpRU0Q1V1dWWmpmCkdTazFEVWtoQ29QM3kyL1FJT1phRFpwY3BpQlRzclNUQXc2WGNxTlFNRTR3RGdZRFZSMFBBUUgvQkFRREFnR20KTUIwR0ExVWRKUVFXTUJRR0NDc0dBUVVGQndNQ0JnZ3JCZ0VGQlFjREFUQVBCZ05WSFJNQkFmOEVCVEFEQVFILwpNQXdHQTFVZERnUUZCQU1CQWdNd0NnWUlLb1pJemowRUF3SURSd0F3UkFJZ0lXLzVkSzdRQU14Tm5ZR1BLUUhwCldTRTltcStZbzJaTVI2MzVFSkxVWERrQ0lIOXVBVHYzaU1Fc09jcEdRSkVRWEh1UktSajJEc3AvRWNKRklEWTAKQ3lxMgotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==`
+	////proto.Unmarshal([]byte(pbMsg), )
+	//serializedIdentity := &pb_msp.SerializedIdentity{
+	//	Mspid:   "org2MSP",
+	//	IdBytes: []byte(pbMsg),
+	//}
+	//t.Log(string(serializedIdentity.IdBytes))
+}
 
 func testPaddingConfig(t *testing.T) *config2.Config {
 	var (
-		conf         *config2.Config
-		leagueDomain = "league.com"
-		orderDomain  = "example1.com"
-		orderName    = "orderer1"
-		orgDomain    = strings.Join([]string{"example", orgNum, ".com"}, "")
-		orgName      = strings.Join([]string{"org", orgNum}, "")
-		peerNames    = []string{"peer0", "peer1", "peer2"}
-		err          error
+		conf        *config2.Config
+		orderDomain = "example1.com"
+		orderName   = "orderer1"
+		orgDomain   = strings.Join([]string{"example", orgNum, ".com"}, "")
+		orgName     = strings.Join([]string{"org", orgNum}, "")
+		peerNames   = []string{"peer0", "peer1", "peer2"}
+		err         error
 	)
 	if conf, err = config2.Mock(&config.ReqConfigSet{
 		Version:      "1.0.0",
