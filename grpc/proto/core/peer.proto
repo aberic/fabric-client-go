@@ -1,0 +1,73 @@
+syntax = "proto3";
+
+option java_package = "cn.aberic.fabric-client.grpc.proto.core";
+option java_outer_classname = "ChainCodeProto";
+option go_package = "grpc/proto/core";
+
+package core;
+
+import "grpc/proto/core/chaincode.proto";
+import "grpc/proto/core/enums.proto";
+
+message ReqPeerInstalled {
+    // 联盟根域名，如：example.com
+    string leagueDomain = 1;
+    // 组织域名，如org.com
+    string orgDomain = 2;
+    // 组织名称，如org0
+    string orgName = 3;
+    // 组织用户名称，如Admin
+    string orgUser = 4;
+    string peerName = 5;
+}
+
+message RespPeerInstalled {
+    // 请求返回结果：success=0；fail=1
+    Code code = 1;
+    // 当且仅当返回码为1时，此处包含错误信息
+    string errMsg = 2;
+    repeated ChainCodeInfo ccInfos = 3;
+}
+
+message ReqPeerInstantiated {
+    // 联盟根域名，如：example.com
+    string leagueDomain = 1;
+    // 组织域名，如org.com
+    string orgDomain = 2;
+    // 组织名称，如org0
+    string orgName = 3;
+    // 组织用户名称，如Admin
+    string orgUser = 4;
+    string peerName = 5;
+    string channelID = 6;
+}
+
+message RespPeerInstantiated {
+    // 请求返回结果：success=0；fail=1
+    Code code = 1;
+    // 当且仅当返回码为1时，此处包含错误信息
+    string errMsg = 2;
+    repeated ChainCodeInfo ccInfos = 3;
+}
+
+message ReqPeerCollectionsConfig {
+    // 联盟根域名，如：example.com
+    string leagueDomain = 1;
+    // 组织域名，如org.com
+    string orgDomain = 2;
+    // 组织名称，如org0
+    string orgName = 3;
+    // 组织用户名称，如Admin
+    string orgUser = 4;
+    string peerName = 5;
+    string channelID = 6;
+    // 链码名称
+    string ccID = 7;
+}
+
+message RespPeerCollectionsConfig {
+    // 请求返回结果：success=0；fail=1
+    Code code = 1;
+    // 当且仅当返回码为1时，此处包含错误信息
+    string errMsg = 2;
+}

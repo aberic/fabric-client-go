@@ -17,50 +17,67 @@ package core
 
 import (
 	"github.com/aberic/gnomon"
-	"github.com/hyperledger/fabric-protos-go/common"
-	"github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/channel"
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/resmgmt"
 	"github.com/hyperledger/fabric-sdk-go/pkg/common/errors/retry"
 	"github.com/hyperledger/fabric-sdk-go/pkg/fab/ccpackager/gopackager"
+	"github.com/hyperledger/fabric-sdk-go/pkg/fab/resource"
 	"github.com/hyperledger/fabric-sdk-go/pkg/fabsdk"
 	"github.com/hyperledger/fabric-sdk-go/third_party/github.com/hyperledger/fabric/common/cauthdsl"
 	"net/http"
 )
 
-// install 安装智能合约
-func install(peerName, name, goPath, chainCodePath, version string, client *resmgmt.Client) (string, error) {
-	ccPkg, err := gopackager.NewCCPackage(chainCodePath, goPath)
-	if err != nil {
+// ccInstall 安装智能合约
+func ccInstall(orgName, orgUser, peerName, ccName, goPath, ccPath, version string, configBytes []byte,
+	sdkOpts ...fabsdk.Option) (string, string, error) {
+	var (
+		ccPkg         *resource.CCPackage
+		resMgmtClient *resmgmt.Client
+		err           error
+	)
+	if ccPkg, err = gopackager.NewCCPackage(ccPath, goPath); err != nil {
 		gnomon.Log().Error("install", gnomon.Log().Err(err))
-		return "", err
+		return "", "", err
+	}
+	if _, resMgmtClient, _, err = resmgmtClient(orgName, orgUser, configBytes, sdkOpts...); nil != err {
+		gnomon.Log().Error("install", gnomon.Log().Err(err))
+		return "", "", err
 	}
 	// Install example cc to org peers
-	installCCReq := resmgmt.InstallCCRequest{Name: name, Path: chainCodePath, Version: version, Package: ccPkg}
-	respList, err := client.InstallCC(installCCReq, resmgmt.WithRetry(retry.DefaultResMgmtOpts), resmgmt.WithTargetEndpoints(peerName))
+	installCCReq := resmgmt.InstallCCRequest{Name: ccName, Path: ccPath, Version: version, Package: ccPkg}
+	respList, err := resMgmtClient.InstallCC(
+		installCCReq,
+		resmgmt.WithRetry(retry.DefaultResMgmtOpts),
+		resmgmt.WithTargetEndpoints(peerName),
+	)
 	if err != nil {
 		gnomon.Log().Error("install", gnomon.Log().Err(err))
-		return "", err
+		return "", "", err
 	}
 	for _, resp := range respList {
 		if resp.Status == http.StatusOK {
-			return resp.Info, nil
+			return resp.Target, resp.Info, nil
 		}
 	}
-	return "", err
-}
-
-type ChainCodeInfoArr struct {
-	ChainCodes []*peer.ChaincodeInfo `json:"chaincodes"`
+	return "", "", err
 }
 
 // args [][]byte{[]byte(coll1), []byte("key"), []byte("value")}
-func instantiate(peerName, channelID, name, path, version string, orgPolicies []string, args [][]byte, client *resmgmt.Client) (string, error) {
+func ccInstantiate(orgName, orgUser, peerName, channelID, ccName, ccPath, version string, orgPolicies []string, args [][]byte,
+	configBytes []byte, sdkOpts ...fabsdk.Option) (string, error) {
+	var (
+		resMgmtClient *resmgmt.Client
+		err           error
+	)
+	if _, resMgmtClient, _, err = resmgmtClient(orgName, orgUser, configBytes, sdkOpts...); nil != err {
+		gnomon.Log().Error("instantiate", gnomon.Log().Err(err))
+		return "", err
+	}
 	ccPolicy := cauthdsl.SignedByAnyMember(orgPolicies)
 	// Org resource manager will instantiate 'example_cc' on channel
-	resp, err := client.InstantiateCC(
+	resp, err := resMgmtClient.InstantiateCC(
 		channelID,
-		resmgmt.InstantiateCCRequest{Name: name, Path: path, Version: version, Args: args, Policy: ccPolicy},
+		resmgmt.InstantiateCCRequest{Name: ccName, Path: ccPath, Version: version, Args: args, Policy: ccPolicy},
 		resmgmt.WithRetry(retry.DefaultResMgmtOpts),
 		resmgmt.WithTargetEndpoints(peerName),
 	)
@@ -72,12 +89,21 @@ func instantiate(peerName, channelID, name, path, version string, orgPolicies []
 }
 
 // args [][]byte{[]byte(coll1), []byte("key"), []byte("value")}
-func upgrade(peerName, channelID, name, path, version string, orgPolicies []string, args [][]byte, client *resmgmt.Client) (string, error) {
+func ccUpgrade(orgName, orgUser, peerName, channelID, ccName, ccPath, version string, orgPolicies []string, args [][]byte,
+	configBytes []byte, sdkOpts ...fabsdk.Option) (string, error) {
+	var (
+		resMgmtClient *resmgmt.Client
+		err           error
+	)
+	if _, resMgmtClient, _, err = resmgmtClient(orgName, orgUser, configBytes, sdkOpts...); nil != err {
+		gnomon.Log().Error("upgrade", gnomon.Log().Err(err))
+		return "", err
+	}
 	ccPolicy := cauthdsl.SignedByAnyMember(orgPolicies)
 	// Org resource manager will instantiate 'example_cc' on channel
-	resp, err := client.UpgradeCC(
+	resp, err := resMgmtClient.UpgradeCC(
 		channelID,
-		resmgmt.UpgradeCCRequest{Name: name, Path: path, Version: version, Args: args, Policy: ccPolicy},
+		resmgmt.UpgradeCCRequest{Name: ccName, Path: ccPath, Version: version, Args: args, Policy: ccPolicy},
 		resmgmt.WithRetry(retry.DefaultResMgmtOpts),
 		resmgmt.WithTargetEndpoints(peerName),
 	)
@@ -88,105 +114,48 @@ func upgrade(peerName, channelID, name, path, version string, orgPolicies []stri
 	return string(resp.TransactionID), nil
 }
 
-// peer 参见peer.go Peer
-func queryInstalled(orgName, orgUser, peerName string, sdk *fabsdk.FabricSDK) ([]*peer.ChaincodeInfo, error) {
-	//prepare context
-	adminContext := sdk.Context(fabsdk.WithUser(orgUser), fabsdk.WithOrg(orgName))
-	// Org resource management client
-	orgResMgmt, err := resmgmt.New(adminContext)
-	if err != nil {
-		gnomon.Log().Error("queryInstalled", gnomon.Log().Err(err))
-		return nil, err
-	} else {
-		if nil != orgResMgmt {
-			qiResponse, err := orgResMgmt.QueryInstalledChaincodes(resmgmt.WithTargetEndpoints(peerName))
-			if err != nil {
-				gnomon.Log().Error("queryInstalled", gnomon.Log().Err(err))
-				return nil, err
-			} else {
-				return qiResponse.Chaincodes, nil
-			}
-		} else {
-			gnomon.Log().Error("queryInstalled", gnomon.Log().Err(err))
-			return nil, err
-		}
-	}
-}
-
-// peer 参见peer.go Peer
-func queryInstantiated(orgName, orgUser, channelID, peerName string, sdk *fabsdk.FabricSDK) ([]*peer.ChaincodeInfo, error) {
-	//prepare context
-	adminContext := sdk.Context(fabsdk.WithUser(orgUser), fabsdk.WithOrg(orgName))
-	// Org resource management client
-	orgResMgmt, err := resmgmt.New(adminContext)
-	if err != nil {
-		gnomon.Log().Error("queryInstantiated", gnomon.Log().Err(err))
-		return nil, err
-	} else {
-		if nil != orgResMgmt {
-			qiResponse, err := orgResMgmt.QueryInstantiatedChaincodes(channelID, resmgmt.WithTargetEndpoints(peerName))
-			if err != nil {
-				gnomon.Log().Error("queryInstantiated", gnomon.Log().Err(err))
-				return nil, err
-			} else {
-				return qiResponse.Chaincodes, nil
-			}
-		} else {
-			gnomon.Log().Error("queryInstantiated", gnomon.Log().Err(err))
-			return nil, err
-		}
-	}
-}
-
 // fcn invoke
 // args [][]byte{[]byte(coll1), []byte("key"), []byte("value")}
-func invoke(chaincodeID, fcn string, args [][]byte, client *channel.Client, targetEndpoints ...string) ([]byte, string, error) {
-	resp, err := client.Execute(channel.Request{
-		ChaincodeID: chaincodeID,
+func ccInvoke(orgName, orgUser, peerName, channelID, ccName, fcn string, args [][]byte, configBytes []byte, sdkOpts ...fabsdk.Option) (string, string, error) {
+	var (
+		chClient *channel.Client
+		err      error
+	)
+	if chClient, err = channelClient(orgName, orgUser, channelID, configBytes, sdkOpts...); nil != err {
+		gnomon.Log().Error("invoke", gnomon.Log().Err(err))
+		return "", "", err
+	}
+	resp, err := chClient.Execute(channel.Request{
+		ChaincodeID: ccName,
 		Fcn:         fcn,
 		Args:        args,
-	}, channel.WithRetry(retry.DefaultChannelOpts), channel.WithTargetEndpoints(targetEndpoints...))
+	}, channel.WithRetry(retry.DefaultChannelOpts), channel.WithTargetEndpoints(peerName))
 	if err != nil {
 		gnomon.Log().Error("invoke", gnomon.Log().Err(err))
-		return nil, "", err
+		return "", "", err
 	}
-	return resp.Payload, string(resp.TransactionID), nil
+	return string(resp.Payload), string(resp.TransactionID), nil
 }
 
 // fcn query
 // args [][]byte{[]byte(coll1), []byte("key"), []byte("value")}
-func query(chaincodeID, fcn string, args [][]byte, client *channel.Client, targetEndpoints ...string) ([]byte, string, error) {
-	resp, err := client.Query(channel.Request{
+func ccQuery(orgName, orgUser, peerName, channelID, chaincodeID, fcn string, args [][]byte, configBytes []byte, sdkOpts ...fabsdk.Option) (string, string, error) {
+	var (
+		chClient *channel.Client
+		err      error
+	)
+	if chClient, err = channelClient(orgName, orgUser, channelID, configBytes, sdkOpts...); nil != err {
+		gnomon.Log().Error("query", gnomon.Log().Err(err))
+		return "", "", err
+	}
+	resp, err := chClient.Query(channel.Request{
 		ChaincodeID: chaincodeID,
 		Fcn:         fcn,
 		Args:        args,
-	}, channel.WithRetry(retry.DefaultChannelOpts), channel.WithTargetEndpoints(targetEndpoints...))
+	}, channel.WithRetry(retry.DefaultChannelOpts), channel.WithTargetEndpoints(peerName))
 	if err != nil {
 		gnomon.Log().Error("query", gnomon.Log().Err(err))
-		return nil, "", err
+		return "", "", err
 	}
-	return resp.Payload, string(resp.TransactionID), nil
-}
-
-func queryCollectionsConfig(orgName, orgUser, peerName, channelID, chaincodeID string, sdk *fabsdk.FabricSDK) (*common.CollectionConfigPackage, error) {
-	//prepare context
-	adminContext := sdk.Context(fabsdk.WithUser(orgUser), fabsdk.WithOrg(orgName))
-	// Org resource management client
-	orgResMgmt, err := resmgmt.New(adminContext)
-	if err != nil {
-		gnomon.Log().Error("queryCollectionsConfig", gnomon.Log().Err(err))
-		return nil, err
-	} else {
-		if nil != orgResMgmt {
-			coll, err := orgResMgmt.QueryCollectionsConfig(channelID, chaincodeID, resmgmt.WithTargetEndpoints(peerName))
-			if err != nil {
-				gnomon.Log().Error("queryCollectionsConfig", gnomon.Log().Err(err))
-				return nil, err
-			}
-			return coll, nil
-		} else {
-			gnomon.Log().Error("queryCollectionsConfig", gnomon.Log().Err(err))
-			return nil, err
-		}
-	}
+	return string(resp.Payload), string(resp.TransactionID), nil
 }

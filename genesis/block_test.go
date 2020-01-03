@@ -224,7 +224,7 @@ func testGenesisSet(leagueDomain, channelID string, t *testing.T) (genesisBlock 
 		PeerOrgs: peerOrgs,
 	})
 
-	league := &gen.League{Domain: leagueDomain, Version: gen.Version_V1_4_4}
+	league := &gen.League{Domain: leagueDomain, Version: gen.Version_V2_0}
 	return &gen.ReqGenesisBlock{
 			League:           league,
 			Orderer:          orderer,
@@ -371,7 +371,7 @@ func testGenesisSet4Add(leagueDomain, channelID string, t *testing.T) (genesisBl
 		PeerOrgs: peerOrgs,
 	})
 
-	league := &gen.League{Domain: leagueDomain, Version: gen.Version_V1_4_4}
+	league := &gen.League{Domain: leagueDomain, Version: gen.Version_V2_0}
 	return &gen.ReqGenesisBlock{
 			League:           league,
 			Orderer:          orderer,

@@ -23,7 +23,7 @@ import (
 	"github.com/aberic/gnomon"
 	"github.com/gogo/protobuf/proto"
 	"github.com/hyperledger/fabric-protos-go/common"
-	pb_msp "github.com/hyperledger/fabric-protos-go/msp"
+	pbMsp "github.com/hyperledger/fabric-protos-go/msp"
 	"github.com/hyperledger/fabric-sdk-go/pkg/fab/resource"
 	"io/ioutil"
 	"path"
@@ -36,7 +36,8 @@ import (
 var (
 	leagueDomain = "league.com"
 	channelID    = "mychannel01"
-	orgNum       = "2"
+	ccID         = "medical"
+	orgNum       = "1"
 )
 
 func TestChannelCreate(t *testing.T) {
@@ -172,7 +173,7 @@ func TestPBMessage(t *testing.T) {
 		if err = proto.Unmarshal(signature.SignatureHeader, signatureHeader); err != nil {
 			t.Fatal(err)
 		}
-		serializedIdentity := &pb_msp.SerializedIdentity{}
+		serializedIdentity := &pbMsp.SerializedIdentity{}
 		if err = proto.Unmarshal(signatureHeader.Creator, serializedIdentity); err != nil {
 			t.Fatal(err)
 		}
@@ -185,6 +186,65 @@ func TestPBMessage(t *testing.T) {
 	//	IdBytes: []byte(pbMsg),
 	//}
 	//t.Log(string(serializedIdentity.IdBytes))
+}
+
+func TestChainCodeInstall(t *testing.T) {
+	_ = testPaddingConfig(t)
+	resp, err := ChainCodeInstall(&core.ReqChainCodeInstall{
+		LeagueDomain: leagueDomain,
+		OrgDomain:    strings.Join([]string{"example", orgNum, ".com"}, ""),
+		OrgName:      strings.Join([]string{"org", orgNum}, ""),
+		OrgUser:      "Admin",
+		PeerName:     "peer0",
+		CcName:       ccID,
+		GoPath:       "/Users/aberic/Documents/path/go",
+		CcPath:       "github.com/aberic/fabric-client-go/example/chaincode/medical",
+		Version:      "1.0",
+	})
+	t.Log(resp, err)
+}
+
+func TestChainCodeInstantiate(t *testing.T) {
+	_ = testPaddingConfig(t)
+	resp, err := ChainCodeInstantiate(&core.ReqChainCodeInstantiate{
+		LeagueDomain: leagueDomain,
+		OrgDomain:    strings.Join([]string{"example", orgNum, ".com"}, ""),
+		OrgName:      strings.Join([]string{"org", orgNum}, ""),
+		OrgUser:      "Admin",
+		PeerName:     "peer0",
+		ChannelID:    channelID,
+		CcName:       ccID,
+		CcPath:       "github.com/aberic/fabric-client-go/example/chaincode/medical",
+		Version:      "1.0",
+		//OrgPolicies:  []string{"Org1MSP", "Org2MSP", "Org3MSP"},
+		Args: [][]byte{[]byte("init"), []byte("A"), []byte("10000"), []byte("B"), []byte("10000")},
+	})
+	t.Log(resp, err)
+}
+
+func TestPeerQueryInstalled(t *testing.T) {
+	_ = testPaddingConfig(t)
+	resp, err := PeerQueryInstalled(&core.ReqPeerInstalled{
+		LeagueDomain: leagueDomain,
+		OrgDomain:    strings.Join([]string{"example", orgNum, ".com"}, ""),
+		OrgName:      strings.Join([]string{"org", orgNum}, ""),
+		OrgUser:      "Admin",
+		PeerName:     "peer0",
+	})
+	t.Log(resp, err)
+}
+
+func TestPeerQueryInstantiated(t *testing.T) {
+	_ = testPaddingConfig(t)
+	resp, err := PeerQueryInstantiated(&core.ReqPeerInstantiated{
+		LeagueDomain: leagueDomain,
+		OrgDomain:    strings.Join([]string{"example", orgNum, ".com"}, ""),
+		OrgName:      strings.Join([]string{"org", orgNum}, ""),
+		OrgUser:      "Admin",
+		PeerName:     "peer0",
+		ChannelID:    channelID,
+	})
+	t.Log(resp, err)
 }
 
 func testPaddingConfig(t *testing.T) *config2.Config {
@@ -297,7 +357,7 @@ func testOrderNodes(ordererName, ordererDomain, ordererPath string, t *testing.T
 		}
 		nodes = append(nodes, &config.Node{
 			Name: childName,
-			Url:  strings.Join([]string{"grpcs://127.0.0.1", strconv.Itoa(7050 + offset)}, ":"),
+			Url:  strings.Join([]string{"grpcs://132.232.134.45", strconv.Itoa(7050 + offset)}, ":"),
 			GrpcOptions: &config.GRPCOptions{
 				SslTargetNameOverride: strings.Join([]string{childName, ordererName, ordererDomain}, "."),
 				KeepAliveTime:         "0s",
@@ -420,8 +480,8 @@ func testOrgPeers(orgNum, orgName, orgDomain, orgPath string, t *testing.T) []*c
 		}
 		peers = append(peers, &config.Peer{
 			Name:     peerName,
-			Url:      strings.Join([]string{"grpcs://127.0.0.1", strconv.Itoa(urlPort)}, ":"),
-			EventUrl: strings.Join([]string{"grpcs://127.0.0.1", strconv.Itoa(eventUrlPort)}, ":"),
+			Url:      strings.Join([]string{"grpcs://132.232.134.45", strconv.Itoa(urlPort)}, ":"),
+			EventUrl: strings.Join([]string{"grpcs://132.232.134.45", strconv.Itoa(eventUrlPort)}, ":"),
 			GrpcOptions: &config.GRPCOptions{
 				SslTargetNameOverride: strings.Join([]string{peerName, orgName, orgDomain}, "."),
 				KeepAliveTime:         "0s",

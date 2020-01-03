@@ -326,7 +326,7 @@ func (m *League) GetVersion() Version {
 	if m != nil {
 		return m.Version
 	}
-	return Version_V1_4_4
+	return Version_V1_1
 }
 
 // Consortium 暂定翻译成协会

@@ -8,7 +8,11 @@ package genesis;
 
 // fabric版本号
 enum Version {
-    V1_4_4 = 0;
+    V1_1 = 0;
+    V1_2 = 1;
+    V1_3 = 2;
+    V1_4 = 3;
+    V2_0 = 4;
 }
 
 // 网络请求返回码

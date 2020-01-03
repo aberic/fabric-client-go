@@ -9,7 +9,7 @@ require (
 	github.com/gogo/protobuf v1.2.1
 	github.com/golang/protobuf v1.3.2
 	github.com/google/go-cmp v0.3.1 // indirect
-	github.com/hyperledger/fabric v1.4.4
+	github.com/hyperledger/fabric v2.0.0-beta.0.20200103041411-c34eae3fc20d+incompatible
 	github.com/hyperledger/fabric-protos-go v0.0.0-20191204195335-3ddf3f16d6cf
 	github.com/hyperledger/fabric-sdk-go v1.0.0-beta1
 	github.com/json-iterator/go v1.1.8 // indirect

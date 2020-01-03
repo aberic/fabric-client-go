@@ -25,6 +25,8 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+//////////////////////////////// channel start ////////////////////////////////
+
 func ChannelCreate(req *core.ReqChannelCreate) (resp *core.RespChannelCreate, err error) {
 	var (
 		conf     *config.Config
@@ -157,7 +159,6 @@ func ChannelSign(req *core.ReqChannelSign) (resp *core.RespChannelSign, err erro
 	var (
 		conf                    *config.Config
 		confData, envelopeBytes []byte
-		errs                    error
 	)
 	if conf, err = config.Obtain(req.LeagueDomain, req.OrgDomain); nil != err {
 		return &core.RespChannelSign{Code: core.Code_Fail, ErrMsg: err.Error()}, err
@@ -168,5 +169,186 @@ func ChannelSign(req *core.ReqChannelSign) (resp *core.RespChannelSign, err erro
 	if envelopeBytes, err = channelSign(req.OrgName, req.OrgUser, req.ChannelID, confData, req.EnvelopeBytes); nil == err {
 		return &core.RespChannelSign{Code: core.Code_Success, EnvelopeBytes: envelopeBytes}, nil
 	}
-	return &core.RespChannelSign{Code: core.Code_Fail, ErrMsg: errs.Error()}, errs
+	return &core.RespChannelSign{Code: core.Code_Fail, ErrMsg: err.Error()}, err
 }
+
+//////////////////////////////// channel end ////////////////////////////////
+
+//////////////////////////////// chaincode start ////////////////////////////////
+
+func ChainCodeInstall(req *core.ReqChainCodeInstall) (resp *core.RespChainCodeInstall, err error) {
+	var (
+		conf         *config.Config
+		confData     []byte
+		target, info string
+		errs         error
+	)
+	if conf, err = config.Obtain(req.LeagueDomain, req.OrgDomain); nil != err {
+		return &core.RespChainCodeInstall{Code: core.Code_Fail, ErrMsg: err.Error()}, err
+	}
+	if confData, err = yaml.Marshal(&conf); nil != err {
+		return &core.RespChainCodeInstall{Code: core.Code_Fail, ErrMsg: err.Error()}, err
+	}
+	if target, info, err = ccInstall(req.OrgName, req.OrgUser, req.PeerName, req.CcName, req.GoPath, req.CcPath, req.Version, confData); nil == err {
+		return &core.RespChainCodeInstall{Code: core.Code_Success, Data: &core.InstallData{Target: target, Info: info}}, nil
+	} else {
+		errs = fmt.Errorf("error: %w", err)
+	}
+	return &core.RespChainCodeInstall{Code: core.Code_Fail, ErrMsg: errs.Error()}, errs
+}
+
+func ChainCodeInstantiate(req *core.ReqChainCodeInstantiate) (resp *core.RespChainCodeInstantiate, err error) {
+	var (
+		conf     *config.Config
+		confData []byte
+		msg      string
+		errs     error
+	)
+	if conf, err = config.Obtain(req.LeagueDomain, req.OrgDomain); nil != err {
+		return &core.RespChainCodeInstantiate{Code: core.Code_Fail, ErrMsg: err.Error()}, err
+	}
+	if confData, err = yaml.Marshal(&conf); nil != err {
+		return &core.RespChainCodeInstantiate{Code: core.Code_Fail, ErrMsg: err.Error()}, err
+	}
+	if msg, err = ccInstantiate(req.OrgName, req.OrgUser, req.PeerName, req.ChannelID, req.CcName, req.CcPath, req.Version, req.OrgPolicies, req.Args, confData); nil == err {
+		return &core.RespChainCodeInstantiate{Code: core.Code_Success, TxId: msg}, nil
+	} else {
+		errs = fmt.Errorf("error: %w", err)
+	}
+	return &core.RespChainCodeInstantiate{Code: core.Code_Fail, ErrMsg: errs.Error()}, errs
+}
+
+func ChainCodeUpgrade(req *core.ReqChainCodeUpgrade) (resp *core.RespChainCodeUpgrade, err error) {
+	var (
+		conf     *config.Config
+		confData []byte
+		msg      string
+		errs     error
+	)
+	if conf, err = config.Obtain(req.LeagueDomain, req.OrgDomain); nil != err {
+		return &core.RespChainCodeUpgrade{Code: core.Code_Fail, ErrMsg: err.Error()}, err
+	}
+	if confData, err = yaml.Marshal(&conf); nil != err {
+		return &core.RespChainCodeUpgrade{Code: core.Code_Fail, ErrMsg: err.Error()}, err
+	}
+	if msg, err = ccUpgrade(req.OrgName, req.OrgUser, req.PeerName, req.ChannelID, req.CcName, req.CcPath, req.Version, req.OrgPolicies, req.Args, confData); nil == err {
+		return &core.RespChainCodeUpgrade{Code: core.Code_Success, TxId: msg}, nil
+	} else {
+		errs = fmt.Errorf("error: %w", err)
+	}
+	return &core.RespChainCodeUpgrade{Code: core.Code_Fail, ErrMsg: errs.Error()}, errs
+}
+
+func ChainCodeInvoke(req *core.ReqChainCodeInvoke) (resp *core.RespChainCodeInvoke, err error) {
+	var (
+		conf          *config.Config
+		confData      []byte
+		payload, txID string
+		errs          error
+	)
+	if conf, err = config.Obtain(req.LeagueDomain, req.OrgDomain); nil != err {
+		return &core.RespChainCodeInvoke{Code: core.Code_Fail, ErrMsg: err.Error()}, err
+	}
+	if confData, err = yaml.Marshal(&conf); nil != err {
+		return &core.RespChainCodeInvoke{Code: core.Code_Fail, ErrMsg: err.Error()}, err
+	}
+	if payload, txID, err = ccInvoke(req.OrgName, req.OrgUser, req.PeerName, req.ChannelID, req.CcName, req.Fcn, req.Args, confData); nil == err {
+		return &core.RespChainCodeInvoke{Code: core.Code_Success, Data: &core.CCData{Payload: payload, TxId: txID}}, nil
+	} else {
+		errs = fmt.Errorf("error: %w", err)
+	}
+	return &core.RespChainCodeInvoke{Code: core.Code_Fail, ErrMsg: errs.Error()}, errs
+}
+
+func ChainCodeQuery(req *core.ReqChainCodeQuery) (resp *core.RespChainCodeQuery, err error) {
+	var (
+		conf          *config.Config
+		confData      []byte
+		payload, txID string
+		errs          error
+	)
+	if conf, err = config.Obtain(req.LeagueDomain, req.OrgDomain); nil != err {
+		return &core.RespChainCodeQuery{Code: core.Code_Fail, ErrMsg: err.Error()}, err
+	}
+	if confData, err = yaml.Marshal(&conf); nil != err {
+		return &core.RespChainCodeQuery{Code: core.Code_Fail, ErrMsg: err.Error()}, err
+	}
+	if payload, txID, err = ccQuery(req.OrgName, req.OrgUser, req.PeerName, req.ChannelID, req.CcID, req.Fcn, req.Args, confData); nil == err {
+		return &core.RespChainCodeQuery{Code: core.Code_Success, Data: &core.CCData{Payload: payload, TxId: txID}}, nil
+	} else {
+		errs = fmt.Errorf("error: %w", err)
+	}
+	return &core.RespChainCodeQuery{Code: core.Code_Fail, ErrMsg: errs.Error()}, errs
+}
+
+//////////////////////////////// chaincode end ////////////////////////////////
+
+//////////////////////////////// peer start ////////////////////////////////
+
+func PeerQueryInstalled(req *core.ReqPeerInstalled) (resp *core.RespPeerInstalled, err error) {
+	var (
+		conf     *config.Config
+		confData []byte
+		errs     error
+	)
+	if conf, err = config.Obtain(req.LeagueDomain, req.OrgDomain); nil != err {
+		return &core.RespPeerInstalled{Code: core.Code_Fail, ErrMsg: err.Error()}, err
+	}
+	if confData, err = yaml.Marshal(&conf); nil != err {
+		return &core.RespPeerInstalled{Code: core.Code_Fail, ErrMsg: err.Error()}, err
+	}
+	ccIs, err := peerQueryInstalled(req.OrgName, req.OrgUser, req.PeerName, confData)
+	if nil == err {
+		var ccInfos []*core.ChainCodeInfo
+		for _, cci := range ccIs {
+			ccInfos = append(ccInfos, &core.ChainCodeInfo{
+				Name:    cci.Name,
+				Version: cci.Version,
+				Path:    cci.Path,
+				Input:   cci.Input,
+				Escc:    cci.Escc,
+				Vscc:    cci.Vscc,
+				Id:      cci.Id,
+			})
+		}
+		return &core.RespPeerInstalled{Code: core.Code_Success, CcInfos: ccInfos}, nil
+	} else {
+		errs = fmt.Errorf("error: %w", err)
+	}
+	return &core.RespPeerInstalled{Code: core.Code_Fail, ErrMsg: errs.Error()}, errs
+}
+
+func PeerQueryInstantiated(req *core.ReqPeerInstantiated) (resp *core.RespPeerInstantiated, err error) {
+	var (
+		conf     *config.Config
+		confData []byte
+		errs     error
+	)
+	if conf, err = config.Obtain(req.LeagueDomain, req.OrgDomain); nil != err {
+		return &core.RespPeerInstantiated{Code: core.Code_Fail, ErrMsg: err.Error()}, err
+	}
+	if confData, err = yaml.Marshal(&conf); nil != err {
+		return &core.RespPeerInstantiated{Code: core.Code_Fail, ErrMsg: err.Error()}, err
+	}
+	ccIs, err := peerQueryInstantiated(req.OrgName, req.OrgUser, req.PeerName, req.ChannelID, confData)
+	if nil == err {
+		var ccInfos []*core.ChainCodeInfo
+		for _, cci := range ccIs {
+			ccInfos = append(ccInfos, &core.ChainCodeInfo{
+				Name:    cci.Name,
+				Version: cci.Version,
+				Path:    cci.Path,
+				Input:   cci.Input,
+				Escc:    cci.Escc,
+				Vscc:    cci.Vscc,
+				Id:      cci.Id,
+			})
+		}
+		return &core.RespPeerInstantiated{Code: core.Code_Success, CcInfos: ccInfos}, nil
+	} else {
+		errs = fmt.Errorf("error: %w", err)
+	}
+	return &core.RespPeerInstantiated{Code: core.Code_Fail, ErrMsg: errs.Error()}, errs
+}
+
+//////////////////////////////// peer end ////////////////////////////////

@@ -1,0 +1,167 @@
+syntax = "proto3";
+
+option java_package = "cn.aberic.fabric-client.grpc.proto.core";
+option java_outer_classname = "ChainCodeProto";
+option go_package = "grpc/proto/core";
+
+package core;
+
+import "grpc/proto/core/enums.proto";
+
+message ChainCodeInfo {
+    string name = 1;
+    string version = 2;
+    string path = 3;
+    string input = 4;
+    string escc = 5;
+    string vscc = 6;
+    bytes id = 7;
+}
+
+message ReqChainCodeInstall {
+    // 联盟根域名，如：example.com
+    string leagueDomain = 1;
+    // 组织域名，如org.com
+    string orgDomain = 2;
+    // 组织名称，如org0
+    string orgName = 3;
+    // 组织用户名称，如Admin
+    string orgUser = 4;
+    string peerName = 5;
+    // 链码名称
+    string ccName = 6;
+    // 链码go环境目录
+    string goPath = 7;
+    // 链码合约路径
+    string ccPath = 8;
+    // 链码名称
+    string version = 9;
+}
+
+message RespChainCodeInstall {
+    // 请求返回结果：success=0；fail=1
+    Code code = 1;
+    // 当且仅当返回码为1时，此处包含错误信息
+    string errMsg = 2;
+    InstallData data = 3;
+}
+
+message InstallData {
+    string target = 1;
+    string info = 2;
+}
+
+message ReqChainCodeInstantiate {
+    // 联盟根域名，如：example.com
+    string leagueDomain = 1;
+    // 组织域名，如org.com
+    string orgDomain = 2;
+    // 组织名称，如org0
+    string orgName = 3;
+    // 组织用户名称，如Admin
+    string orgUser = 4;
+    string peerName = 5;
+    string channelID = 6;
+    // 链码名称
+    string ccName = 7;
+    // 链码合约路径
+    string ccPath = 8;
+    // 链码名称
+    string version = 9;
+    repeated string orgPolicies = 10;
+    repeated bytes args = 11;
+}
+
+message RespChainCodeInstantiate {
+    // 请求返回结果：success=0；fail=1
+    Code code = 1;
+    // 当且仅当返回码为1时，此处包含错误信息
+    string errMsg = 2;
+    string txId = 3;
+}
+
+message ReqChainCodeUpgrade {
+    // 联盟根域名，如：example.com
+    string leagueDomain = 1;
+    // 组织域名，如org.com
+    string orgDomain = 2;
+    // 组织名称，如org0
+    string orgName = 3;
+    // 组织用户名称，如Admin
+    string orgUser = 4;
+    string peerName = 5;
+    string channelID = 6;
+    // 链码名称
+    string ccName = 7;
+    // 链码合约路径
+    string ccPath = 8;
+    // 链码名称
+    string version = 9;
+    repeated string orgPolicies = 10;
+    repeated bytes args = 11;
+}
+
+message RespChainCodeUpgrade {
+    // 请求返回结果：success=0；fail=1
+    Code code = 1;
+    // 当且仅当返回码为1时，此处包含错误信息
+    string errMsg = 2;
+    string txId = 3;
+}
+
+message ReqChainCodeInvoke {
+    // 联盟根域名，如：example.com
+    string leagueDomain = 1;
+    // 组织域名，如org.com
+    string orgDomain = 2;
+    // 组织名称，如org0
+    string orgName = 3;
+    // 组织用户名称，如Admin
+    string orgUser = 4;
+    string peerName = 5;
+    string channelID = 6;
+    // 链码名称
+    string ccName = 7;
+    // 链码合约路径
+    string fcn = 8;
+    repeated bytes args = 11;
+}
+
+message RespChainCodeInvoke {
+    // 请求返回结果：success=0；fail=1
+    Code code = 1;
+    // 当且仅当返回码为1时，此处包含错误信息
+    string errMsg = 2;
+    CCData data = 3;
+}
+
+message ReqChainCodeQuery {
+    // 联盟根域名，如：example.com
+    string leagueDomain = 1;
+    // 组织域名，如org.com
+    string orgDomain = 2;
+    // 组织名称，如org0
+    string orgName = 3;
+    // 组织用户名称，如Admin
+    string orgUser = 4;
+    string peerName = 5;
+    string channelID = 6;
+    // 链码名称
+    string ccID = 7;
+    // 链码执行方法名
+    string fcn = 8;
+    repeated bytes args = 11;
+}
+
+message RespChainCodeQuery {
+    // 请求返回结果：success=0；fail=1
+    Code code = 1;
+    // 当且仅当返回码为1时，此处包含错误信息
+    string errMsg = 2;
+    CCData data = 3;
+}
+
+message CCData {
+    string payload = 1;
+    string txId = 2;
+}

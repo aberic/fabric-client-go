@@ -170,12 +170,25 @@ func applicationCapabilities(league *genesis.League) map[string]bool {
 		return map[string]bool{
 			"V1_4_2": true,
 		}
-	case genesis.Version_V1_4_4:
+	case genesis.Version_V1_1:
 		return map[string]bool{
-			//"V1_1": false, // 启用了新的非向后兼容特性和fabric V1.1的特征
-			//"V1_2": false, // 启用了新的非向后兼容特性和fabric V1.2的特征
-			//"V1_3": false, // 启用了新的非向后兼容特性和fabric V1.3的特征
+			"V1_1": true, // 启用了新的非向后兼容特性和fabric V1.1的特征
+		}
+	case genesis.Version_V1_2:
+		return map[string]bool{
+			"V1_2": true, // 启用了新的非向后兼容特性和fabric V1.2的特征
+		}
+	case genesis.Version_V1_3:
+		return map[string]bool{
+			"V1_3": true, // 启用了新的非向后兼容特性和fabric V1.3的特征
+		}
+	case genesis.Version_V1_4:
+		return map[string]bool{
 			"V1_4_2": true, // 启用了新的非向后兼容特性和fabric V1.4.2的特征
+		}
+	case genesis.Version_V2_0:
+		return map[string]bool{
+			"V2_0": true, // Application的V2.0支持新的非向后兼容特性和fabric V2.0的补丁。在启用V2.0定序器功能之前，请确保通道上的所有定序器都处于v2.0.0或更高版本
 		}
 	}
 }
@@ -241,12 +254,25 @@ func ordererCapabilities(league *genesis.League) map[string]bool {
 		return map[string]bool{
 			"V1_4_2": true,
 		}
-	case genesis.Version_V1_4_4:
+	case genesis.Version_V1_1:
 		return map[string]bool{
-			//"V1_1": false, // 支持新的非向后兼容特性和fabric V1.1的特征
-			// V1.4.2 for Orderer是一个行为的集合标志，它被确定为在V1.4.2级别上运行的所有Orderer所期望的，但是它与以前版本中的Orderer不兼容。
-			// 在启用V1.4.2 orderer功能之前，请确保通道上的所有订货方都处于V1.4.2或更高版本。
-			"V1_4_2": true,
+			"V1_1": true, // 启用了新的非向后兼容特性和fabric V1.1的特征
+		}
+	case genesis.Version_V1_2:
+		return map[string]bool{
+			"V1_2": true, // 启用了新的非向后兼容特性和fabric V1.2的特征
+		}
+	case genesis.Version_V1_3:
+		return map[string]bool{
+			"V1_3": true, // 启用了新的非向后兼容特性和fabric V1.3的特征
+		}
+	case genesis.Version_V1_4:
+		return map[string]bool{
+			"V1_4_2": true, // 启用了新的非向后兼容特性和fabric V1.4.2的特征
+		}
+	case genesis.Version_V2_0:
+		return map[string]bool{
+			"V2_0": true, // Application的V2.0支持新的非向后兼容特性和fabric V2.0的补丁。在启用V2.0定序器功能之前，请确保通道上的所有定序器都处于v2.0.0或更高版本
 		}
 	}
 }

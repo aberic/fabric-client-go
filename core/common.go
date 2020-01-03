@@ -20,6 +20,7 @@ import (
 	"github.com/aberic/gnomon"
 	"github.com/golang/protobuf/proto"
 	"github.com/hyperledger/fabric-protos-go/common"
+	"github.com/hyperledger/fabric-sdk-go/pkg/client/channel"
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/resmgmt"
 	"github.com/hyperledger/fabric-sdk-go/pkg/common/providers/context"
 	"github.com/hyperledger/fabric-sdk-go/pkg/core/config"
@@ -67,6 +68,22 @@ func resmgmtClient(orgName, orgUser string, configBytes []byte,
 		return nil, nil, nil, err
 	}
 	return clientContext, orgResMgmt, sdk, nil
+}
+
+func channelClient(orgName, orgUser, channelID string, configBytes []byte, sdkOpts ...fabsdk.Option) (*channel.Client, error) {
+	sdk, err := obtainSDK(configBytes, sdkOpts...)
+	if err != nil {
+		return nil, err
+	}
+	//prepare channel client context using client context
+	ctxChannelProvider := sdk.ChannelContext(channelID, fabsdk.WithUser(orgUser), fabsdk.WithOrg(orgName))
+	// Channel client is used to query and execute transactions (Org1 is default org)
+	client, err := channel.New(ctxChannelProvider)
+	if err != nil {
+		gnomon.Log().Error("channelClient", gnomon.Log().Err(err))
+		return nil, err
+	}
+	return client, nil
 }
 
 func sign(ctx context.Client, message []byte) (*common.ConfigSignature, *common.SignatureHeader, error) {
