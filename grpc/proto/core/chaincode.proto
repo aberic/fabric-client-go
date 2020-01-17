@@ -54,22 +54,25 @@ message InstallData {
 message ReqChainCodeInstantiate {
     // 联盟根域名，如：example.com
     string leagueDomain = 1;
+    // 排序服务名称，如order0，可选
+    string ordererName = 2;
     // 组织域名，如org.com
-    string orgDomain = 2;
+    string orgDomain = 3;
     // 组织名称，如org0
-    string orgName = 3;
+    string orgName = 4;
     // 组织用户名称，如Admin
-    string orgUser = 4;
-    string peerName = 5;
-    string channelID = 6;
+    string orgUser = 5;
+    // 节点名称，如peer0
+    string peerName = 6;
+    string channelID = 7;
     // 链码名称
-    string ccName = 7;
+    string ccName = 8;
     // 链码合约路径
-    string ccPath = 8;
+    string ccPath = 9;
     // 链码名称
-    string version = 9;
-    repeated string orgPolicies = 10;
-    repeated bytes args = 11;
+    string version = 10;
+    repeated string orgPolicies = 11;
+    repeated bytes args = 12;
 }
 
 message RespChainCodeInstantiate {

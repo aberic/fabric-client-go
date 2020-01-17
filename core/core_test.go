@@ -37,6 +37,7 @@ var (
 	leagueDomain = "league.com"
 	channelID    = "mychannel01"
 	ccID         = "medical"
+	ccVersion    = "1.0"
 	orgNum       = "1"
 )
 
@@ -199,7 +200,7 @@ func TestChainCodeInstall(t *testing.T) {
 		CcName:       ccID,
 		GoPath:       "/Users/aberic/Documents/path/go",
 		CcPath:       "github.com/aberic/fabric-client-go/example/chaincode/medical",
-		Version:      "1.0",
+		Version:      ccVersion,
 	})
 	t.Log(resp, err)
 }
@@ -208,6 +209,7 @@ func TestChainCodeInstantiate(t *testing.T) {
 	_ = testPaddingConfig(t)
 	resp, err := ChainCodeInstantiate(&core.ReqChainCodeInstantiate{
 		LeagueDomain: leagueDomain,
+		OrdererName:  "order0",
 		OrgDomain:    strings.Join([]string{"example", orgNum, ".com"}, ""),
 		OrgName:      strings.Join([]string{"org", orgNum}, ""),
 		OrgUser:      "Admin",
@@ -215,7 +217,7 @@ func TestChainCodeInstantiate(t *testing.T) {
 		ChannelID:    channelID,
 		CcName:       ccID,
 		CcPath:       "github.com/aberic/fabric-client-go/example/chaincode/medical",
-		Version:      "1.0",
+		Version:      ccVersion,
 		//OrgPolicies:  []string{"Org1MSP", "Org2MSP", "Org3MSP"},
 		Args: [][]byte{[]byte("init"), []byte("A"), []byte("10000"), []byte("B"), []byte("10000")},
 	})
@@ -254,7 +256,7 @@ func testPaddingConfig(t *testing.T) *config2.Config {
 		orderName   = "orderer1"
 		orgDomain   = strings.Join([]string{"example", orgNum, ".com"}, "")
 		orgName     = strings.Join([]string{"org", orgNum}, "")
-		peerNames   = []string{"peer0", "peer1", "peer2"}
+		peerNames   = []string{"peer0"}
 		err         error
 	)
 	if conf, err = config2.Mock(&config.ReqConfigSet{
@@ -357,7 +359,7 @@ func testOrderNodes(ordererName, ordererDomain, ordererPath string, t *testing.T
 		}
 		nodes = append(nodes, &config.Node{
 			Name: childName,
-			Url:  strings.Join([]string{"grpcs://132.232.134.45", strconv.Itoa(7050 + offset)}, ":"),
+			Url:  strings.Join([]string{"grpcs://10.0.61.22", strconv.Itoa(7050 + offset)}, ":"),
 			GrpcOptions: &config.GRPCOptions{
 				SslTargetNameOverride: strings.Join([]string{childName, ordererName, ordererDomain}, "."),
 				KeepAliveTime:         "0s",
@@ -480,8 +482,8 @@ func testOrgPeers(orgNum, orgName, orgDomain, orgPath string, t *testing.T) []*c
 		}
 		peers = append(peers, &config.Peer{
 			Name:     peerName,
-			Url:      strings.Join([]string{"grpcs://132.232.134.45", strconv.Itoa(urlPort)}, ":"),
-			EventUrl: strings.Join([]string{"grpcs://132.232.134.45", strconv.Itoa(eventUrlPort)}, ":"),
+			Url:      strings.Join([]string{"grpcs://10.0.61.22", strconv.Itoa(urlPort)}, ":"),
+			EventUrl: strings.Join([]string{"grpcs://10.0.61.22", strconv.Itoa(eventUrlPort)}, ":"),
 			GrpcOptions: &config.GRPCOptions{
 				SslTargetNameOverride: strings.Join([]string{peerName, orgName, orgDomain}, "."),
 				KeepAliveTime:         "0s",

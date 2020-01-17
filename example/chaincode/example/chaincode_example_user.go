@@ -23,15 +23,15 @@ package main
 //hard-coding.
 
 import (
-	"fmt"
-	"strconv"
 	"bytes"
+	"crypto/x509"
 	"encoding/json"
 	"encoding/pem"
-	"crypto/x509"
+	"fmt"
+	"strconv"
 
-	"github.com/hyperledger/fabric/core/chaincode/shim"
-	pb "github.com/hyperledger/fabric/protos/peer"
+	"github.com/hyperledger/fabric-chaincode-go/shim"
+	pb "github.com/hyperledger/fabric-protos-go/peer"
 )
 
 // SimpleChaincode example simple Chaincode implementation
@@ -215,47 +215,47 @@ func (t *SimpleChaincode) getUser(stub shim.ChaincodeStubInterface, args []strin
 	return shim.Success([]byte(name))
 }
 
-func (t *SimpleChaincode) historyQuery(stub shim.ChaincodeStubInterface, args []string) pb.Response{
+func (t *SimpleChaincode) historyQuery(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	if len(args) != 1 {
 		return shim.Error("Incorrect number of arguments. Expecting 1")
 	}
-   
-   it,err:= stub.GetHistoryForKey(args[0])
-   if err!=nil{
-      return shim.Error(err.Error())
-   }
-   var result,_= getHistoryListResult(it)
-   return shim.Success(result)
+
+	it, err := stub.GetHistoryForKey(args[0])
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+	var result, _ = getHistoryListResult(it)
+	return shim.Success(result)
 }
 
-func getHistoryListResult(resultsIterator shim.HistoryQueryIteratorInterface) ([]byte,error){
+func getHistoryListResult(resultsIterator shim.HistoryQueryIteratorInterface) ([]byte, error) {
 
-   defer resultsIterator.Close()
-   // buffer is a JSON array containing QueryRecords
-   var buffer bytes.Buffer
-   buffer.WriteString("[")
+	defer resultsIterator.Close()
+	// buffer is a JSON array containing QueryRecords
+	var buffer bytes.Buffer
+	buffer.WriteString("[")
 
-   bArrayMemberAlreadyWritten := false
-   for resultsIterator.HasNext() {
-      queryResponse, err := resultsIterator.Next()
-      if err != nil {
-         return nil, err
-      }
-      // Add a comma before array members, suppress it for the first array member
-      if bArrayMemberAlreadyWritten == true {
-         buffer.WriteString(",")
-      }
-      item,_:= json.Marshal( queryResponse)
-      buffer.Write(item)
-      bArrayMemberAlreadyWritten = true
-   }
-   buffer.WriteString("]")
-   return buffer.Bytes(), nil
+	bArrayMemberAlreadyWritten := false
+	for resultsIterator.HasNext() {
+		queryResponse, err := resultsIterator.Next()
+		if err != nil {
+			return nil, err
+		}
+		// Add a comma before array members, suppress it for the first array member
+		if bArrayMemberAlreadyWritten == true {
+			buffer.WriteString(",")
+		}
+		item, _ := json.Marshal(queryResponse)
+		buffer.Write(item)
+		bArrayMemberAlreadyWritten = true
+	}
+	buffer.WriteString("]")
+	return buffer.Bytes(), nil
 }
 
 // 获取操作成员
 func getCreator(stub shim.ChaincodeStubInterface) (string, error) {
-	creatorByte,_ := stub.GetCreator()
+	creatorByte, _ := stub.GetCreator()
 	certStart := bytes.IndexAny(creatorByte, "-----BEGIN")
 	if certStart == -1 {
 		fmt.Errorf("no certificate found")

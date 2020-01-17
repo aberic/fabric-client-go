@@ -30,10 +30,11 @@ import (
 var (
 	leagueDomain = "league.com"
 	channelID    = "mychannel01"
+	version      = gen.Version_V1_4
 )
 
 func TestGenesisBlock(t *testing.T) {
-	genesisBlock, _ := testGenesisSet(leagueDomain, "", t)
+	genesisBlock, _ := testGenesisSet(leagueDomain, "", version, t)
 	resp, err := createGenesisBlock(genesisBlock)
 	if nil != err {
 		t.Fatal(err)
@@ -49,7 +50,7 @@ func TestGenesisBlock(t *testing.T) {
 }
 
 func TestGenesisChannel(t *testing.T) {
-	_, channelTx := testGenesisSet(leagueDomain, channelID, t)
+	_, channelTx := testGenesisSet(leagueDomain, channelID, version, t)
 	resp, err := createChannelTx(channelTx)
 	if nil != err {
 		t.Fatal(err)
@@ -92,7 +93,7 @@ func TestInspectChannelBlock(t *testing.T) {
 	t.Log(dataStr)
 }
 
-func testGenesisSet(leagueDomain, channelID string, t *testing.T) (genesisBlock *gen.ReqGenesisBlock, channelTx *gen.ReqChannelTx) {
+func testGenesisSet(leagueDomain, channelID string, version gen.Version, t *testing.T) (genesisBlock *gen.ReqGenesisBlock, channelTx *gen.ReqChannelTx) {
 	var (
 		addresses   []string
 		consenters  []*gen.Consenter
@@ -224,7 +225,7 @@ func testGenesisSet(leagueDomain, channelID string, t *testing.T) (genesisBlock 
 		PeerOrgs: peerOrgs,
 	})
 
-	league := &gen.League{Domain: leagueDomain, Version: gen.Version_V2_0}
+	league := &gen.League{Domain: leagueDomain, Version: version}
 	return &gen.ReqGenesisBlock{
 			League:           league,
 			Orderer:          orderer,
@@ -371,7 +372,7 @@ func testGenesisSet4Add(leagueDomain, channelID string, t *testing.T) (genesisBl
 		PeerOrgs: peerOrgs,
 	})
 
-	league := &gen.League{Domain: leagueDomain, Version: gen.Version_V2_0}
+	league := &gen.League{Domain: leagueDomain, Version: version}
 	return &gen.ReqGenesisBlock{
 			League:           league,
 			Orderer:          orderer,

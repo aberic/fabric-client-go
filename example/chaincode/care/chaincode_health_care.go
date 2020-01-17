@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/hyperledger/fabric/core/chaincode/shim"
-	pb "github.com/hyperledger/fabric/protos/peer"
+	"github.com/hyperledger/fabric-chaincode-go/shim"
+	pb "github.com/hyperledger/fabric-protos-go/peer"
 )
 
 type HealthCare struct {
@@ -17,10 +17,14 @@ type HealthCare struct {
 
 func (t *HealthCare) Init(stub shim.ChaincodeStubInterface) pb.Response {
 	fmt.Println("ex02 Init")
-	_, args := stub.GetFunctionAndParameters()
 	var A, B string    // Entities
 	var Aval, Bval int // Asset holdings
 	var err error
+	//err = cid.AssertAttributeValue(stub, "abac.init", "true")
+	//if err != nil {
+	//	return shim.Error(err.Error())
+	//}
+	_, args := stub.GetFunctionAndParameters()
 
 	if len(args) != 4 {
 		return shim.Error("Incorrect number of arguments. Expecting 4")

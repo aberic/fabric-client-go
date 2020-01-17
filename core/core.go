@@ -210,7 +210,7 @@ func ChainCodeInstantiate(req *core.ReqChainCodeInstantiate) (resp *core.RespCha
 	if confData, err = yaml.Marshal(&conf); nil != err {
 		return &core.RespChainCodeInstantiate{Code: core.Code_Fail, ErrMsg: err.Error()}, err
 	}
-	if msg, err = ccInstantiate(req.OrgName, req.OrgUser, req.PeerName, req.ChannelID, req.CcName, req.CcPath, req.Version, req.OrgPolicies, req.Args, confData); nil == err {
+	if msg, err = ccInstantiate(req.OrdererName, req.OrgName, req.OrgUser, req.PeerName, req.ChannelID, req.CcName, req.CcPath, req.Version, req.OrgPolicies, req.Args, confData); nil == err {
 		return &core.RespChainCodeInstantiate{Code: core.Code_Success, TxId: msg}, nil
 	} else {
 		errs = fmt.Errorf("error: %w", err)

@@ -63,10 +63,11 @@ func ccInstall(orgName, orgUser, peerName, ccName, goPath, ccPath, version strin
 }
 
 // args [][]byte{[]byte(coll1), []byte("key"), []byte("value")}
-func ccInstantiate(orgName, orgUser, peerName, channelID, ccName, ccPath, version string, orgPolicies []string, args [][]byte,
+func ccInstantiate(ordererName, orgName, orgUser, peerName, channelID, ccName, ccPath, version string, orgPolicies []string, args [][]byte,
 	configBytes []byte, sdkOpts ...fabsdk.Option) (string, error) {
 	var (
 		resMgmtClient *resmgmt.Client
+		resp          resmgmt.InstantiateCCResponse
 		err           error
 	)
 	if _, resMgmtClient, _, err = resmgmtClient(orgName, orgUser, configBytes, sdkOpts...); nil != err {
@@ -74,14 +75,16 @@ func ccInstantiate(orgName, orgUser, peerName, channelID, ccName, ccPath, versio
 		return "", err
 	}
 	ccPolicy := cauthdsl.SignedByAnyMember(orgPolicies)
+	options := []resmgmt.RequestOption{resmgmt.WithRetry(retry.DefaultResMgmtOpts), resmgmt.WithTargetEndpoints(peerName)}
+	if !gnomon.String().IsEmpty(ordererName) {
+		options = append(options, resmgmt.WithOrdererEndpoint(ordererName))
+	}
 	// Org resource manager will instantiate 'example_cc' on channel
-	resp, err := resMgmtClient.InstantiateCC(
+	if resp, err = resMgmtClient.InstantiateCC(
 		channelID,
 		resmgmt.InstantiateCCRequest{Name: ccName, Path: ccPath, Version: version, Args: args, Policy: ccPolicy},
-		resmgmt.WithRetry(retry.DefaultResMgmtOpts),
-		resmgmt.WithTargetEndpoints(peerName),
-	)
-	if err != nil {
+		options...,
+	); err != nil {
 		gnomon.Log().Error("instantiate", gnomon.Log().Err(err))
 		return "", err
 	}
