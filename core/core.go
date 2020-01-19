@@ -231,7 +231,7 @@ func ChainCodeUpgrade(req *core.ReqChainCodeUpgrade) (resp *core.RespChainCodeUp
 	if confData, err = yaml.Marshal(&conf); nil != err {
 		return &core.RespChainCodeUpgrade{Code: core.Code_Fail, ErrMsg: err.Error()}, err
 	}
-	if msg, err = ccUpgrade(req.OrgName, req.OrgUser, req.PeerName, req.ChannelID, req.CcName, req.CcPath, req.Version, req.OrgPolicies, req.Args, confData); nil == err {
+	if msg, err = ccUpgrade(req.OrdererName, req.OrgName, req.OrgUser, req.PeerName, req.ChannelID, req.CcName, req.CcPath, req.Version, req.OrgPolicies, req.Args, confData); nil == err {
 		return &core.RespChainCodeUpgrade{Code: core.Code_Success, TxId: msg}, nil
 	} else {
 		errs = fmt.Errorf("error: %w", err)

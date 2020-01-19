@@ -209,7 +209,7 @@ func TestChainCodeInstantiate(t *testing.T) {
 	_ = testPaddingConfig(t)
 	resp, err := ChainCodeInstantiate(&core.ReqChainCodeInstantiate{
 		LeagueDomain: leagueDomain,
-		OrdererName:  "order0",
+		OrdererName:  "order1",
 		OrgDomain:    strings.Join([]string{"example", orgNum, ".com"}, ""),
 		OrgName:      strings.Join([]string{"org", orgNum}, ""),
 		OrgUser:      "Admin",

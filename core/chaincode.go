@@ -92,10 +92,11 @@ func ccInstantiate(ordererName, orgName, orgUser, peerName, channelID, ccName, c
 }
 
 // args [][]byte{[]byte(coll1), []byte("key"), []byte("value")}
-func ccUpgrade(orgName, orgUser, peerName, channelID, ccName, ccPath, version string, orgPolicies []string, args [][]byte,
+func ccUpgrade(ordererName, orgName, orgUser, peerName, channelID, ccName, ccPath, version string, orgPolicies []string, args [][]byte,
 	configBytes []byte, sdkOpts ...fabsdk.Option) (string, error) {
 	var (
 		resMgmtClient *resmgmt.Client
+		resp          resmgmt.UpgradeCCResponse
 		err           error
 	)
 	if _, resMgmtClient, _, err = resmgmtClient(orgName, orgUser, configBytes, sdkOpts...); nil != err {
@@ -103,14 +104,16 @@ func ccUpgrade(orgName, orgUser, peerName, channelID, ccName, ccPath, version st
 		return "", err
 	}
 	ccPolicy := cauthdsl.SignedByAnyMember(orgPolicies)
+	options := []resmgmt.RequestOption{resmgmt.WithRetry(retry.DefaultResMgmtOpts), resmgmt.WithTargetEndpoints(peerName)}
+	if !gnomon.String().IsEmpty(ordererName) {
+		options = append(options, resmgmt.WithOrdererEndpoint(ordererName))
+	}
 	// Org resource manager will instantiate 'example_cc' on channel
-	resp, err := resMgmtClient.UpgradeCC(
+	if resp, err = resMgmtClient.UpgradeCC(
 		channelID,
 		resmgmt.UpgradeCCRequest{Name: ccName, Path: ccPath, Version: version, Args: args, Policy: ccPolicy},
-		resmgmt.WithRetry(retry.DefaultResMgmtOpts),
-		resmgmt.WithTargetEndpoints(peerName),
-	)
-	if err != nil {
+		options...,
+	); err != nil {
 		gnomon.Log().Error("upgrade", gnomon.Log().Err(err))
 		return "", err
 	}
