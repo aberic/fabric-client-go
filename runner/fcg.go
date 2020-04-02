@@ -23,6 +23,7 @@ import (
 	gGenesis "github.com/aberic/fabric-client-go/grpc/proto/genesis"
 	"github.com/aberic/fabric-client-go/utils"
 	"github.com/aberic/gnomon"
+	"github.com/aberic/raft4go"
 	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc"
 	"net"
@@ -31,8 +32,17 @@ import (
 )
 
 func main() {
-	go httpListener()
-	grpcListener()
+	if err := utils.InitLog(); nil != err {
+		panic(err)
+	}
+	if utils.RaftStatus {
+		raft4go.RaftStart()
+		go httpListener()
+		go gRPCListener()
+	} else {
+		go httpListener()
+		gRPCListener()
+	}
 }
 
 // setupRouter 设置路由器相关选项
@@ -49,7 +59,7 @@ func httpListener() {
 	}
 }
 
-func grpcListener() {
+func gRPCListener() {
 	var (
 		listener net.Listener
 		port     = strconv.Itoa(utils.GRPCPort)
@@ -67,9 +77,9 @@ func grpcListener() {
 	gConfig.RegisterConfigServer(rpcServer, &config.ConfServer{})
 	gGenesis.RegisterGenesisServer(rpcServer, &genesis.BlockServer{})
 
-	gnomon.Log().Info(strings.Join([]string{"main grpc listener start with port ", port}, ""))
+	gnomon.Log().Info(strings.Join([]string{"main gRPC listener start with port ", port}, ""))
 	//  启动grpc服务
 	if err = rpcServer.Serve(listener); nil != err {
-		gnomon.Log().Panic("main grpc listener", gnomon.Log().Err(err))
+		gnomon.Log().Panic("main gRPC listener", gnomon.Log().Err(err))
 	}
 }

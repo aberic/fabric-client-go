@@ -4,12 +4,13 @@ go 1.13
 
 require (
 	github.com/Shopify/sarama v1.25.0 // indirect
-	github.com/aberic/gnomon v0.0.0-20200117092837-297133dc89ea
+	github.com/aberic/gnomon v0.0.0-20200402125805-78d6274cebc6
+	github.com/aberic/raft4go v0.0.0-20200402132308-d61b03e95f8e
 	github.com/fsouza/go-dockerclient v1.6.0 // indirect
 	github.com/gin-gonic/gin v1.5.0
 	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/gogo/protobuf v1.2.1
-	github.com/golang/protobuf v1.3.2
+	github.com/golang/protobuf v1.3.5
 	github.com/grpc-ecosystem/go-grpc-middleware v1.1.0 // indirect
 	github.com/hashicorp/go-version v1.2.0 // indirect
 	github.com/hyperledger/fabric v1.4.4
@@ -26,9 +27,8 @@ require (
 	github.com/pkg/errors v0.8.1
 	github.com/sykesm/zap-logfmt v0.0.3 // indirect
 	go.uber.org/zap v1.13.0 // indirect
-	golang.org/x/net v0.0.0-20190620200207-3b0461eec859
-	golang.org/x/sys v0.0.0-20191204072324-ce4227a45e2e // indirect
-	google.golang.org/grpc v1.25.1
+	golang.org/x/net v0.0.0-20200301022130-244492dfa37a
+	google.golang.org/grpc v1.28.0
 	gopkg.in/go-playground/validator.v9 v9.30.2 // indirect
 	gopkg.in/yaml.v2 v2.2.7
 )
