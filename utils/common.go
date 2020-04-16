@@ -14,25 +14,4 @@
 
 package utils
 
-import (
-	"fmt"
-	"github.com/aberic/gnomon"
-	"github.com/gin-gonic/gin"
-	"net/http"
-)
-
-var (
-	Version = "1.0"
-)
-
-// CatchAllErr 捕获所有异常信息并放入json到context，便于controller直接调用
-func CatchAllErr(c *gin.Context) {
-	if r := recover(); r != nil {
-		//fmt.Printf("捕获到的错误：%s\n", r)
-		resp := &RespImpl{}
-		resp.Fail(fmt.Sprintf("An error occurred:%v \n", r))
-		gnomon.Log().Error("catch all err", gnomon.Log().Field("recover", r))
-		c.JSON(http.StatusInternalServerError, resp)
-		return
-	}
-}
+const Version string = "1.0"

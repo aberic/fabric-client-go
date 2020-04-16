@@ -17,7 +17,7 @@ package core
 import (
 	"errors"
 	"fmt"
-	"github.com/aberic/gnomon"
+	"github.com/aberic/fabric-client-go/utils/log"
 	"github.com/golang/protobuf/proto"
 	"github.com/hyperledger/fabric-protos-go/common"
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/channel"
@@ -80,7 +80,7 @@ func channelClient(orgName, orgUser, channelID string, configBytes []byte, sdkOp
 	// Channel client is used to query and execute transactions (Org1 is default org)
 	client, err := channel.New(ctxChannelProvider)
 	if err != nil {
-		gnomon.Log().Error("channelClient", gnomon.Log().Err(err))
+		log.Error("channelClient", log.Err(err))
 		return nil, err
 	}
 	return client, nil
@@ -167,7 +167,7 @@ func add(originalBlock, updateBlock *common.Block, channelID, consortium, orgNam
 		return nil, err
 	}
 	configUpdate.ChannelId = channelID
-	gnomon.Log().Info("AddGroup", gnomon.Log().Field("configUpdate", configUpdate))
+	log.Info("AddGroup", log.Field("configUpdate", configUpdate))
 
 	if configUpdateBytes, err = proto.Marshal(configUpdate); nil != err {
 		return nil, err

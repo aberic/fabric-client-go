@@ -16,72 +16,39 @@ package config
 
 import (
 	"github.com/aberic/fabric-client-go/grpc/proto/config"
-	"github.com/aberic/fabric-client-go/utils"
-	"github.com/gin-gonic/gin"
+	"github.com/aberic/gnomon/grope"
 	"net/http"
 )
 
-func Router(r *gin.Engine) {
+func Router(hs *grope.GHttpServe) {
 	// 仓库相关路由设置
-	vRepo := r.Group("/config")
-	vRepo.POST("/set", routerConfigSet)
-	vRepo.POST("/obtain", routerConfigObtain)
-	vRepo.POST("/list", routerConfigList)
-	vRepo.POST("/delete", routerConfigDelete)
+	route := hs.Group("/config")
+	route.Post("/set", &config.ReqConfigSet{}, routerConfigSet)
+	route.Post("/obtain", &config.ReqConfigObtain{}, routerConfigObtain)
+	route.Post("/list", &config.ReqConfigList{}, routerConfigList)
+	route.Post("/delete", &config.ReqConfigDelete{}, routerConfigDelete)
 }
 
-// routerConfigSet 设置新的组织配置信息，用于访问fabric网络
-func routerConfigSet(c *gin.Context) {
-	defer utils.CatchAllErr(c)
-	serviceModel := new(config.ReqConfigSet)
-	if err := c.ShouldBindJSON(serviceModel); err != nil {
-		resp := &utils.RespImpl{}
-		resp.Fail(err.Error())
-		c.JSON(http.StatusOK, resp)
-		return
-	}
+func routerConfigSet(_ http.ResponseWriter, _ *http.Request, reqModel interface{}, _ map[string]string) (respModel interface{}, custom bool) {
+	serviceModel := reqModel.(*config.ReqConfigSet)
 	resp, _ := setConfig(serviceModel)
-	c.JSON(http.StatusOK, resp)
+	return resp, false
 }
 
-// routerConfigObtain 获取组织配置信息详情
-func routerConfigObtain(c *gin.Context) {
-	defer utils.CatchAllErr(c)
-	serviceModel := new(config.ReqConfigObtain)
-	if err := c.ShouldBindJSON(serviceModel); err != nil {
-		resp := &utils.RespImpl{}
-		resp.Fail(err.Error())
-		c.JSON(http.StatusOK, resp)
-		return
-	}
+func routerConfigObtain(_ http.ResponseWriter, _ *http.Request, reqModel interface{}, _ map[string]string) (respModel interface{}, custom bool) {
+	serviceModel := reqModel.(*config.ReqConfigObtain)
 	resp, _ := obtainConfig(serviceModel)
-	c.JSON(http.StatusOK, resp)
+	return resp, false
 }
 
-// routerConfigList 列出已有组织信息集合
-func routerConfigList(c *gin.Context) {
-	defer utils.CatchAllErr(c)
-	serviceModel := new(config.ReqConfigList)
-	if err := c.ShouldBindJSON(serviceModel); err != nil {
-		resp := &utils.RespImpl{}
-		resp.Fail(err.Error())
-		c.JSON(http.StatusOK, resp)
-		return
-	}
+func routerConfigList(_ http.ResponseWriter, _ *http.Request, reqModel interface{}, _ map[string]string) (respModel interface{}, custom bool) {
+	serviceModel := reqModel.(*config.ReqConfigList)
 	resp, _ := listConfig(serviceModel)
-	c.JSON(http.StatusOK, resp)
+	return resp, false
 }
 
-// routerConfigDelete 删除指定组织配置信息
-func routerConfigDelete(c *gin.Context) {
-	defer utils.CatchAllErr(c)
-	serviceModel := new(config.ReqConfigDelete)
-	if err := c.ShouldBindJSON(serviceModel); err != nil {
-		resp := &utils.RespImpl{}
-		resp.Fail(err.Error())
-		c.JSON(http.StatusOK, resp)
-		return
-	}
+func routerConfigDelete(_ http.ResponseWriter, _ *http.Request, reqModel interface{}, _ map[string]string) (respModel interface{}, custom bool) {
+	serviceModel := reqModel.(*config.ReqConfigDelete)
 	resp, _ := deleteConfig(serviceModel)
-	c.JSON(http.StatusOK, resp)
+	return resp, false
 }

@@ -16,6 +16,7 @@
 package core
 
 import (
+	"github.com/aberic/fabric-client-go/utils/log"
 	"github.com/aberic/gnomon"
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/channel"
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/resmgmt"
@@ -36,11 +37,11 @@ func ccInstall(orgName, orgUser, peerName, ccName, goPath, ccPath, version strin
 		err           error
 	)
 	if ccPkg, err = gopackager.NewCCPackage(ccPath, goPath); err != nil {
-		gnomon.Log().Error("install", gnomon.Log().Err(err))
+		log.Error("install", log.Err(err))
 		return "", "", err
 	}
 	if _, resMgmtClient, _, err = resmgmtClient(orgName, orgUser, configBytes, sdkOpts...); nil != err {
-		gnomon.Log().Error("install", gnomon.Log().Err(err))
+		log.Error("install", log.Err(err))
 		return "", "", err
 	}
 	// Install example cc to org peers
@@ -51,7 +52,7 @@ func ccInstall(orgName, orgUser, peerName, ccName, goPath, ccPath, version strin
 		resmgmt.WithTargetEndpoints(peerName),
 	)
 	if err != nil {
-		gnomon.Log().Error("install", gnomon.Log().Err(err))
+		log.Error("install", log.Err(err))
 		return "", "", err
 	}
 	for _, resp := range respList {
@@ -71,7 +72,7 @@ func ccInstantiate(ordererName, orgName, orgUser, peerName, channelID, ccName, c
 		err           error
 	)
 	if _, resMgmtClient, _, err = resmgmtClient(orgName, orgUser, configBytes, sdkOpts...); nil != err {
-		gnomon.Log().Error("instantiate", gnomon.Log().Err(err))
+		log.Error("instantiate", log.Err(err))
 		return "", err
 	}
 	ccPolicy := cauthdsl.SignedByAnyMember(orgPolicies)
@@ -85,7 +86,7 @@ func ccInstantiate(ordererName, orgName, orgUser, peerName, channelID, ccName, c
 		resmgmt.InstantiateCCRequest{Name: ccName, Path: ccPath, Version: version, Args: args, Policy: ccPolicy},
 		options...,
 	); err != nil {
-		gnomon.Log().Error("instantiate", gnomon.Log().Err(err))
+		log.Error("instantiate", log.Err(err))
 		return "", err
 	}
 	return string(resp.TransactionID), nil
@@ -100,7 +101,7 @@ func ccUpgrade(ordererName, orgName, orgUser, peerName, channelID, ccName, ccPat
 		err           error
 	)
 	if _, resMgmtClient, _, err = resmgmtClient(orgName, orgUser, configBytes, sdkOpts...); nil != err {
-		gnomon.Log().Error("upgrade", gnomon.Log().Err(err))
+		log.Error("upgrade", log.Err(err))
 		return "", err
 	}
 	ccPolicy := cauthdsl.SignedByAnyMember(orgPolicies)
@@ -114,7 +115,7 @@ func ccUpgrade(ordererName, orgName, orgUser, peerName, channelID, ccName, ccPat
 		resmgmt.UpgradeCCRequest{Name: ccName, Path: ccPath, Version: version, Args: args, Policy: ccPolicy},
 		options...,
 	); err != nil {
-		gnomon.Log().Error("upgrade", gnomon.Log().Err(err))
+		log.Error("upgrade", log.Err(err))
 		return "", err
 	}
 	return string(resp.TransactionID), nil
@@ -128,7 +129,7 @@ func ccInvoke(orgName, orgUser, peerName, channelID, ccName, fcn string, args []
 		err      error
 	)
 	if chClient, err = channelClient(orgName, orgUser, channelID, configBytes, sdkOpts...); nil != err {
-		gnomon.Log().Error("invoke", gnomon.Log().Err(err))
+		log.Error("invoke", log.Err(err))
 		return "", "", err
 	}
 	resp, err := chClient.Execute(channel.Request{
@@ -137,7 +138,7 @@ func ccInvoke(orgName, orgUser, peerName, channelID, ccName, fcn string, args []
 		Args:        args,
 	}, channel.WithRetry(retry.DefaultChannelOpts), channel.WithTargetEndpoints(peerName))
 	if err != nil {
-		gnomon.Log().Error("invoke", gnomon.Log().Err(err))
+		log.Error("invoke", log.Err(err))
 		return "", "", err
 	}
 	return string(resp.Payload), string(resp.TransactionID), nil
@@ -151,7 +152,7 @@ func ccQuery(orgName, orgUser, peerName, channelID, chaincodeID, fcn string, arg
 		err      error
 	)
 	if chClient, err = channelClient(orgName, orgUser, channelID, configBytes, sdkOpts...); nil != err {
-		gnomon.Log().Error("query", gnomon.Log().Err(err))
+		log.Error("query", log.Err(err))
 		return "", "", err
 	}
 	resp, err := chClient.Query(channel.Request{
@@ -160,7 +161,7 @@ func ccQuery(orgName, orgUser, peerName, channelID, chaincodeID, fcn string, arg
 		Args:        args,
 	}, channel.WithRetry(retry.DefaultChannelOpts), channel.WithTargetEndpoints(peerName))
 	if err != nil {
-		gnomon.Log().Error("query", gnomon.Log().Err(err))
+		log.Error("query", log.Err(err))
 		return "", "", err
 	}
 	return string(resp.Payload), string(resp.TransactionID), nil

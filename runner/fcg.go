@@ -22,19 +22,15 @@ import (
 	gConfig "github.com/aberic/fabric-client-go/grpc/proto/config"
 	gGenesis "github.com/aberic/fabric-client-go/grpc/proto/genesis"
 	"github.com/aberic/fabric-client-go/utils"
+	"github.com/aberic/fabric-client-go/utils/log"
 	"github.com/aberic/gnomon"
 	"github.com/aberic/raft4go"
-	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc"
 	"net"
-	"strconv"
 	"strings"
 )
 
 func main() {
-	if err := utils.InitLog(); nil != err {
-		panic(err)
-	}
 	if utils.RaftStatus {
 		raft4go.RaftStart()
 		go httpListener()
@@ -47,26 +43,20 @@ func main() {
 
 // setupRouter 设置路由器相关选项
 func httpListener() {
-	gin.SetMode(gin.ReleaseMode)
-	router := gin.Default()
-	ca.Router(router)
-	config.Router(router)
-	genesis.Router(router)
-	port := strconv.Itoa(utils.HttpPort)
-	gnomon.Log().Info(strings.Join([]string{"main http listener start with port ", port}, ""))
-	if err := router.Run(strings.Join([]string{":", port}, "")); nil != err {
-		gnomon.Log().Panic("main http listener", gnomon.Log().Err(err))
-	}
+	httpServe := gnomon.Grope().NewHttpServe()
+	ca.Router(httpServe)
+	config.Router(httpServe)
+	genesis.Router(httpServe)
+	gnomon.Grope().ListenAndServe(strings.Join([]string{":", utils.HttpPort}, ""), httpServe)
 }
 
 func gRPCListener() {
 	var (
 		listener net.Listener
-		port     = strconv.Itoa(utils.GRPCPort)
 		err      error
 	)
 	//  创建server端监听端口
-	if listener, err = net.Listen("tcp", strings.Join([]string{":", port}, "")); nil != err {
+	if listener, err = net.Listen("tcp", strings.Join([]string{":", utils.GRPCPort}, "")); nil != err {
 		panic(err)
 	}
 	//  创建grpc的server
@@ -77,9 +67,9 @@ func gRPCListener() {
 	gConfig.RegisterConfigServer(rpcServer, &config.ConfServer{})
 	gGenesis.RegisterGenesisServer(rpcServer, &genesis.BlockServer{})
 
-	gnomon.Log().Info(strings.Join([]string{"main gRPC listener start with port ", port}, ""))
+	log.Info(strings.Join([]string{"main gRPC listener start with port ", utils.GRPCPort}, ""))
 	//  启动grpc服务
 	if err = rpcServer.Serve(listener); nil != err {
-		gnomon.Log().Panic("main gRPC listener", gnomon.Log().Err(err))
+		log.Panic("main gRPC listener", log.Err(err))
 	}
 }

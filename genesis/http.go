@@ -16,42 +16,25 @@ package genesis
 
 import (
 	"github.com/aberic/fabric-client-go/grpc/proto/genesis"
-	"github.com/aberic/fabric-client-go/utils"
-	"github.com/gin-gonic/gin"
+	"github.com/aberic/gnomon/grope"
 	"net/http"
 )
 
-func Router(r *gin.Engine) {
+func Router(hs *grope.GHttpServe) {
 	// 仓库相关路由设置
-	vRepo := r.Group("/genesis")
-	vRepo.POST("/block", routerCreateGenesisBlock)
-	vRepo.POST("/channel", routerCreateChannelTx)
+	route := hs.Group("/genesis")
+	route.Post("/block", &genesis.ReqGenesisBlock{}, routerCreateGenesisBlock)
+	route.Post("/channel", &genesis.ReqChannelTx{}, routerCreateChannelTx)
 }
 
-// routerCreateGenesisBlock 生成创世区块
-func routerCreateGenesisBlock(c *gin.Context) {
-	defer utils.CatchAllErr(c)
-	serviceModel := new(genesis.ReqGenesisBlock)
-	if err := c.ShouldBindJSON(serviceModel); err != nil {
-		resp := &utils.RespImpl{}
-		resp.Fail(err.Error())
-		c.JSON(http.StatusOK, resp)
-		return
-	}
+func routerCreateGenesisBlock(_ http.ResponseWriter, _ *http.Request, reqModel interface{}, _ map[string]string) (respModel interface{}, custom bool) {
+	serviceModel := reqModel.(*genesis.ReqGenesisBlock)
 	resp, _ := createGenesisBlock(serviceModel)
-	c.JSON(http.StatusOK, resp)
+	return resp, false
 }
 
-// routerCreateChannelTx 生成通道/账本初始区块
-func routerCreateChannelTx(c *gin.Context) {
-	defer utils.CatchAllErr(c)
-	serviceModel := new(genesis.ReqChannelTx)
-	if err := c.ShouldBindJSON(serviceModel); err != nil {
-		resp := &utils.RespImpl{}
-		resp.Fail(err.Error())
-		c.JSON(http.StatusOK, resp)
-		return
-	}
+func routerCreateChannelTx(_ http.ResponseWriter, _ *http.Request, reqModel interface{}, _ map[string]string) (respModel interface{}, custom bool) {
+	serviceModel := reqModel.(*genesis.ReqChannelTx)
 	resp, _ := createChannelTx(serviceModel)
-	c.JSON(http.StatusOK, resp)
+	return resp, false
 }

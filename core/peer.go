@@ -15,7 +15,7 @@
 package core
 
 import (
-	"github.com/aberic/gnomon"
+	"github.com/aberic/fabric-client-go/utils/log"
 	"github.com/hyperledger/fabric-protos-go/common"
 	"github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/resmgmt"
@@ -29,12 +29,12 @@ func peerQueryInstalled(orgName, orgUser, peerName string, configBytes []byte, s
 		err           error
 	)
 	if _, resMgmtClient, _, err = resmgmtClient(orgName, orgUser, configBytes, sdkOpts...); nil != err {
-		gnomon.Log().Error("queryInstalled", gnomon.Log().Err(err))
+		log.Error("queryInstalled", log.Err(err))
 		return nil, err
 	}
 	qiResponse, err := resMgmtClient.QueryInstalledChaincodes(resmgmt.WithTargetEndpoints(peerName))
 	if err != nil {
-		gnomon.Log().Error("queryInstalled", gnomon.Log().Err(err))
+		log.Error("queryInstalled", log.Err(err))
 		return nil, err
 	} else {
 		return qiResponse.Chaincodes, nil
@@ -48,12 +48,12 @@ func peerQueryInstantiated(orgName, orgUser, peerName, channelID string, configB
 		err           error
 	)
 	if _, resMgmtClient, _, err = resmgmtClient(orgName, orgUser, configBytes, sdkOpts...); nil != err {
-		gnomon.Log().Error("queryInstantiated", gnomon.Log().Err(err))
+		log.Error("queryInstantiated", log.Err(err))
 		return nil, err
 	}
 	qiResponse, err := resMgmtClient.QueryInstantiatedChaincodes(channelID, resmgmt.WithTargetEndpoints(peerName))
 	if err != nil {
-		gnomon.Log().Error("queryInstantiated", gnomon.Log().Err(err))
+		log.Error("queryInstantiated", log.Err(err))
 		return nil, err
 	} else {
 		return qiResponse.Chaincodes, nil
@@ -66,7 +66,7 @@ func peerQueryCollectionsConfig(orgName, orgUser, peerName, channelID, chaincode
 		err           error
 	)
 	if _, resMgmtClient, _, err = resmgmtClient(orgName, orgUser, configBytes, sdkOpts...); nil != err {
-		gnomon.Log().Error("queryCollectionsConfig", gnomon.Log().Err(err))
+		log.Error("queryCollectionsConfig", log.Err(err))
 		return nil, err
 	}
 	return resMgmtClient.QueryCollectionsConfig(channelID, chaincodeID, resmgmt.WithTargetEndpoints(peerName))

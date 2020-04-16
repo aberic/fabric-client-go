@@ -16,57 +16,32 @@ package ca
 
 import (
 	"github.com/aberic/fabric-client-go/grpc/proto/ca"
-	"github.com/aberic/fabric-client-go/utils"
-	"github.com/gin-gonic/gin"
+	"github.com/aberic/gnomon/grope"
 	"net/http"
 )
 
-func Router(r *gin.Engine) {
+func Router(hs *grope.GHttpServe) {
 	// 仓库相关路由设置
-	vRepo := r.Group("/ca")
-	vRepo.POST("/generate/crypto/root", routerGenerateRootCrypto)
-	vRepo.POST("/generate/crypto", routerGenerateCrypto)
-	vRepo.POST("/sign/crt", routerSignCertificate)
+	route := hs.Group("/ca")
+	route.Post("/generate/crypto/root", &ca.ReqRootCrypto{}, routerGenerateRootCrypto)
+	route.Post("/generate/crypto", &ca.ReqCrypto{}, routerGenerateCrypto)
+	route.Post("/sign/crt", &ca.ReqSignCertificate{}, routerSignCertificate)
 }
 
-// routerGenerateRootCrypto 生成联盟根证书
-func routerGenerateRootCrypto(c *gin.Context) {
-	defer utils.CatchAllErr(c)
-	serviceModel := new(ca.ReqRootCrypto)
-	if err := c.ShouldBindJSON(serviceModel); err != nil {
-		resp := &utils.RespImpl{}
-		resp.Fail(err.Error())
-		c.JSON(http.StatusOK, resp)
-		return
-	}
+func routerGenerateRootCrypto(_ http.ResponseWriter, _ *http.Request, reqModel interface{}, _ map[string]string) (respModel interface{}, custom bool) {
+	serviceModel := reqModel.(*ca.ReqRootCrypto)
 	resp, _ := generateRootCrypto(serviceModel)
-	c.JSON(http.StatusOK, resp)
+	return resp, false
 }
 
-// routerGenerateCrypto 生成密钥对
-func routerGenerateCrypto(c *gin.Context) {
-	defer utils.CatchAllErr(c)
-	serviceModel := new(ca.ReqCrypto)
-	if err := c.ShouldBindJSON(serviceModel); err != nil {
-		resp := &utils.RespImpl{}
-		resp.Fail(err.Error())
-		c.JSON(http.StatusOK, resp)
-		return
-	}
+func routerGenerateCrypto(_ http.ResponseWriter, _ *http.Request, reqModel interface{}, _ map[string]string) (respModel interface{}, custom bool) {
+	serviceModel := reqModel.(*ca.ReqCrypto)
 	resp, _ := generateCrypto(serviceModel)
-	c.JSON(http.StatusOK, resp)
+	return resp, false
 }
 
-// routerSignCertificate 生成组织下子节点/用户证书
-func routerSignCertificate(c *gin.Context) {
-	defer utils.CatchAllErr(c)
-	serviceModel := new(ca.ReqSignCertificate)
-	if err := c.ShouldBindJSON(serviceModel); err != nil {
-		resp := &utils.RespImpl{}
-		resp.Fail(err.Error())
-		c.JSON(http.StatusOK, resp)
-		return
-	}
+func routerSignCertificate(_ http.ResponseWriter, _ *http.Request, reqModel interface{}, _ map[string]string) (respModel interface{}, custom bool) {
+	serviceModel := reqModel.(*ca.ReqSignCertificate)
 	resp, _ := signCertificate(serviceModel)
-	c.JSON(http.StatusOK, resp)
+	return resp, false
 }

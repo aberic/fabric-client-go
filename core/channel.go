@@ -16,7 +16,7 @@ package core
 
 import (
 	"fmt"
-	"github.com/aberic/gnomon"
+	"github.com/aberic/fabric-client-go/utils/log"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/hyperledger/fabric-protos-go/common"
@@ -47,7 +47,7 @@ func channelCreate(orderOrgName, orderOrgUser, orgName, orgUser, channelID strin
 	// Resource management client is responsible for managing channels (create/update channel)
 	// Supply user that has privileges to create channel (in this case orderer admin)
 	if _, resMgmtClient, sdk, err = resmgmtClient(orderOrgName, orderOrgUser, configBytes, sdkOpts...); nil != err {
-		gnomon.Log().Error("Create", gnomon.Log().Err(err))
+		log.Error("Create", log.Err(err))
 		return
 	}
 	//if ctx, err = clientCtx();nil!=err {
@@ -74,7 +74,7 @@ func channelCreate(orderOrgName, orderOrgUser, orgName, orgUser, channelID strin
 		SigningIdentities: []msp.SigningIdentity{adminIdentity},
 	}
 	if scResp, err = resMgmtClient.SaveChannel(req); nil != err {
-		gnomon.Log().Error("createChannel", gnomon.Log().Err(err))
+		log.Error("createChannel", log.Err(err))
 		return "", errors.Errorf("error should be nil. %v", err)
 	}
 	return string(scResp.TransactionID), nil
@@ -86,12 +86,12 @@ func channelJoin(orgName, orgUser, channelID, peerName string, configBytes []byt
 		err           error
 	)
 	if _, resMgmtClient, _, err = resmgmtClient(orgName, orgUser, configBytes); nil != err {
-		gnomon.Log().Error("Create", gnomon.Log().Err(err))
+		log.Error("Create", log.Err(err))
 		return err
 	}
 	// Org peers join channel
 	if err := resMgmtClient.JoinChannel(channelID, resmgmt.WithTargetEndpoints(peerName)); err != nil {
-		gnomon.Log().Error("joinChannel", gnomon.Log().Err(err))
+		log.Error("joinChannel", log.Err(err))
 		return errors.Errorf("Org peers failed to JoinChannel:  %v", err)
 	}
 	return nil
@@ -100,7 +100,7 @@ func channelJoin(orgName, orgUser, channelID, peerName string, configBytes []byt
 func channelList(orgName, orgUser, peerName string, configBytes []byte) ([]*peer.ChannelInfo, error) {
 	sdk, err := obtainSDK(configBytes)
 	if err != nil {
-		gnomon.Log().Error("Channels", gnomon.Log().Err(err))
+		log.Error("Channels", log.Err(err))
 		return nil, err
 	}
 	defer sdk.Close()
@@ -109,23 +109,23 @@ func channelList(orgName, orgUser, peerName string, configBytes []byte) ([]*peer
 	// Org resource management client
 	orgResMgmt, err := resmgmt.New(adminContext)
 	if err != nil {
-		gnomon.Log().Error("queryChannels", gnomon.Log().Err(err))
+		log.Error("queryChannels", log.Err(err))
 		return nil, errors.Errorf("Failed to query channels:  %v", err)
 	} else {
 		if nil != orgResMgmt {
 			qcResponse, err := orgResMgmt.QueryChannels(resmgmt.WithTargetEndpoints(peerName))
 			if err != nil {
-				gnomon.Log().Error("queryChannels", gnomon.Log().Err(err))
+				log.Error("queryChannels", log.Err(err))
 				return nil, errors.Errorf("Failed to query channels: peer cannot be nil.  %v", err)
 			}
 			if nil == qcResponse {
-				gnomon.Log().Error("queryChannels", gnomon.Log().Err(err))
+				log.Error("queryChannels", log.Err(err))
 				return nil, errors.Errorf("qcResponse error should be nil. ")
 			} else {
 				return qcResponse.Channels, nil
 			}
 		} else {
-			gnomon.Log().Error("queryChannels", gnomon.Log().Err(err))
+			log.Error("queryChannels", log.Err(err))
 			return nil, errors.Errorf("orgResMgmt error should be nil. ")
 		}
 	}
@@ -134,7 +134,7 @@ func channelList(orgName, orgUser, peerName string, configBytes []byte) ([]*peer
 func channelConfigBlockFromOrderer(channelID, orgName, orgUser, peerName string, configBytes []byte) (block *common.Block, err error) {
 	sdk, err := obtainSDK(configBytes)
 	if err != nil {
-		gnomon.Log().Error("Channels", gnomon.Log().Err(err))
+		log.Error("Channels", log.Err(err))
 		return nil, err
 	}
 	defer sdk.Close()
@@ -143,13 +143,13 @@ func channelConfigBlockFromOrderer(channelID, orgName, orgUser, peerName string,
 	// Org resource management client
 	orgResMgmt, err := resmgmt.New(adminContext)
 	if err != nil {
-		gnomon.Log().Error("queryChannels", gnomon.Log().Err(err))
+		log.Error("queryChannels", log.Err(err))
 		return nil, errors.Errorf("Failed to query channels:  %v", err)
 	} else {
 		if nil != orgResMgmt {
 			return orgResMgmt.QueryConfigBlockFromOrderer(channelID, resmgmt.WithTargetEndpoints(peerName))
 		} else {
-			gnomon.Log().Error("queryChannels", gnomon.Log().Err(err))
+			log.Error("queryChannels", log.Err(err))
 			return nil, errors.Errorf("orgResMgmt error should be nil. ")
 		}
 	}
