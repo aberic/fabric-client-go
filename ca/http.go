@@ -23,25 +23,25 @@ import (
 func Router(hs *grope.GHttpServe) {
 	// 仓库相关路由设置
 	route := hs.Group("/ca")
-	route.Post("/generate/crypto/root", &ca.ReqRootCrypto{}, routerGenerateRootCrypto)
-	route.Post("/generate/crypto", &ca.ReqCrypto{}, routerGenerateCrypto)
-	route.Post("/sign/crt", &ca.ReqSignCertificate{}, routerSignCertificate)
+	route.Post("/generate/crypto/root", routerGenerateRootCrypto)
+	route.Post("/generate/crypto", routerGenerateCrypto)
+	route.Post("/sign/crt", routerSignCertificate)
 }
 
-func routerGenerateRootCrypto(_ http.ResponseWriter, _ *http.Request, reqModel interface{}, _ map[string]string) (respModel interface{}, custom bool) {
-	serviceModel := reqModel.(*ca.ReqRootCrypto)
-	resp, _ := generateRootCrypto(serviceModel)
-	return resp, false
+func routerGenerateRootCrypto(ctx *grope.Context) {
+	serviceModel, _ := ctx.ReceiveJson(&ca.ReqRootCrypto{})
+	resp, _ := generateRootCrypto(serviceModel.(*ca.ReqRootCrypto))
+	_ = ctx.ResponseJson(http.StatusOK, resp)
 }
 
-func routerGenerateCrypto(_ http.ResponseWriter, _ *http.Request, reqModel interface{}, _ map[string]string) (respModel interface{}, custom bool) {
-	serviceModel := reqModel.(*ca.ReqCrypto)
-	resp, _ := generateCrypto(serviceModel)
-	return resp, false
+func routerGenerateCrypto(ctx *grope.Context) {
+	serviceModel, _ := ctx.ReceiveJson(&ca.ReqCrypto{})
+	resp, _ := generateCrypto(serviceModel.(*ca.ReqCrypto))
+	_ = ctx.ResponseJson(http.StatusOK, resp)
 }
 
-func routerSignCertificate(_ http.ResponseWriter, _ *http.Request, reqModel interface{}, _ map[string]string) (respModel interface{}, custom bool) {
-	serviceModel := reqModel.(*ca.ReqSignCertificate)
-	resp, _ := signCertificate(serviceModel)
-	return resp, false
+func routerSignCertificate(ctx *grope.Context) {
+	serviceModel, _ := ctx.ReceiveJson(&ca.ReqSignCertificate{})
+	resp, _ := signCertificate(serviceModel.(*ca.ReqSignCertificate))
+	_ = ctx.ResponseJson(http.StatusOK, resp)
 }

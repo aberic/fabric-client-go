@@ -23,18 +23,18 @@ import (
 func Router(hs *grope.GHttpServe) {
 	// 仓库相关路由设置
 	route := hs.Group("/genesis")
-	route.Post("/block", &genesis.ReqGenesisBlock{}, routerCreateGenesisBlock)
-	route.Post("/channel", &genesis.ReqChannelTx{}, routerCreateChannelTx)
+	route.Post("/block", routerCreateGenesisBlock)
+	route.Post("/channel", routerCreateChannelTx)
 }
 
-func routerCreateGenesisBlock(_ http.ResponseWriter, _ *http.Request, reqModel interface{}, _ map[string]string) (respModel interface{}, custom bool) {
-	serviceModel := reqModel.(*genesis.ReqGenesisBlock)
-	resp, _ := createGenesisBlock(serviceModel)
-	return resp, false
+func routerCreateGenesisBlock(ctx *grope.Context) {
+	serviceModel, _ := ctx.ReceiveJson(&genesis.ReqGenesisBlock{})
+	resp, _ := createGenesisBlock(serviceModel.(*genesis.ReqGenesisBlock))
+	_ = ctx.ResponseJson(http.StatusOK, resp)
 }
 
-func routerCreateChannelTx(_ http.ResponseWriter, _ *http.Request, reqModel interface{}, _ map[string]string) (respModel interface{}, custom bool) {
-	serviceModel := reqModel.(*genesis.ReqChannelTx)
-	resp, _ := createChannelTx(serviceModel)
-	return resp, false
+func routerCreateChannelTx(ctx *grope.Context) {
+	serviceModel, _ := ctx.ReceiveJson(&genesis.ReqChannelTx{})
+	resp, _ := createChannelTx(serviceModel.(*genesis.ReqChannelTx))
+	_ = ctx.ResponseJson(http.StatusOK, resp)
 }

@@ -23,32 +23,32 @@ import (
 func Router(hs *grope.GHttpServe) {
 	// 仓库相关路由设置
 	route := hs.Group("/config")
-	route.Post("/set", &config.ReqConfigSet{}, routerConfigSet)
-	route.Post("/obtain", &config.ReqConfigObtain{}, routerConfigObtain)
-	route.Post("/list", &config.ReqConfigList{}, routerConfigList)
-	route.Post("/delete", &config.ReqConfigDelete{}, routerConfigDelete)
+	route.Post("/set", routerConfigSet)
+	route.Post("/obtain", routerConfigObtain)
+	route.Post("/list", routerConfigList)
+	route.Post("/delete", routerConfigDelete)
 }
 
-func routerConfigSet(_ http.ResponseWriter, _ *http.Request, reqModel interface{}, _ map[string]string) (respModel interface{}, custom bool) {
-	serviceModel := reqModel.(*config.ReqConfigSet)
-	resp, _ := setConfig(serviceModel)
-	return resp, false
+func routerConfigSet(ctx *grope.Context) {
+	serviceModel, _ := ctx.ReceiveJson(&config.ReqConfigSet{})
+	resp, _ := setConfig(serviceModel.(*config.ReqConfigSet))
+	_ = ctx.ResponseJson(http.StatusOK, resp)
 }
 
-func routerConfigObtain(_ http.ResponseWriter, _ *http.Request, reqModel interface{}, _ map[string]string) (respModel interface{}, custom bool) {
-	serviceModel := reqModel.(*config.ReqConfigObtain)
-	resp, _ := obtainConfig(serviceModel)
-	return resp, false
+func routerConfigObtain(ctx *grope.Context) {
+	serviceModel, _ := ctx.ReceiveJson(&config.ReqConfigObtain{})
+	resp, _ := obtainConfig(serviceModel.(*config.ReqConfigObtain))
+	_ = ctx.ResponseJson(http.StatusOK, resp)
 }
 
-func routerConfigList(_ http.ResponseWriter, _ *http.Request, reqModel interface{}, _ map[string]string) (respModel interface{}, custom bool) {
-	serviceModel := reqModel.(*config.ReqConfigList)
-	resp, _ := listConfig(serviceModel)
-	return resp, false
+func routerConfigList(ctx *grope.Context) {
+	serviceModel, _ := ctx.ReceiveJson(&config.ReqConfigList{})
+	resp, _ := listConfig(serviceModel.(*config.ReqConfigList))
+	_ = ctx.ResponseJson(http.StatusOK, resp)
 }
 
-func routerConfigDelete(_ http.ResponseWriter, _ *http.Request, reqModel interface{}, _ map[string]string) (respModel interface{}, custom bool) {
-	serviceModel := reqModel.(*config.ReqConfigDelete)
-	resp, _ := deleteConfig(serviceModel)
-	return resp, false
+func routerConfigDelete(ctx *grope.Context) {
+	serviceModel, _ := ctx.ReceiveJson(&config.ReqConfigDelete{})
+	resp, _ := deleteConfig(serviceModel.(*config.ReqConfigDelete))
+	_ = ctx.ResponseJson(http.StatusOK, resp)
 }
