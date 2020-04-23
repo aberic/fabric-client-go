@@ -29,19 +29,31 @@ func Router(hs *grope.GHttpServe) {
 }
 
 func routerGenerateRootCrypto(ctx *grope.Context) {
-	serviceModel, _ := ctx.ReceiveJson(&ca.ReqRootCrypto{})
-	resp, _ := generateRootCrypto(serviceModel.(*ca.ReqRootCrypto))
-	_ = ctx.ResponseJson(http.StatusOK, resp)
+	serviceModel := &ca.ReqRootCrypto{}
+	if err := ctx.ReceiveJson(&ca.ReqRootCrypto{}); nil != err {
+		_ = ctx.ResponseText(http.StatusOK, err.Error())
+	} else {
+		resp, _ := generateRootCrypto(serviceModel)
+		_ = ctx.ResponseJson(http.StatusOK, resp)
+	}
 }
 
 func routerGenerateCrypto(ctx *grope.Context) {
-	serviceModel, _ := ctx.ReceiveJson(&ca.ReqCrypto{})
-	resp, _ := generateCrypto(serviceModel.(*ca.ReqCrypto))
-	_ = ctx.ResponseJson(http.StatusOK, resp)
+	serviceModel := &ca.ReqCrypto{}
+	if err := ctx.ReceiveJson(&ca.ReqCrypto{}); nil != err {
+		_ = ctx.ResponseText(http.StatusOK, err.Error())
+	} else {
+		resp, _ := generateCrypto(serviceModel)
+		_ = ctx.ResponseJson(http.StatusOK, resp)
+	}
 }
 
 func routerSignCertificate(ctx *grope.Context) {
-	serviceModel, _ := ctx.ReceiveJson(&ca.ReqSignCertificate{})
-	resp, _ := signCertificate(serviceModel.(*ca.ReqSignCertificate))
-	_ = ctx.ResponseJson(http.StatusOK, resp)
+	serviceModel := &ca.ReqSignCertificate{}
+	if err := ctx.ReceiveJson(&ca.ReqSignCertificate{}); nil != err {
+		_ = ctx.ResponseText(http.StatusOK, err.Error())
+	} else {
+		resp, _ := signCertificate(serviceModel)
+		_ = ctx.ResponseJson(http.StatusOK, resp)
+	}
 }

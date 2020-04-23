@@ -28,13 +28,21 @@ func Router(hs *grope.GHttpServe) {
 }
 
 func routerCreateGenesisBlock(ctx *grope.Context) {
-	serviceModel, _ := ctx.ReceiveJson(&genesis.ReqGenesisBlock{})
-	resp, _ := createGenesisBlock(serviceModel.(*genesis.ReqGenesisBlock))
-	_ = ctx.ResponseJson(http.StatusOK, resp)
+	serviceModel := &genesis.ReqGenesisBlock{}
+	if err := ctx.ReceiveJson(&genesis.ReqGenesisBlock{}); nil != err {
+		_ = ctx.ResponseText(http.StatusOK, err.Error())
+	} else {
+		resp, _ := createGenesisBlock(serviceModel)
+		_ = ctx.ResponseJson(http.StatusOK, resp)
+	}
 }
 
 func routerCreateChannelTx(ctx *grope.Context) {
-	serviceModel, _ := ctx.ReceiveJson(&genesis.ReqChannelTx{})
-	resp, _ := createChannelTx(serviceModel.(*genesis.ReqChannelTx))
-	_ = ctx.ResponseJson(http.StatusOK, resp)
+	serviceModel := &genesis.ReqChannelTx{}
+	if err := ctx.ReceiveJson(&genesis.ReqChannelTx{}); nil != err {
+		_ = ctx.ResponseText(http.StatusOK, err.Error())
+	} else {
+		resp, _ := createChannelTx(serviceModel)
+		_ = ctx.ResponseJson(http.StatusOK, resp)
+	}
 }

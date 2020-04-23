@@ -15,10 +15,10 @@ github.com/Shopify/toxiproxy v2.1.4+incompatible h1:TKdv8HiTLgE5wdJuEML90aBgNWso
 github.com/Shopify/toxiproxy v2.1.4+incompatible/go.mod h1:OXgGpZ6Cli1/URJOF1DMxUHB2q5Ap20/P/eIdh4G0pI=
 github.com/VividCortex/gohistogram v1.0.0 h1:6+hBz+qvs0JOrrNhhmR7lFxo5sINxBCGXrdtl/UvroE=
 github.com/VividCortex/gohistogram v1.0.0/go.mod h1:Pf5mBqqDxYaXu3hDrrU+w6nw50o/4+TcAqDqk/vUH7g=
-github.com/aberic/gnomon v0.0.0-20200422115329-9fa1a3dc2b28 h1:+GH97WIQHSCrpi/8DrQ54txIEbMHdgzRqVODCCzIDs4=
-github.com/aberic/gnomon v0.0.0-20200422115329-9fa1a3dc2b28/go.mod h1:JsOXSdOTqOX1waSgPi0vNzh8qd3j1pnuUaLtGlRSl08=
-github.com/aberic/raft4go v0.0.0-20200422122730-8b5208efb208 h1:0514lAOkgD5eydLDRtMn7roT+J9b2lkbQW6c7oIzYpw=
-github.com/aberic/raft4go v0.0.0-20200422122730-8b5208efb208/go.mod h1:8/vgd10toHvy0b8pYoDJGwI9ksBCVNeKxy0StmTOG4g=
+github.com/aberic/gnomon v0.0.0-20200423024313-a90e17b20e45 h1:pmx7+OCLIl4iQWzW0eqFPs3Vw8ePP8Q5Vzophgujop4=
+github.com/aberic/gnomon v0.0.0-20200423024313-a90e17b20e45/go.mod h1:JsOXSdOTqOX1waSgPi0vNzh8qd3j1pnuUaLtGlRSl08=
+github.com/aberic/raft4go v0.0.0-20200423024649-0d0f721a8b16 h1:oaCgsgfusthAJdahInONRHkDM8Zvqgt0RHOJfF9PFNk=
+github.com/aberic/raft4go v0.0.0-20200423024649-0d0f721a8b16/go.mod h1:vuOP0eomLAaUo7rYS71FBA+S7Iw7D9T5/wS2MwX9c6I=
 github.com/aead/siphash v1.0.1/go.mod h1:Nywa3cDsYNNK3gaciGTWPwHt0wlpNV15vwmswBAUSII=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973 h1:xJ4a3vCFaGF/jqvzLMYoU8P317H5OQ+Via4RmuPwCS0=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
