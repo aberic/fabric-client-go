@@ -23,7 +23,7 @@ import (
 	gGenesis "github.com/aberic/fabric-client-go/grpc/proto/genesis"
 	"github.com/aberic/fabric-client-go/utils"
 	"github.com/aberic/fabric-client-go/utils/log"
-	"github.com/aberic/gnomon"
+	"github.com/aberic/gnomon/grope"
 	"github.com/aberic/raft4go"
 	"google.golang.org/grpc"
 	"net"
@@ -43,11 +43,11 @@ func main() {
 
 // setupRouter 设置路由器相关选项
 func httpListener() {
-	httpServe := gnomon.Grope().NewHttpServe()
+	httpServe := grope.NewHttpServe()
 	ca.Router(httpServe)
 	config.Router(httpServe)
 	genesis.Router(httpServe)
-	gnomon.Grope().ListenAndServe(strings.Join([]string{":", utils.HttpPort}, ""), httpServe)
+	grope.ListenAndServe(strings.Join([]string{":", utils.HttpPort}, ""), httpServe)
 }
 
 func gRPCListener() {
