@@ -60,6 +60,9 @@ func peerQueryInstantiated(orgName, orgUser, peerName, channelID string, configB
 	}
 }
 
+// peerQueryCollectionsConfig
+//
+// Deprecated: Do not use.
 func peerQueryCollectionsConfig(orgName, orgUser, peerName, channelID, chaincodeID string, configBytes []byte, sdkOpts ...fabsdk.Option) (*common.CollectionConfigPackage, error) {
 	var (
 		resMgmtClient *resmgmt.Client

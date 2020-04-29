@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+option java_package = "cn.aberic.fabric-client.grpc.proto.core";
+option java_outer_classname = "ServerProto";
+option go_package = "grpc/proto/core";
+
+package core;
+
+import "grpc/proto/core/peer.proto";
+import "grpc/proto/core/channel.proto";
+import "grpc/proto/core/chaincode.proto";
+
+service peer {
+    rpc installed (ReqPeerInstalled) returns (RespPeerInstalled) {
+    }
+    rpc instantiated (ReqPeerInstantiated) returns (RespPeerInstantiated) {
+    }
+}
+
+service channel {
+    rpc create (ReqChannelCreate) returns (RespChannelCreate) {
+    }
+    rpc join (ReqChannelJoin) returns (RespChannelJoin) {
+    }
+    rpc list (ReqChannelList) returns (RespChannelList) {
+    }
+    rpc config (ReqChannelConfigBlock) returns (RespChannelConfigBlock) {
+    }
+    rpc update (ReqChannelUpdateBlock) returns (RespChannelUpdateBlock) {
+    }
+    rpc sign (ReqChannelSign) returns (RespChannelSign) {
+    }
+}
+
+service chaincode {
+    rpc install (ReqChainCodeInstall) returns (RespChainCodeInstall) {
+    }
+    rpc instantiate (ReqChainCodeInstantiate) returns (RespChainCodeInstantiate) {
+    }
+    rpc upgrade (ReqChainCodeUpgrade) returns (RespChainCodeUpgrade) {
+    }
+    rpc invoke (ReqChainCodeInvoke) returns (RespChainCodeInvoke) {
+    }
+    rpc query (ReqChainCodeQuery) returns (RespChainCodeQuery) {
+    }
+}

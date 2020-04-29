@@ -17,9 +17,11 @@ package main
 import (
 	"github.com/aberic/fabric-client-go/ca"
 	"github.com/aberic/fabric-client-go/config"
+	"github.com/aberic/fabric-client-go/core"
 	"github.com/aberic/fabric-client-go/genesis"
 	gCa "github.com/aberic/fabric-client-go/grpc/proto/ca"
 	gConfig "github.com/aberic/fabric-client-go/grpc/proto/config"
+	gCore "github.com/aberic/fabric-client-go/grpc/proto/core"
 	gGenesis "github.com/aberic/fabric-client-go/grpc/proto/genesis"
 	"github.com/aberic/fabric-client-go/utils"
 	"github.com/aberic/fabric-client-go/utils/log"
@@ -66,6 +68,9 @@ func gRPCListener() {
 	gCa.RegisterGenerateServer(rpcServer, &ca.GenerateServer{})
 	gConfig.RegisterConfigServer(rpcServer, &config.ConfServer{})
 	gGenesis.RegisterGenesisServer(rpcServer, &genesis.BlockServer{})
+	gCore.RegisterPeerServer(rpcServer, &core.Peer{})
+	gCore.RegisterChannelServer(rpcServer, &core.Channel{})
+	gCore.RegisterChaincodeServer(rpcServer, &core.ChainCode{})
 
 	log.Info(strings.Join([]string{"main gRPC listener start with port ", utils.GRPCPort}, ""))
 	//  启动grpc服务
