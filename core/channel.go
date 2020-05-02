@@ -16,7 +16,7 @@ package core
 
 import (
 	"fmt"
-	"github.com/aberic/fabric-client-go/utils/log"
+	"github.com/aberic/gnomon/log"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/hyperledger/fabric-protos-go/common"
@@ -196,19 +196,19 @@ func channelSign(orgName, orgUser, channelID string, configBytes, envelopeBytes 
 	}
 	// 判空
 	if payload.Header == nil || payload.Header.ChannelHeader == nil {
-		return nil, fmt.Errorf("bad header error: %w", err)
+		return nil, fmt.Errorf("bad header error: %e", err)
 	}
 	// 解析结构为 common.ChannelHeader
 	if ch, err = unmarshalChannelHeader(payload.Header.ChannelHeader); err != nil {
-		return nil, fmt.Errorf("could not unmarshall channel header error: %w", err)
+		return nil, fmt.Errorf("could not unmarshall channel header error: %e", err)
 	}
 	// 判定本次通道执行类型
 	if ch.Type != int32(common.HeaderType_CONFIG_UPDATE) {
-		return nil, fmt.Errorf("bad type error: %w", err)
+		return nil, fmt.Errorf("bad type error: %e", err)
 	}
 	// 判定本次执行通道名称是否为空
 	if ch.ChannelId == "" {
-		return nil, fmt.Errorf("empty channel id error: %w", err)
+		return nil, fmt.Errorf("empty channel id error: %e", err)
 	}
 	// 判定本次执行通道名称是否与待执行通道名称一致
 	if ch.ChannelId != channelID {
@@ -216,7 +216,7 @@ func channelSign(orgName, orgUser, channelID string, configBytes, envelopeBytes 
 	}
 	// 解析结构为 common.ConfigUpdateEnvelope
 	if configUpdateEnv, err = unmarshalConfigUpdateEnvelope(payload.Data); err != nil {
-		return nil, fmt.Errorf("bad config update env error: %w", err)
+		return nil, fmt.Errorf("bad config update env error: %e", err)
 	}
 	// 将开头执行的签名结果追加到 envelope 的签名集合中
 	configUpdateEnv.Signatures = append(configUpdateEnv.Signatures, configSig)

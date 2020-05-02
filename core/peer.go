@@ -15,7 +15,7 @@
 package core
 
 import (
-	"github.com/aberic/fabric-client-go/utils/log"
+	"github.com/aberic/gnomon/log"
 	"github.com/hyperledger/fabric-protos-go/common"
 	"github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/resmgmt"

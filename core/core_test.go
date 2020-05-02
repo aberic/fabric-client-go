@@ -114,7 +114,7 @@ func TestChannelUpdateConfigBlock(t *testing.T) {
 	}
 	t.Log(resource.InspectBlock(resp.EnvelopeBytes))
 	channelUpdateFilePath := utils.ChannelUpdateTXFilePath(leagueDomain, channelID)
-	if _, err = gnomon.File().Append(channelUpdateFilePath, resp.EnvelopeBytes, true); nil != err {
+	if _, err = gnomon.FileAppend(channelUpdateFilePath, resp.EnvelopeBytes, true); nil != err {
 		t.Fatal(err)
 	}
 }
@@ -141,7 +141,7 @@ func TestSignChannelTx(t *testing.T) {
 	}
 	t.Log(resource.InspectChannelCreateTx(resp.EnvelopeBytes))
 	channelUpdateFilePath := utils.ChannelUpdateTXFilePath(leagueDomain, strings.Join([]string{channelID, "add"}, "_"))
-	if _, err = gnomon.File().Append(channelUpdateFilePath, resp.EnvelopeBytes, true); nil != err {
+	if _, err = gnomon.FileAppend(channelUpdateFilePath, resp.EnvelopeBytes, true); nil != err {
 		t.Fatal(err)
 	}
 }

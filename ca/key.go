@@ -67,7 +67,7 @@ func (kc *keyConfig) cryptoRSA(bits cryptoAlgorithm) (priFileBytes, pubFileBytes
 	storePath := path.Join("/tmp", strconv.FormatInt(time.Now().UnixNano(), 10))
 	priFilePath := filepath.Join(storePath, priKeyFileDefaultName)
 	pubFilePath := filepath.Join(storePath, pubKeyFileDefaultName)
-	if err = gnomon.CryptoRSA().GenerateKey(long, storePath, priKeyFileDefaultName, pubKeyFileDefaultName, gnomon.CryptoRSA().PKSC8()); nil != err {
+	if err = gnomon.RSAGenerateKey(long, storePath, priKeyFileDefaultName, pubKeyFileDefaultName, gnomon.RSAPKSC8()); nil != err {
 		return nil, nil, err
 	}
 	return kc.cryptoBytes(priFilePath, pubFilePath)
@@ -82,7 +82,7 @@ func (kc *keyConfig) cryptoECC(bits cryptoAlgorithm) (priFileBytes, pubFileBytes
 	storePath := path.Join("/tmp", strconv.Itoa(time.Now().Nanosecond()))
 	priFilePath := filepath.Join(storePath, priKeyFileDefaultName)
 	pubFilePath := filepath.Join(storePath, pubKeyFileDefaultName)
-	if err = gnomon.CryptoECC().GeneratePemKey(storePath, priKeyFileDefaultName, pubKeyFileDefaultName, curve); nil != err {
+	if err = gnomon.ECCGeneratePemKey(storePath, priKeyFileDefaultName, pubKeyFileDefaultName, curve); nil != err {
 		return nil, nil, err
 	}
 	return kc.cryptoBytes(priFilePath, pubFilePath)

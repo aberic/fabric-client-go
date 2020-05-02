@@ -208,10 +208,10 @@ func (c *Channel) setQueryChannelConfig(channelConfig *config.QueryChannelConfig
 		if channelConfig.RetryOpts.BackoffFactor > 0 {
 			c.Policies.QueryChannelConfig.RetryOpts.BackOffFactor = channelConfig.RetryOpts.BackoffFactor
 		}
-		if gnomon.String().IsNotEmpty(channelConfig.RetryOpts.InitialBackoff) {
+		if gnomon.StringIsNotEmpty(channelConfig.RetryOpts.InitialBackoff) {
 			c.Policies.QueryChannelConfig.RetryOpts.InitialBackOff = channelConfig.RetryOpts.InitialBackoff
 		}
-		if gnomon.String().IsNotEmpty(channelConfig.RetryOpts.MaxBackoff) {
+		if gnomon.StringIsNotEmpty(channelConfig.RetryOpts.MaxBackoff) {
 			c.Policies.QueryChannelConfig.RetryOpts.MaxBackOff = channelConfig.RetryOpts.MaxBackoff
 		}
 	}
@@ -228,20 +228,20 @@ func (c *Channel) setDiscovery(discovery *config.Discovery) {
 		if discovery.RetryOpts.BackoffFactor > 0 {
 			c.Policies.Discovery.RetryOpts.BackOffFactor = discovery.RetryOpts.BackoffFactor
 		}
-		if gnomon.String().IsNotEmpty(discovery.RetryOpts.InitialBackoff) {
+		if gnomon.StringIsNotEmpty(discovery.RetryOpts.InitialBackoff) {
 			c.Policies.Discovery.RetryOpts.InitialBackOff = discovery.RetryOpts.InitialBackoff
 		}
-		if gnomon.String().IsNotEmpty(discovery.RetryOpts.MaxBackoff) {
+		if gnomon.StringIsNotEmpty(discovery.RetryOpts.MaxBackoff) {
 			c.Policies.Discovery.RetryOpts.MaxBackOff = discovery.RetryOpts.MaxBackoff
 		}
 	}
 }
 
 func (c *Channel) setEventService(eventService *config.EventService) {
-	if gnomon.String().IsNotEmpty(eventService.ResolverStrategy) {
+	if gnomon.StringIsNotEmpty(eventService.ResolverStrategy) {
 		c.Policies.EventService.ResolverStrategy = eventService.ResolverStrategy
 	}
-	if gnomon.String().IsNotEmpty(eventService.Balancer) {
+	if gnomon.StringIsNotEmpty(eventService.Balancer) {
 		c.Policies.EventService.Balancer = eventService.Balancer
 	}
 	if eventService.BlockHeightLagThreshold > 0 {
@@ -250,7 +250,7 @@ func (c *Channel) setEventService(eventService *config.EventService) {
 	if eventService.ReconnectBlockHeightLagThreshold > 0 {
 		c.Policies.EventService.ReconnectBlockHeightLagThreshold = eventService.ReconnectBlockHeightLagThreshold
 	}
-	if gnomon.String().IsNotEmpty(eventService.PeerMonitorPeriod) {
+	if gnomon.StringIsNotEmpty(eventService.PeerMonitorPeriod) {
 		c.Policies.EventService.PeerMonitorPeriod = eventService.PeerMonitorPeriod
 	}
 }

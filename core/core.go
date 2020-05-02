@@ -47,7 +47,7 @@ func ChannelCreate(req *core.ReqChannelCreate) (resp *core.RespChannelCreate, er
 			if txID, err = channelCreate(order.OrgName, order.UserName, org.OrgName, org.UserName, req.ChannelID, buf, confData); nil == err {
 				return &core.RespChannelCreate{Code: core.Code_Success, TxId: txID}, nil
 			} else {
-				errs = fmt.Errorf("error: %w", err)
+				errs = fmt.Errorf("error: %e", err)
 			}
 		}
 	}
@@ -71,7 +71,7 @@ func ChannelJoin(req *core.ReqChannelJoin) (resp *core.RespChannelJoin, err erro
 		if err = channelJoin(org.OrgName, org.UserName, req.ChannelID, req.PeerName, confData); nil == err {
 			return &core.RespChannelJoin{Code: core.Code_Success}, nil
 		} else {
-			errs = fmt.Errorf("error: %w", err)
+			errs = fmt.Errorf("error: %e", err)
 		}
 	}
 	return &core.RespChannelJoin{Code: core.Code_Fail, ErrMsg: errs.Error()}, errs
@@ -99,7 +99,7 @@ func ChannelList(req *core.ReqChannelList) (resp *core.RespChannelList, err erro
 			}
 			return &core.RespChannelList{Code: core.Code_Success, ChannelIDs: chIDs}, nil
 		} else {
-			errs = fmt.Errorf("error: %w", err)
+			errs = fmt.Errorf("error: %e", err)
 		}
 	}
 	return &core.RespChannelList{Code: core.Code_Fail, ErrMsg: errs.Error()}, errs
@@ -124,9 +124,9 @@ func ChannelConfigBlock(req *core.ReqChannelConfigBlock) (resp *core.RespChannel
 			if data, err = proto.Marshal(block); nil == err {
 				return &core.RespChannelConfigBlock{Code: core.Code_Success, GenesisBlockBytes: data}, nil
 			}
-			errs = fmt.Errorf("error: %w", err)
+			errs = fmt.Errorf("error: %e", err)
 		} else {
-			errs = fmt.Errorf("error: %w", err)
+			errs = fmt.Errorf("error: %e", err)
 		}
 	}
 	return &core.RespChannelConfigBlock{Code: core.Code_Fail, ErrMsg: errs.Error()}, errs
@@ -149,7 +149,7 @@ func ChannelUpdateConfigBlock(req *core.ReqChannelUpdateBlock) (resp *core.RespC
 		if envelopeBytes, err = channelUpdateConfigBlock(req.ChannelID, req.Consortium, org.OrgName, org.UserName, req.PeerName, req.NewOrgName, confData, req.GenesisBlockBytes); nil == err {
 			return &core.RespChannelUpdateBlock{Code: core.Code_Success, EnvelopeBytes: envelopeBytes}, nil
 		} else {
-			errs = fmt.Errorf("error: %w", err)
+			errs = fmt.Errorf("error: %e", err)
 		}
 	}
 	return &core.RespChannelUpdateBlock{Code: core.Code_Fail, ErrMsg: errs.Error()}, errs
@@ -192,7 +192,7 @@ func ChainCodeInstall(req *core.ReqChainCodeInstall) (resp *core.RespChainCodeIn
 	if target, info, err = ccInstall(req.OrgName, req.OrgUser, req.PeerName, req.CcName, req.GoPath, req.CcPath, req.Version, confData); nil == err {
 		return &core.RespChainCodeInstall{Code: core.Code_Success, Data: &core.InstallData{Target: target, Info: info}}, nil
 	} else {
-		errs = fmt.Errorf("error: %w", err)
+		errs = fmt.Errorf("error: %e", err)
 	}
 	return &core.RespChainCodeInstall{Code: core.Code_Fail, ErrMsg: errs.Error()}, errs
 }
@@ -213,7 +213,7 @@ func ChainCodeInstantiate(req *core.ReqChainCodeInstantiate) (resp *core.RespCha
 	if msg, err = ccInstantiate(req.OrdererName, req.OrgName, req.OrgUser, req.PeerName, req.ChannelID, req.CcName, req.CcPath, req.Version, req.OrgPolicies, req.Args, confData); nil == err {
 		return &core.RespChainCodeInstantiate{Code: core.Code_Success, TxId: msg}, nil
 	} else {
-		errs = fmt.Errorf("error: %w", err)
+		errs = fmt.Errorf("error: %e", err)
 	}
 	return &core.RespChainCodeInstantiate{Code: core.Code_Fail, ErrMsg: errs.Error()}, errs
 }
@@ -234,7 +234,7 @@ func ChainCodeUpgrade(req *core.ReqChainCodeUpgrade) (resp *core.RespChainCodeUp
 	if msg, err = ccUpgrade(req.OrdererName, req.OrgName, req.OrgUser, req.PeerName, req.ChannelID, req.CcName, req.CcPath, req.Version, req.OrgPolicies, req.Args, confData); nil == err {
 		return &core.RespChainCodeUpgrade{Code: core.Code_Success, TxId: msg}, nil
 	} else {
-		errs = fmt.Errorf("error: %w", err)
+		errs = fmt.Errorf("error: %e", err)
 	}
 	return &core.RespChainCodeUpgrade{Code: core.Code_Fail, ErrMsg: errs.Error()}, errs
 }
@@ -255,7 +255,7 @@ func ChainCodeInvoke(req *core.ReqChainCodeInvoke) (resp *core.RespChainCodeInvo
 	if payload, txID, err = ccInvoke(req.OrgName, req.OrgUser, req.PeerName, req.ChannelID, req.CcName, req.Fcn, req.Args, confData); nil == err {
 		return &core.RespChainCodeInvoke{Code: core.Code_Success, Data: &core.CCData{Payload: payload, TxId: txID}}, nil
 	} else {
-		errs = fmt.Errorf("error: %w", err)
+		errs = fmt.Errorf("error: %e", err)
 	}
 	return &core.RespChainCodeInvoke{Code: core.Code_Fail, ErrMsg: errs.Error()}, errs
 }
@@ -276,7 +276,7 @@ func ChainCodeQuery(req *core.ReqChainCodeQuery) (resp *core.RespChainCodeQuery,
 	if payload, txID, err = ccQuery(req.OrgName, req.OrgUser, req.PeerName, req.ChannelID, req.CcID, req.Fcn, req.Args, confData); nil == err {
 		return &core.RespChainCodeQuery{Code: core.Code_Success, Data: &core.CCData{Payload: payload, TxId: txID}}, nil
 	} else {
-		errs = fmt.Errorf("error: %w", err)
+		errs = fmt.Errorf("error: %e", err)
 	}
 	return &core.RespChainCodeQuery{Code: core.Code_Fail, ErrMsg: errs.Error()}, errs
 }
@@ -313,7 +313,7 @@ func PeerQueryInstalled(req *core.ReqPeerInstalled) (resp *core.RespPeerInstalle
 		}
 		return &core.RespPeerInstalled{Code: core.Code_Success, CcInfos: ccInfos}, nil
 	} else {
-		errs = fmt.Errorf("error: %w", err)
+		errs = fmt.Errorf("error: %e", err)
 	}
 	return &core.RespPeerInstalled{Code: core.Code_Fail, ErrMsg: errs.Error()}, errs
 }
@@ -346,7 +346,7 @@ func PeerQueryInstantiated(req *core.ReqPeerInstantiated) (resp *core.RespPeerIn
 		}
 		return &core.RespPeerInstantiated{Code: core.Code_Success, CcInfos: ccInfos}, nil
 	} else {
-		errs = fmt.Errorf("error: %w", err)
+		errs = fmt.Errorf("error: %e", err)
 	}
 	return &core.RespPeerInstantiated{Code: core.Code_Fail, ErrMsg: errs.Error()}, errs
 }

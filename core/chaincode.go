@@ -16,8 +16,8 @@
 package core
 
 import (
-	"github.com/aberic/fabric-client-go/utils/log"
 	"github.com/aberic/gnomon"
+	"github.com/aberic/gnomon/log"
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/channel"
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/resmgmt"
 	"github.com/hyperledger/fabric-sdk-go/pkg/common/errors/retry"
@@ -77,7 +77,7 @@ func ccInstantiate(ordererName, orgName, orgUser, peerName, channelID, ccName, c
 	}
 	ccPolicy := cauthdsl.SignedByAnyMember(orgPolicies)
 	options := []resmgmt.RequestOption{resmgmt.WithRetry(retry.DefaultResMgmtOpts), resmgmt.WithTargetEndpoints(peerName)}
-	if !gnomon.String().IsEmpty(ordererName) {
+	if !gnomon.StringIsEmpty(ordererName) {
 		options = append(options, resmgmt.WithOrdererEndpoint(ordererName))
 	}
 	// Org resource manager will instantiate 'example_cc' on channel
@@ -106,7 +106,7 @@ func ccUpgrade(ordererName, orgName, orgUser, peerName, channelID, ccName, ccPat
 	}
 	ccPolicy := cauthdsl.SignedByAnyMember(orgPolicies)
 	options := []resmgmt.RequestOption{resmgmt.WithRetry(retry.DefaultResMgmtOpts), resmgmt.WithTargetEndpoints(peerName)}
-	if !gnomon.String().IsEmpty(ordererName) {
+	if !gnomon.StringIsEmpty(ordererName) {
 		options = append(options, resmgmt.WithOrdererEndpoint(ordererName))
 	}
 	// Org resource manager will instantiate 'example_cc' on channel

@@ -31,40 +31,40 @@ func Router(hs *grope.GHttpServe) {
 
 func routerConfigSet(ctx *grope.Context) {
 	serviceModel := &config.ReqConfigSet{}
-	if err := ctx.ReceiveJson(&config.ReqConfigSet{}); nil != err {
+	if err := ctx.ReceiveJSON(&config.ReqConfigSet{}); nil != err {
 		_ = ctx.ResponseText(http.StatusOK, err.Error())
 	} else {
 		resp, _ := setConfig(serviceModel)
-		_ = ctx.ResponseJson(http.StatusOK, resp)
+		_ = ctx.ResponseJSON(http.StatusOK, resp)
 	}
 }
 
 func routerConfigObtain(ctx *grope.Context) {
 	serviceModel := &config.ReqConfigObtain{}
-	if err := ctx.ReceiveJson(&config.ReqConfigObtain{}); nil != err {
+	if err := ctx.ReceiveJSON(&config.ReqConfigObtain{}); nil != err {
 		_ = ctx.ResponseText(http.StatusOK, err.Error())
 	} else {
 		resp, _ := obtainConfig(serviceModel)
-		_ = ctx.ResponseJson(http.StatusOK, resp)
+		_ = ctx.ResponseJSON(http.StatusOK, resp)
 	}
 }
 
 func routerConfigList(ctx *grope.Context) {
 	serviceModel := &config.ReqConfigList{}
-	if err := ctx.ReceiveJson(&config.ReqConfigList{}); nil != err {
+	if err := ctx.ReceiveJSON(&config.ReqConfigList{}); nil != err {
 		_ = ctx.ResponseText(http.StatusOK, err.Error())
 	} else {
 		resp, _ := listConfig(serviceModel)
-		_ = ctx.ResponseJson(http.StatusOK, resp)
+		_ = ctx.ResponseJSON(http.StatusOK, resp)
 	}
 }
 
 func routerConfigDelete(ctx *grope.Context) {
 	serviceModel := &config.ReqConfigDelete{}
-	if err := ctx.ReceiveJson(&config.ReqConfigDelete{}); nil != err {
+	if err := ctx.ReceiveJSON(&config.ReqConfigDelete{}); nil != err {
 		_ = ctx.ResponseText(http.StatusOK, err.Error())
 	} else {
 		resp, _ := deleteConfig(serviceModel)
-		_ = ctx.ResponseJson(http.StatusOK, resp)
+		_ = ctx.ResponseJSON(http.StatusOK, resp)
 	}
 }

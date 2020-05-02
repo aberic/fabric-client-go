@@ -42,7 +42,7 @@ func (cc *CertConfig) generateCryptoRootCrt(priKeyBytes []byte, subject pkix.Nam
 	if priKey, err = cc.getPriKey(priKeyBytes); nil != err {
 		return nil, err
 	}
-	if certData, err = gnomon.CA().GenerateCertificateSelf(&gnomon.CertSelf{
+	if certData, err = gnomon.CAGenerateCertificateSelf(&gnomon.CertSelf{
 		CertificateFilePath:   filePath,
 		Subject:               subject,
 		ParentPrivateKey:      priKey,
@@ -78,7 +78,7 @@ func (cc *CertConfig) generateCryptoChildCrt(rootCertBytes, priParentBytes, pubB
 	if nil != err {
 		return nil, err
 	}
-	if certData, err = gnomon.CA().GenerateCertificate(&gnomon.Cert{
+	if certData, err = gnomon.CAGenerateCertificate(&gnomon.Cert{
 		ParentCert: parentCert,
 		CertSelf: gnomon.CertSelf{
 			CertificateFilePath: filepath.Join(os.TempDir(), strconv.Itoa(random.Int()), "tmp.crt"),
@@ -104,15 +104,15 @@ func (cc *CertConfig) getPriKey(priKeyData []byte) (crypto.Signer, error) {
 		priKey    crypto.Signer
 		err       error
 	)
-	if priEccKey, err = gnomon.CryptoECC().LoadPriPem(priKeyData); nil != err {
+	if priEccKey, err = gnomon.ECCLoadPriPem(priKeyData); nil != err {
 		var (
 			priRsaKey *rsa.PrivateKey
 			pks       gnomon.PKSCType
 		)
-		pks = gnomon.CryptoRSA().PKSC8()
-		if priRsaKey, err = gnomon.CryptoRSA().LoadPri(priKeyData, pks); nil != err {
-			pks = gnomon.CryptoRSA().PKSC1()
-			if priRsaKey, err = gnomon.CryptoRSA().LoadPri(priKeyData, pks); nil != err {
+		pks = gnomon.RSAPKSC8()
+		if priRsaKey, err = gnomon.RSALoadPri(priKeyData, pks); nil != err {
+			pks = gnomon.RSAPKSC1()
+			if priRsaKey, err = gnomon.RSALoadPri(priKeyData, pks); nil != err {
 				return nil, errors.New("private key is not support")
 			}
 		}
@@ -124,16 +124,16 @@ func (cc *CertConfig) getPriKey(priKeyData []byte) (crypto.Signer, error) {
 }
 
 func (cc *CertConfig) getCertKey(priParentKeyData, pubKeyData []byte) (priParentKey crypto.Signer, pubKey interface{}, err error) {
-	if priParentKey, err = gnomon.CryptoECC().LoadPriPem(priParentKeyData); nil != err {
-		if priParentKey, err = gnomon.CryptoRSA().LoadPri(priParentKeyData, gnomon.CryptoRSA().PKSC8()); nil != err {
-			if priParentKey, err = gnomon.CryptoRSA().LoadPri(priParentKeyData, gnomon.CryptoRSA().PKSC1()); nil != err {
+	if priParentKey, err = gnomon.ECCLoadPriPem(priParentKeyData); nil != err {
+		if priParentKey, err = gnomon.RSALoadPri(priParentKeyData, gnomon.RSAPKSC8()); nil != err {
+			if priParentKey, err = gnomon.RSALoadPri(priParentKeyData, gnomon.RSAPKSC1()); nil != err {
 				err = errors.New("private key is not support")
 				return
 			}
 		}
 	}
-	if pubKey, err = gnomon.CryptoECC().LoadPubPem(pubKeyData); nil != err {
-		if pubKey, err = gnomon.CryptoRSA().LoadPub(pubKeyData); nil != err {
+	if pubKey, err = gnomon.ECCLoadPubPem(pubKeyData); nil != err {
+		if pubKey, err = gnomon.RSALoadPub(pubKeyData); nil != err {
 			err = errors.New("public key is not support")
 			return
 		}

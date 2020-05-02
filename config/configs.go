@@ -54,7 +54,7 @@ func obtainConfig(req *config.ReqConfigObtain) (resp *config.RespConfigObtain, e
 	return &config.RespConfigObtain{Code: config.Code_Success, ConfigBytes: configBytes}, nil
 }
 
-func listConfig(req *config.ReqConfigList) (resp *config.RespConfigList, err error) {
+func listConfig(_ *config.ReqConfigList) (resp *config.RespConfigList, err error) {
 	var orgConfigs []*config.OrgConfig
 	lockConfig.Lock()
 	for configID := range Configs {

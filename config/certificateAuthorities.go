@@ -53,12 +53,12 @@ type CertificateAuthorityRegistrar struct {
 }
 
 func (c *CertificateAuthority) set(leagueDomain string, org *config.Org, ca *config.CertificateAuthority) error {
-	if gnomon.String().IsNotEmpty(ca.Url) {
+	if gnomon.StringIsNotEmpty(ca.Url) {
 		c.URL = ca.Url
 	} else {
 		return errors.New("url can't be empty")
 	}
-	if gnomon.String().IsNotEmpty(ca.Name) {
+	if gnomon.StringIsNotEmpty(ca.Name) {
 		c.CAName = ca.Name
 	} else {
 		return errors.New("ca name can't be empty")

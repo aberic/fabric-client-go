@@ -17,7 +17,7 @@ package core
 import (
 	"errors"
 	"fmt"
-	"github.com/aberic/fabric-client-go/utils/log"
+	"github.com/aberic/gnomon/log"
 	"github.com/golang/protobuf/proto"
 	"github.com/hyperledger/fabric-protos-go/common"
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/channel"
@@ -105,12 +105,12 @@ func sign(ctx context.Client, message []byte) (*common.ConfigSignature, *common.
 func getSignatureHeader(ctx context.Client) (signatureHeader *common.SignatureHeader, signatureHeaderBytes []byte, err error) {
 	creatorBytes, err := ctx.Serialize()
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to get user context's identity error: %w", err)
+		return nil, nil, fmt.Errorf("failed to get user context's identity error: %e", err)
 	}
 	// generate a random nonce
 	nonce, err := getRandomNonce()
 	if err != nil {
-		return nil, nil, fmt.Errorf("nonce creation failed error: %w", err)
+		return nil, nil, fmt.Errorf("nonce creation failed error: %e", err)
 	}
 	signatureHeader = &common.SignatureHeader{
 		Creator: creatorBytes,

@@ -159,8 +159,8 @@ type ClientGlobalCache struct {
 }
 
 func NewConfigClient(leagueDomain string, org *config.Org) (*Client, string, error) {
-	if gnomon.String().IsEmpty(leagueDomain) || gnomon.String().IsEmpty(org.Domain) ||
-		gnomon.String().IsEmpty(org.Name) || gnomon.String().IsEmpty(org.Username) {
+	if gnomon.StringIsEmpty(leagueDomain) || gnomon.StringIsEmpty(org.Domain) ||
+		gnomon.StringIsEmpty(org.Name) || gnomon.StringIsEmpty(org.Username) {
 		return nil, "", errors.New("league or org info params should be set")
 	}
 	cryptoConfigPath := utils.CryptoConfigPath(leagueDomain)
@@ -247,7 +247,7 @@ func (c *Client) set(client *config.Client, orgUserPath string) {
 }
 
 func (c *Client) setLogging(client *config.Client) {
-	if nil != client.Logging && gnomon.String().IsNotEmpty(client.Logging.Level) {
+	if nil != client.Logging && gnomon.StringIsNotEmpty(client.Logging.Level) {
 		c.Logging.Level = client.Logging.Level
 	} else {
 		c.Logging.Level = "info"
@@ -256,32 +256,32 @@ func (c *Client) setLogging(client *config.Client) {
 
 func (c *Client) setPeer(client *config.Client) {
 	if nil != client.Peer && nil != client.Peer.Timeout {
-		if gnomon.String().IsNotEmpty(client.Peer.Timeout.Connection) {
+		if gnomon.StringIsNotEmpty(client.Peer.Timeout.Connection) {
 			c.Peer.Timeout.Connection = client.Peer.Timeout.Connection
 			c.Peer.Timeout.Response = client.Peer.Timeout.Response
 			c.Peer.Timeout.Discovery.GreyListExpiry = client.Peer.Timeout.Discovery.GreyListExpiry
 		}
-		if gnomon.String().IsNotEmpty(client.Peer.Timeout.Response) {
+		if gnomon.StringIsNotEmpty(client.Peer.Timeout.Response) {
 			c.Peer.Timeout.Response = client.Peer.Timeout.Response
 		}
-		if nil != client.Peer.Timeout.Discovery && gnomon.String().IsNotEmpty(client.Peer.Timeout.Discovery.GreyListExpiry) {
+		if nil != client.Peer.Timeout.Discovery && gnomon.StringIsNotEmpty(client.Peer.Timeout.Discovery.GreyListExpiry) {
 			c.Peer.Timeout.Discovery.GreyListExpiry = client.Peer.Timeout.Discovery.GreyListExpiry
 		}
 	}
 }
 
 func (c *Client) setEventService(client *config.Client) {
-	if nil != client.EventService && nil != client.EventService.Timeout && gnomon.String().IsNotEmpty(client.EventService.Timeout.RegistrationResponse) {
+	if nil != client.EventService && nil != client.EventService.Timeout && gnomon.StringIsNotEmpty(client.EventService.Timeout.RegistrationResponse) {
 		c.EventService.Timeout.RegistrationResponse = client.EventService.Timeout.RegistrationResponse
 	}
 }
 
 func (c *Client) setOrder(client *config.Client) {
 	if nil != client.Order && nil != client.Order.Timeout {
-		if gnomon.String().IsNotEmpty(client.Order.Timeout.Connection) {
+		if gnomon.StringIsNotEmpty(client.Order.Timeout.Connection) {
 			c.Order.Timeout.Connection = client.Order.Timeout.Connection
 		}
-		if gnomon.String().IsNotEmpty(client.Order.Timeout.Response) {
+		if gnomon.StringIsNotEmpty(client.Order.Timeout.Response) {
 			c.Order.Timeout.Response = client.Order.Timeout.Response
 		}
 	}
@@ -290,33 +290,33 @@ func (c *Client) setOrder(client *config.Client) {
 func (c *Client) setGlobal(client *config.Client) {
 	if nil != client.Global {
 		if nil != client.Global.Timeout {
-			if gnomon.String().IsNotEmpty(client.Global.Timeout.Query) {
+			if gnomon.StringIsNotEmpty(client.Global.Timeout.Query) {
 				c.Global.Timeout.Query = client.Global.Timeout.Query
 			}
-			if gnomon.String().IsNotEmpty(client.Global.Timeout.Execute) {
+			if gnomon.StringIsNotEmpty(client.Global.Timeout.Execute) {
 				c.Global.Timeout.Execute = client.Global.Timeout.Execute
 			}
-			if gnomon.String().IsNotEmpty(client.Global.Timeout.Resmgmt) {
+			if gnomon.StringIsNotEmpty(client.Global.Timeout.Resmgmt) {
 				c.Global.Timeout.Resmgmt = client.Global.Timeout.Resmgmt
 			}
 		}
 		if nil != client.Global.Cache {
-			if gnomon.String().IsNotEmpty(client.Global.Cache.ConnectionIdle) {
+			if gnomon.StringIsNotEmpty(client.Global.Cache.ConnectionIdle) {
 				c.Global.Cache.ConnectionIdle = client.Global.Cache.ConnectionIdle
 			}
-			if gnomon.String().IsNotEmpty(client.Global.Cache.EventServiceIdle) {
+			if gnomon.StringIsNotEmpty(client.Global.Cache.EventServiceIdle) {
 				c.Global.Cache.EventServiceIdle = client.Global.Cache.EventServiceIdle
 			}
-			if gnomon.String().IsNotEmpty(client.Global.Cache.ChannelMembership) {
+			if gnomon.StringIsNotEmpty(client.Global.Cache.ChannelMembership) {
 				c.Global.Cache.ChannelMembership = client.Global.Cache.ChannelMembership
 			}
-			if gnomon.String().IsNotEmpty(client.Global.Cache.ChannelConfig) {
+			if gnomon.StringIsNotEmpty(client.Global.Cache.ChannelConfig) {
 				c.Global.Cache.ChannelConfig = client.Global.Cache.ChannelConfig
 			}
-			if gnomon.String().IsNotEmpty(client.Global.Cache.Discovery) {
+			if gnomon.StringIsNotEmpty(client.Global.Cache.Discovery) {
 				c.Global.Cache.Discovery = client.Global.Cache.Discovery
 			}
-			if gnomon.String().IsNotEmpty(client.Global.Cache.Selection) {
+			if gnomon.StringIsNotEmpty(client.Global.Cache.Selection) {
 				c.Global.Cache.Selection = client.Global.Cache.Selection
 			}
 		}
@@ -327,10 +327,10 @@ func (c *Client) setBCCSP(client *config.Client) {
 	if nil != client.BCCSP && nil != client.BCCSP.Security {
 		c.BCCSP.Security.Enabled = client.BCCSP.Security.Enabled
 		c.BCCSP.Security.SoftVerify = client.BCCSP.Security.SoftVerify
-		if nil != client.BCCSP.Security.Default && gnomon.String().IsNotEmpty(client.BCCSP.Security.Default.Provider) {
+		if nil != client.BCCSP.Security.Default && gnomon.StringIsNotEmpty(client.BCCSP.Security.Default.Provider) {
 			c.BCCSP.Security.Default.Provider = client.BCCSP.Security.Default.Provider
 		}
-		if gnomon.String().IsNotEmpty(client.BCCSP.Security.HashAlgorithm) {
+		if gnomon.StringIsNotEmpty(client.BCCSP.Security.HashAlgorithm) {
 			c.BCCSP.Security.HashAlgorithm = client.BCCSP.Security.HashAlgorithm
 		}
 		if client.BCCSP.Security.Level > 0 {

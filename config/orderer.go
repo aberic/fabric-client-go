@@ -56,7 +56,7 @@ type OrdererTLSCACerts struct {
 }
 
 func (o *Orderer) set(leagueDomain string, orderer *config.Orderer, node *config.Node) error {
-	if gnomon.String().IsNotEmpty(node.Url) {
+	if gnomon.StringIsNotEmpty(node.Url) {
 		o.URL = node.Url
 	} else {
 		return errors.New("url can't be empty")
@@ -74,17 +74,17 @@ func (o *Orderer) set(leagueDomain string, orderer *config.Orderer, node *config
 }
 
 func (o *Orderer) setOrdererGRPCOptions(options *config.GRPCOptions) error {
-	if gnomon.String().IsNotEmpty(options.SslTargetNameOverride) {
+	if gnomon.StringIsNotEmpty(options.SslTargetNameOverride) {
 		o.GRPCOptions.SSLTargetNameOverride = options.SslTargetNameOverride
 	} else {
 		return errors.New("ssl-target-name-override can't be empty")
 	}
-	if gnomon.String().IsNotEmpty(options.KeepAliveTime) {
+	if gnomon.StringIsNotEmpty(options.KeepAliveTime) {
 		o.GRPCOptions.KeepAliveTime = options.KeepAliveTime
 	} else {
 		o.GRPCOptions.KeepAliveTime = "0s"
 	}
-	if gnomon.String().IsNotEmpty(options.KeepAliveTimeout) {
+	if gnomon.StringIsNotEmpty(options.KeepAliveTimeout) {
 		o.GRPCOptions.KeepAliveTimeout = options.KeepAliveTimeout
 	} else {
 		o.GRPCOptions.KeepAliveTimeout = "20s"

@@ -124,28 +124,28 @@ func testStoreOrg(leagueDomain, orgName, orgDomain string, orc *ca.RespRootCrypt
 	tlsPubKeyFileName := "tls.pub"
 	tlsCaCertFileName := "tls.crt"
 	tlsCertFileName := strings.Join([]string{"tlsca.", orgName, ".", orgDomain, "-cert.pem"}, "")
-	if _, err := gnomon.File().Append(filepath.Join(orgRootFilePath, priKeyFileName), orc.PriKeyBytes, true); nil != err {
+	if _, err := gnomon.FileAppend(filepath.Join(orgRootFilePath, priKeyFileName), orc.PriKeyBytes, true); nil != err {
 		t.Fatal(err)
 	}
-	if _, err := gnomon.File().Append(filepath.Join(orgRootFilePath, pubKeyFileName), orc.PubKeyBytes, true); nil != err {
+	if _, err := gnomon.FileAppend(filepath.Join(orgRootFilePath, pubKeyFileName), orc.PubKeyBytes, true); nil != err {
 		t.Fatal(err)
 	}
-	if _, err := gnomon.File().Append(filepath.Join(orgRootFilePath, certFileName), orc.CertBytes, true); nil != err {
+	if _, err := gnomon.FileAppend(filepath.Join(orgRootFilePath, certFileName), orc.CertBytes, true); nil != err {
 		t.Fatal(err)
 	}
-	if _, err := gnomon.File().Append(filepath.Join(orgRootFilePath, caCertFileName), orc.CertBytes, true); nil != err {
+	if _, err := gnomon.FileAppend(filepath.Join(orgRootFilePath, caCertFileName), orc.CertBytes, true); nil != err {
 		t.Fatal(err)
 	}
-	if _, err := gnomon.File().Append(filepath.Join(orgRootFilePath, tlsPriKeyFileName), orc.TlsPriKeyBytes, true); nil != err {
+	if _, err := gnomon.FileAppend(filepath.Join(orgRootFilePath, tlsPriKeyFileName), orc.TlsPriKeyBytes, true); nil != err {
 		t.Fatal(err)
 	}
-	if _, err := gnomon.File().Append(filepath.Join(orgRootFilePath, tlsPubKeyFileName), orc.TlsPubKeyBytes, true); nil != err {
+	if _, err := gnomon.FileAppend(filepath.Join(orgRootFilePath, tlsPubKeyFileName), orc.TlsPubKeyBytes, true); nil != err {
 		t.Fatal(err)
 	}
-	if _, err := gnomon.File().Append(filepath.Join(orgRootFilePath, tlsCertFileName), orc.TlsCertBytes, true); nil != err {
+	if _, err := gnomon.FileAppend(filepath.Join(orgRootFilePath, tlsCertFileName), orc.TlsCertBytes, true); nil != err {
 		t.Fatal(err)
 	}
-	if _, err := gnomon.File().Append(filepath.Join(orgRootFilePath, tlsCaCertFileName), orc.TlsCertBytes, true); nil != err {
+	if _, err := gnomon.FileAppend(filepath.Join(orgRootFilePath, tlsCaCertFileName), orc.TlsCertBytes, true); nil != err {
 		t.Fatal(err)
 	}
 }
@@ -164,10 +164,10 @@ func testChild(leagueDomain, orgName, orgDomain, childName string, isUser bool, 
 		t.Fatal(err)
 	}
 	t.Log(crypto)
-	if _, err := gnomon.File().Append(filepath.Join(childRootFilePath, "ca.key"), crypto.PriKeyBytes, true); nil != err {
+	if _, err := gnomon.FileAppend(filepath.Join(childRootFilePath, "ca.key"), crypto.PriKeyBytes, true); nil != err {
 		t.Fatal(err)
 	}
-	if _, err := gnomon.File().Append(filepath.Join(childRootFilePath, "ca.pub"), crypto.PubKeyBytes, true); nil != err {
+	if _, err := gnomon.FileAppend(filepath.Join(childRootFilePath, "ca.pub"), crypto.PubKeyBytes, true); nil != err {
 		t.Fatal(err)
 	}
 	// tls ca
@@ -181,10 +181,10 @@ func testChild(leagueDomain, orgName, orgDomain, childName string, isUser bool, 
 	if nil != err {
 		t.Fatal(err)
 	}
-	if _, err := gnomon.File().Append(filepath.Join(childRootFilePath, "tls.key"), tlsCrypto.PriKeyBytes, true); nil != err {
+	if _, err := gnomon.FileAppend(filepath.Join(childRootFilePath, "tls.key"), tlsCrypto.PriKeyBytes, true); nil != err {
 		t.Fatal(err)
 	}
-	if _, err := gnomon.File().Append(filepath.Join(childRootFilePath, "tls.pub"), tlsCrypto.PubKeyBytes, true); nil != err {
+	if _, err := gnomon.FileAppend(filepath.Join(childRootFilePath, "tls.pub"), tlsCrypto.PubKeyBytes, true); nil != err {
 		t.Fatal(err)
 	}
 
@@ -225,7 +225,7 @@ func testSignCA(leagueDomain, orgName, orgDomain, childName string, isUser, isTl
 	} else {
 		certFileName = "ca.crt"
 	}
-	if _, err := gnomon.File().Append(filepath.Join(childRootFilePath, certFileName), respSC.CertBytes, true); nil != err {
+	if _, err := gnomon.FileAppend(filepath.Join(childRootFilePath, certFileName), respSC.CertBytes, true); nil != err {
 		t.Fatal(err)
 	}
 }

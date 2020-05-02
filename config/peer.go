@@ -61,12 +61,12 @@ type PeerTLSCACerts struct {
 }
 
 func (p *Peer) set(leagueDomain string, org *config.Org, peer *config.Peer) error {
-	if gnomon.String().IsNotEmpty(peer.Url) {
+	if gnomon.StringIsNotEmpty(peer.Url) {
 		p.URL = peer.Url
 	} else {
 		return errors.New("url can't be empty")
 	}
-	if gnomon.String().IsNotEmpty(peer.EventUrl) {
+	if gnomon.StringIsNotEmpty(peer.EventUrl) {
 		p.EventURL = peer.EventUrl
 	} else {
 		return errors.New("event url can't be empty")
@@ -84,17 +84,17 @@ func (p *Peer) set(leagueDomain string, org *config.Org, peer *config.Peer) erro
 }
 
 func (p *Peer) setPeerGRPCOptions(options *config.GRPCOptions) error {
-	if gnomon.String().IsNotEmpty(options.SslTargetNameOverride) {
+	if gnomon.StringIsNotEmpty(options.SslTargetNameOverride) {
 		p.GRPCOptions.SSLTargetNameOverride = options.SslTargetNameOverride
 	} else {
 		return errors.New("ssl-target-name-override can't be empty")
 	}
-	if gnomon.String().IsNotEmpty(options.KeepAliveTime) {
+	if gnomon.StringIsNotEmpty(options.KeepAliveTime) {
 		p.GRPCOptions.KeepAliveTime = options.KeepAliveTime
 	} else {
 		p.GRPCOptions.KeepAliveTime = "0s"
 	}
-	if gnomon.String().IsNotEmpty(options.KeepAliveTimeout) {
+	if gnomon.StringIsNotEmpty(options.KeepAliveTimeout) {
 		p.GRPCOptions.KeepAliveTimeout = options.KeepAliveTimeout
 	} else {
 		p.GRPCOptions.KeepAliveTimeout = "20s"

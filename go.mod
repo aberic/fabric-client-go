@@ -4,8 +4,8 @@ go 1.13
 
 require (
 	github.com/Shopify/sarama v1.25.0 // indirect
-	github.com/aberic/gnomon v0.0.0-20200425040153-97b74bca511a
-	github.com/aberic/raft4go v0.0.0-20200423093108-f1be3b691466
+	github.com/aberic/gnomon v0.0.0-20200502163933-e155e824a964
+	github.com/aberic/raft4go v0.0.0-20200502165548-e81a97c3f338
 	github.com/fsouza/go-dockerclient v1.6.0 // indirect
 	github.com/gogo/protobuf v1.2.1
 	github.com/golang/protobuf v1.3.5

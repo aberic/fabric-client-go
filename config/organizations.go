@@ -59,7 +59,7 @@ func (o *Organization) setOrderer(leagueDomain string, orderer *config.Orderer) 
 	if nil == orderer.User || len(orderer.Nodes) <= 0 {
 		return errors.New("node or user can't be empty")
 	}
-	if gnomon.String().IsNotEmpty(orderer.MspID) {
+	if gnomon.StringIsNotEmpty(orderer.MspID) {
 		o.MspID = orderer.MspID
 	} else {
 		o.MspID = utils.MspID(orderer.Name)
@@ -80,7 +80,7 @@ func (o *Organization) setOrg(leagueDomain string, org *config.Org) error {
 	if len(org.Peers) <= 0 || len(org.Users) <= 0 {
 		return errors.New("peer or user can't be empty")
 	}
-	if gnomon.String().IsNotEmpty(org.MspID) {
+	if gnomon.StringIsNotEmpty(org.MspID) {
 		o.MspID = org.MspID
 	} else {
 		o.MspID = utils.MspID(org.Name)

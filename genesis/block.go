@@ -145,13 +145,13 @@ func mspExec(leagueDomain, orgName, orgDomain string, cert *genesis.MspCert, isP
 	adminCertFilePath := filepath.Join(mspDir, "admincerts", utils.CertUserCAName(orgName, orgDomain, "Admin"))
 	caCertFilePath := filepath.Join(mspDir, "cacerts", utils.RootOrgCACertFileName(orgName, orgDomain))
 	tlsCaCertFilePath := filepath.Join(mspDir, "tlscacerts", utils.RootOrgTLSCACertFileName(orgName, orgDomain))
-	if _, err = gnomon.File().Append(adminCertFilePath, cert.AdminCert, true); nil != err {
+	if _, err = gnomon.FileAppend(adminCertFilePath, cert.AdminCert, true); nil != err {
 		return
 	}
-	if _, err = gnomon.File().Append(caCertFilePath, cert.CaCert, true); nil != err {
+	if _, err = gnomon.FileAppend(caCertFilePath, cert.CaCert, true); nil != err {
 		return
 	}
-	if _, err = gnomon.File().Append(tlsCaCertFilePath, cert.TlsCaCert, true); nil != err {
+	if _, err = gnomon.FileAppend(tlsCaCertFilePath, cert.TlsCaCert, true); nil != err {
 		return
 	}
 	return

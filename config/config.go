@@ -71,12 +71,12 @@ func (c *Config) ObtainOrders() ([]*Order, []*Org) {
 
 func (c *Config) padding(configSet *config.ReqConfigSet) (*config.RespConfigSet, error) {
 	var err error
-	if gnomon.String().IsEmpty(configSet.Version) {
+	if gnomon.StringIsEmpty(configSet.Version) {
 		err = errors.New("version can't be nil")
 		goto ERR
 	}
-	if nil == configSet.Org || gnomon.String().IsEmpty(configSet.Org.Domain) || gnomon.String().IsEmpty(configSet.Org.Name) ||
-		gnomon.String().IsEmpty(configSet.Org.Username) {
+	if nil == configSet.Org || gnomon.StringIsEmpty(configSet.Org.Domain) || gnomon.StringIsEmpty(configSet.Org.Name) ||
+		gnomon.StringIsEmpty(configSet.Org.Username) {
 		err = errors.New("org or org require params can't be nil")
 		return &config.RespConfigSet{Code: config.Code_Fail, ErrMsg: err.Error()}, err
 	}
@@ -99,7 +99,7 @@ func (c *Config) padding(configSet *config.ReqConfigSet) (*config.RespConfigSet,
 	}
 	return &config.RespConfigSet{Code: config.Code_Success}, nil
 ERR:
-	err = fmt.Errorf("config set error: %w", err)
+	err = fmt.Errorf("config set error: %e", err)
 	return &config.RespConfigSet{Code: config.Code_Fail, ErrMsg: err.Error()}, err
 }
 
@@ -108,7 +108,7 @@ func (c *Config) set(configSet *config.ReqConfigSet) (resp *config.RespConfigSet
 		return
 	}
 	if err = c.mkAllDir(configSet); nil != err {
-		err = fmt.Errorf("config set error: %w", err)
+		err = fmt.Errorf("config set error: %e", err)
 		return &config.RespConfigSet{Code: config.Code_Fail, ErrMsg: err.Error()}, err
 	}
 	return
@@ -117,7 +117,7 @@ func (c *Config) set(configSet *config.ReqConfigSet) (resp *config.RespConfigSet
 func (c *Config) setClient(configSet *config.ReqConfigSet) error {
 	client, orgUserPath, err := NewConfigClient(configSet.LeagueDomain, configSet.Org)
 	if nil != err {
-		return fmt.Errorf("client set error: %w", err)
+		return fmt.Errorf("client set error: %e", err)
 	}
 	client.set(configSet.Client, orgUserPath)
 	c.Client = client
@@ -159,7 +159,7 @@ func (c *Config) setOrderers(configSet *config.ReqConfigSet) error {
 		for _, node := range configSet.Orderer.Nodes {
 			order := &Orderer{GRPCOptions: &OrdererGRPCOptions{}, TLSCACerts: &OrdererTLSCACerts{}}
 			if err := order.set(configSet.LeagueDomain, configSet.Orderer, node); nil != err {
-				return fmt.Errorf("orderers set error: %w", err)
+				return fmt.Errorf("orderers set error: %e", err)
 			}
 			c.Orderers[node.Name] = order
 		}
@@ -175,7 +175,7 @@ func (c *Config) setPeers(configSet *config.ReqConfigSet) error {
 	for _, peer := range configSet.Org.Peers {
 		p := &Peer{GRPCOptions: &PeerGRPCOptions{}, TLSCACerts: &PeerTLSCACerts{}}
 		if err := p.set(configSet.LeagueDomain, configSet.Org, peer); nil != err {
-			return fmt.Errorf("peers set error: %w", err)
+			return fmt.Errorf("peers set error: %e", err)
 		}
 		c.Peers[peer.Name] = p
 	}
@@ -193,7 +193,7 @@ func (c *Config) setCertificateAuthorities(configSet *config.ReqConfigSet) error
 			Registrar: &CertificateAuthorityRegistrar{},
 		}
 		if err := ca.set(configSet.LeagueDomain, configSet.Org, certificateAuthority); nil != err {
-			return fmt.Errorf("ca set error: %w", err)
+			return fmt.Errorf("ca set error: %e", err)
 		}
 		c.CertificateAuthorities[certificateAuthority.Name] = ca
 	}
@@ -215,8 +215,8 @@ func (c *Config) mkOrdererDir(leagueDomain string, orderer *config.Orderer) erro
 		admins []*adminCrypto
 		err    error
 	)
-	if nil == orderer || gnomon.String().IsEmpty(orderer.Domain) || gnomon.String().IsEmpty(orderer.Name) ||
-		gnomon.String().IsEmpty(orderer.Username) || nil == orderer.User {
+	if nil == orderer || gnomon.StringIsEmpty(orderer.Domain) || gnomon.StringIsEmpty(orderer.Name) ||
+		gnomon.StringIsEmpty(orderer.Username) || nil == orderer.User {
 		return nil
 	}
 	orgPath, userPath := utils.CryptoOrgAndUserPath(leagueDomain, orderer.Domain, orderer.Name, orderer.Username, false)
@@ -229,7 +229,7 @@ func (c *Config) mkOrdererDir(leagueDomain string, orderer *config.Orderer) erro
 		tlsCaCertBytes:    orderer.TlsCertBytes,
 	}
 
-	if err = os.MkdirAll(userPath, 0755); !gnomon.File().PathExists(userPath) && nil != err {
+	if err = os.MkdirAll(userPath, 0755); !gnomon.FilePathExists(userPath) && nil != err {
 		return err
 	}
 	//userSKIFileName, err := utils.SKI(leagueDomain, orderer.Domain, orderer.Name, orderer.Username, true, orderer.User.Crypto.Key)
@@ -276,8 +276,8 @@ func (c *Config) mkPeerDir(leagueDomain string, org *config.Org) error {
 		admins []*adminCrypto
 		err    error
 	)
-	if nil == org || gnomon.String().IsEmpty(org.Domain) || gnomon.String().IsEmpty(org.Name) ||
-		gnomon.String().IsEmpty(org.Username) || len(org.Users) == 0 {
+	if nil == org || gnomon.StringIsEmpty(org.Domain) || gnomon.StringIsEmpty(org.Name) ||
+		gnomon.StringIsEmpty(org.Username) || len(org.Users) == 0 {
 		return nil
 	}
 
@@ -293,7 +293,7 @@ func (c *Config) mkPeerDir(leagueDomain string, org *config.Org) error {
 
 	for _, user := range org.Users {
 		_, userPath := utils.CryptoOrgAndUserPath(leagueDomain, org.Domain, org.Name, user.Name, true)
-		if err = os.MkdirAll(orgPath, 0755); gnomon.File().PathExists(userPath) && nil != err {
+		if err = os.MkdirAll(orgPath, 0755); gnomon.FilePathExists(userPath) && nil != err {
 			return err
 		}
 		//userSKIFileName, err := utils.SKI(leagueDomain, org.Domain, org.Name, user.Name, true, user.Crypto.Key)
@@ -315,7 +315,7 @@ func (c *Config) mkPeerDir(leagueDomain string, org *config.Org) error {
 		}
 	}
 
-	if err = os.MkdirAll(orgPath, 0755); gnomon.File().PathExists(orgPath) && nil != err {
+	if err = os.MkdirAll(orgPath, 0755); gnomon.FilePathExists(orgPath) && nil != err {
 		return err
 	}
 	if err = c.mkOrgDir(leagueDomain, orgPath, "peers", admins, orgCrypto); nil != err {
@@ -349,27 +349,27 @@ func (c *Config) mkOrgDir(leagueDomain string, orgPath, orgs string, admins []*a
 	tlscaPath := path.Join(orgPath, "tlsca")
 	usersPath := path.Join(orgPath, "users")
 
-	if err = os.Mkdir(caPath, 0755); !gnomon.File().PathExists(caPath) && nil != err {
+	if err = os.Mkdir(caPath, 0755); !gnomon.FilePathExists(caPath) && nil != err {
 		return err
 	}
-	if err = os.Mkdir(mspPath, 0755); !gnomon.File().PathExists(mspPath) && nil != err {
+	if err = os.Mkdir(mspPath, 0755); !gnomon.FilePathExists(mspPath) && nil != err {
 		return err
 	}
-	if err = os.Mkdir(orgsPath, 0755); !gnomon.File().PathExists(orgsPath) && nil != err {
+	if err = os.Mkdir(orgsPath, 0755); !gnomon.FilePathExists(orgsPath) && nil != err {
 		return err
 	}
-	if err = os.Mkdir(tlscaPath, 0755); !gnomon.File().PathExists(tlscaPath) && nil != err {
+	if err = os.Mkdir(tlscaPath, 0755); !gnomon.FilePathExists(tlscaPath) && nil != err {
 		return err
 	}
-	if err = os.Mkdir(usersPath, 0755); !gnomon.File().PathExists(usersPath) && nil != err {
+	if err = os.Mkdir(usersPath, 0755); !gnomon.FilePathExists(usersPath) && nil != err {
 		return err
 	}
 
-	if _, err := gnomon.File().Append(filepath.Join(caPath, org.caCertFileName), org.caCertBytes, true); nil != err {
-		return fmt.Errorf("ca cert set error: %w", err)
+	if _, err := gnomon.FileAppend(filepath.Join(caPath, org.caCertFileName), org.caCertBytes, true); nil != err {
+		return fmt.Errorf("ca cert set error: %e", err)
 	}
-	if _, err := gnomon.File().Append(filepath.Join(tlscaPath, org.tlsCaCertFileName), org.tlsCaCertBytes, true); nil != err {
-		return fmt.Errorf("tls ca cert set error: %w", err)
+	if _, err := gnomon.FileAppend(filepath.Join(tlscaPath, org.tlsCaCertFileName), org.tlsCaCertBytes, true); nil != err {
+		return fmt.Errorf("tls ca cert set error: %e", err)
 	}
 
 	return c.mkMspDir(leagueDomain, mspPath, admins, org, nil)
@@ -380,59 +380,59 @@ func (c *Config) mkMspDir(leagueDomain, mspPath string, admins []*adminCrypto, o
 	admincertsPath := path.Join(mspPath, "admincerts")
 	cacertsPath := path.Join(mspPath, "cacerts")
 	tlscacertsPath := path.Join(mspPath, "tlscacerts")
-	if err = os.MkdirAll(mspPath, 0755); !gnomon.File().PathExists(mspPath) && nil != err {
+	if err = os.MkdirAll(mspPath, 0755); !gnomon.FilePathExists(mspPath) && nil != err {
 		return err
 	}
-	if err = os.Mkdir(admincertsPath, 0755); !gnomon.File().PathExists(admincertsPath) && nil != err {
+	if err = os.Mkdir(admincertsPath, 0755); !gnomon.FilePathExists(admincertsPath) && nil != err {
 		return err
 	}
-	if err = os.Mkdir(cacertsPath, 0755); !gnomon.File().PathExists(cacertsPath) && nil != err {
+	if err = os.Mkdir(cacertsPath, 0755); !gnomon.FilePathExists(cacertsPath) && nil != err {
 		return err
 	}
-	if err = os.Mkdir(tlscacertsPath, 0755); !gnomon.File().PathExists(tlscacertsPath) && nil != err {
+	if err = os.Mkdir(tlscacertsPath, 0755); !gnomon.FilePathExists(tlscacertsPath) && nil != err {
 		return err
 	}
 
-	if _, err := gnomon.File().Append(filepath.Join(cacertsPath, org.caCertFileName), org.caCertBytes, true); nil != err {
-		return fmt.Errorf("ca cert set error: %w", err)
+	if _, err := gnomon.FileAppend(filepath.Join(cacertsPath, org.caCertFileName), org.caCertBytes, true); nil != err {
+		return fmt.Errorf("ca cert set error: %e", err)
 	}
-	if _, err := gnomon.File().Append(filepath.Join(tlscacertsPath, org.tlsCaCertFileName), org.tlsCaCertBytes, true); nil != err {
-		return fmt.Errorf("tls ca cert set error: %w", err)
+	if _, err := gnomon.FileAppend(filepath.Join(tlscacertsPath, org.tlsCaCertFileName), org.tlsCaCertBytes, true); nil != err {
+		return fmt.Errorf("tls ca cert set error: %e", err)
 	}
 
 	if nil != user {
 		keystorePath := path.Join(mspPath, "keystore")
 		signcertsPath := path.Join(mspPath, "signcerts")
-		if err = os.Mkdir(keystorePath, 0755); !gnomon.File().PathExists(keystorePath) && nil != err {
+		if err = os.Mkdir(keystorePath, 0755); !gnomon.FilePathExists(keystorePath) && nil != err {
 			return err
 		}
-		if err = os.Mkdir(signcertsPath, 0755); !gnomon.File().PathExists(signcertsPath) && nil != err {
+		if err = os.Mkdir(signcertsPath, 0755); !gnomon.FilePathExists(signcertsPath) && nil != err {
 			return err
 		}
 
-		if _, err := gnomon.File().Append(filepath.Join(keystorePath, user.skiFileName), user.Crypto.Key, true); nil != err {
-			return fmt.Errorf("user key set error: %w", err)
+		if _, err := gnomon.FileAppend(filepath.Join(keystorePath, user.skiFileName), user.Crypto.Key, true); nil != err {
+			return fmt.Errorf("user key set error: %e", err)
 		}
 
-		if _, err := gnomon.File().Append(filepath.Join(signcertsPath, user.certFileName), user.Crypto.Cert, true); nil != err {
-			return fmt.Errorf("user ca cert set error: %w", err)
+		if _, err := gnomon.FileAppend(filepath.Join(signcertsPath, user.certFileName), user.Crypto.Cert, true); nil != err {
+			return fmt.Errorf("user ca cert set error: %e", err)
 		}
 		if user.isUser {
-			if _, err := gnomon.File().Append(filepath.Join(admincertsPath, user.certFileName), user.Crypto.Cert, true); nil != err {
-				return fmt.Errorf("admin ca cert set error: %w", err)
+			if _, err := gnomon.FileAppend(filepath.Join(admincertsPath, user.certFileName), user.Crypto.Cert, true); nil != err {
+				return fmt.Errorf("admin ca cert set error: %e", err)
 			}
 		} else {
 			for _, admin := range admins {
-				if _, err := gnomon.File().Append(filepath.Join(admincertsPath, admin.certFileName), admin.certBytes, true); nil != err {
-					return fmt.Errorf("admin ca cert set error: %w", err)
+				if _, err := gnomon.FileAppend(filepath.Join(admincertsPath, admin.certFileName), admin.certBytes, true); nil != err {
+					return fmt.Errorf("admin ca cert set error: %e", err)
 				}
 			}
 		}
 		return c.mkTlsDir(leagueDomain, org, user)
 	} else {
 		for _, admin := range admins {
-			if _, err := gnomon.File().Append(filepath.Join(admincertsPath, admin.certFileName), admin.certBytes, true); nil != err {
-				return fmt.Errorf("admin ca cert set error: %w", err)
+			if _, err := gnomon.FileAppend(filepath.Join(admincertsPath, admin.certFileName), admin.certBytes, true); nil != err {
+				return fmt.Errorf("admin ca cert set error: %e", err)
 			}
 		}
 	}
@@ -441,20 +441,20 @@ func (c *Config) mkMspDir(leagueDomain, mspPath string, admins []*adminCrypto, o
 }
 
 func (c *Config) mkTlsDir(leagueDomain string, org *orgCrypto, user *userCrypto) error {
-	if _, err := gnomon.File().Append(filepath.Join(user.tlsPath, "ca.crt"), org.tlsCaCertBytes, true); nil != err {
-		return fmt.Errorf("root ca cert set error: %w", err)
+	if _, err := gnomon.FileAppend(filepath.Join(user.tlsPath, "ca.crt"), org.tlsCaCertBytes, true); nil != err {
+		return fmt.Errorf("root ca cert set error: %e", err)
 	}
 	tlsCryptoName := "server"
 	if user.isUser {
 		tlsCryptoName = "client"
 	}
 	tlsKeyFilePath := filepath.Join(user.tlsPath, strings.Join([]string{tlsCryptoName, "key"}, "."))
-	if _, err := gnomon.File().Append(tlsKeyFilePath, user.Crypto.TlsKey, true); nil != err {
-		return fmt.Errorf("tls ca key set error: %w", err)
+	if _, err := gnomon.FileAppend(tlsKeyFilePath, user.Crypto.TlsKey, true); nil != err {
+		return fmt.Errorf("tls ca key set error: %e", err)
 	}
 	tlsCertFilePath := filepath.Join(user.tlsPath, strings.Join([]string{tlsCryptoName, "crt"}, "."))
-	if _, err := gnomon.File().Append(tlsCertFilePath, user.Crypto.TlsCert, true); nil != err {
-		return fmt.Errorf("root ca cert set error: %w", err)
+	if _, err := gnomon.FileAppend(tlsCertFilePath, user.Crypto.TlsCert, true); nil != err {
+		return fmt.Errorf("root ca cert set error: %e", err)
 	}
 	return nil
 }

@@ -44,7 +44,7 @@ func TestGenesisBlock(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Log(blockStr)
-	if _, err = gnomon.File().Append(utils.GenesisBlockFilePath(leagueDomain), resp.BlockData, true); nil != err {
+	if _, err = gnomon.FileAppend(utils.GenesisBlockFilePath(leagueDomain), resp.BlockData, true); nil != err {
 		t.Fatal(err)
 	}
 }
@@ -60,7 +60,7 @@ func TestGenesisChannel(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Log(channelStr)
-	if _, err = gnomon.File().Append(utils.ChannelTXFilePath(leagueDomain, channelID), resp.ChannelTxData, true); nil != err {
+	if _, err = gnomon.FileAppend(utils.ChannelTXFilePath(leagueDomain, channelID), resp.ChannelTxData, true); nil != err {
 		t.Fatal(err)
 	}
 }
@@ -76,7 +76,7 @@ func TestGenesisBlock4Add(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Log(blockStr)
-	if _, err = gnomon.File().Append(utils.GenesisBlock4AddFilePath(leagueDomain), resp.BlockData, true); nil != err {
+	if _, err = gnomon.FileAppend(utils.GenesisBlock4AddFilePath(leagueDomain), resp.BlockData, true); nil != err {
 		t.Fatal(err)
 	}
 }

@@ -15,12 +15,10 @@ github.com/Shopify/toxiproxy v2.1.4+incompatible h1:TKdv8HiTLgE5wdJuEML90aBgNWso
 github.com/Shopify/toxiproxy v2.1.4+incompatible/go.mod h1:OXgGpZ6Cli1/URJOF1DMxUHB2q5Ap20/P/eIdh4G0pI=
 github.com/VividCortex/gohistogram v1.0.0 h1:6+hBz+qvs0JOrrNhhmR7lFxo5sINxBCGXrdtl/UvroE=
 github.com/VividCortex/gohistogram v1.0.0/go.mod h1:Pf5mBqqDxYaXu3hDrrU+w6nw50o/4+TcAqDqk/vUH7g=
-github.com/aberic/gnomon v0.0.0-20200423092949-bfb8f1559d22 h1:lxJwvndDcXbkEYtgLkM1IEds7FX18wDhnFAnx5/ep68=
-github.com/aberic/gnomon v0.0.0-20200423092949-bfb8f1559d22/go.mod h1:JsOXSdOTqOX1waSgPi0vNzh8qd3j1pnuUaLtGlRSl08=
-github.com/aberic/gnomon v0.0.0-20200425040153-97b74bca511a h1:WBy3R9dYAIw+ouV/8SgyKAuE5Zmn9JV/7xXPs6eVLz4=
-github.com/aberic/gnomon v0.0.0-20200425040153-97b74bca511a/go.mod h1:JsOXSdOTqOX1waSgPi0vNzh8qd3j1pnuUaLtGlRSl08=
-github.com/aberic/raft4go v0.0.0-20200423093108-f1be3b691466 h1:Ey3DObmer2tbhVvsFIZr2m7Z7y03I+W55/lhLl3UwBw=
-github.com/aberic/raft4go v0.0.0-20200423093108-f1be3b691466/go.mod h1:izmiEYB3pUHoJIQntiOcdojQF9SUvwW0sJzY05oEv+M=
+github.com/aberic/gnomon v0.0.0-20200502163933-e155e824a964 h1:VVxyJzZgV75LHjESCU0ujdfyH+Eowndz6a/cqh29sRI=
+github.com/aberic/gnomon v0.0.0-20200502163933-e155e824a964/go.mod h1:fzwWf91sV/BDyUa4xrDeG3tMBZ+PK0FkzbI05CvUYSc=
+github.com/aberic/raft4go v0.0.0-20200502165548-e81a97c3f338 h1:1TX92ZlxQEM+3X7cpgROIR3o+Wy26yAloCin9KoEkcA=
+github.com/aberic/raft4go v0.0.0-20200502165548-e81a97c3f338/go.mod h1:NxZJhkMaNsWMr5RQ4tdH/APR13igpX0Tf1SYLDVB7Mk=
 github.com/aead/siphash v1.0.1/go.mod h1:Nywa3cDsYNNK3gaciGTWPwHt0wlpNV15vwmswBAUSII=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973 h1:xJ4a3vCFaGF/jqvzLMYoU8P317H5OQ+Via4RmuPwCS0=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
