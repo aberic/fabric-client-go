@@ -58,8 +58,7 @@ func init() {
 	// self
 	GRPCPort = gnomon.EnvGetD(GRPCPortEnv, "9877")
 	HttpPort = gnomon.EnvGetD(HTTPPortEnv, "9865")
-	defaultDataPath := "/home/go/src/github.com/aberic/fabric-client-go/example"
-	dataPath = gnomon.EnvGetD(DataPath, defaultDataPath)
+	dataPath = gnomon.EnvGetD(DataPath, gnomon.StringBuild(gnomon.EnvGet("GOPATH"), "/src/github.com/aberic/fabric-client-go/example"))
 	RaftStatus = gnomon.EnvGetBool(raftStatusEnv)
 	LogFileDir = gnomon.EnvGetD(LogDirEnv, os.TempDir())
 	LogFileMaxSize = gnomon.EnvGetIntD(LogFileMaxSizeEnv, 1024)

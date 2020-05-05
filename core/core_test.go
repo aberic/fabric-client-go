@@ -41,6 +41,15 @@ var (
 	orgNum       = "1"
 )
 
+func TestDeployFabric(t *testing.T) {
+	dockerfilePath := gnomon.StringBuild(gnomon.EnvGet("GOPATH"), "/src/github.com/aberic/fabric-client-go/example/league.com/docker-compose.yaml")
+	if line, cmd, strArr, err := gnomon.CommandExecTail("docker-compose", "-f", dockerfilePath, "up", "-d"); err != nil {
+		t.Skip(err)
+	} else {
+		t.Log("line =", line, ", strArr =", strArr, ", pid =", cmd.Process.Pid)
+	}
+}
+
 func TestChannelCreate(t *testing.T) {
 	_ = testPaddingConfig(t)
 	channelConfig, err := ioutil.ReadFile(filepath.Join(utils.ObtainDataPath(), "league.com", "channel-artifacts", strings.Join([]string{channelID, "tx"}, ".")))
@@ -359,7 +368,7 @@ func testOrderNodes(ordererName, ordererDomain, ordererPath string, t *testing.T
 		}
 		nodes = append(nodes, &config.Node{
 			Name: childName,
-			Url:  strings.Join([]string{"grpcs://10.0.61.22", strconv.Itoa(7050 + offset)}, ":"),
+			Url:  strings.Join([]string{"grpcs://127.0.0.1", strconv.Itoa(7050 + offset)}, ":"),
 			GrpcOptions: &config.GRPCOptions{
 				SslTargetNameOverride: strings.Join([]string{childName, ordererName, ordererDomain}, "."),
 				KeepAliveTime:         "0s",
@@ -482,8 +491,8 @@ func testOrgPeers(orgNum, orgName, orgDomain, orgPath string, t *testing.T) []*c
 		}
 		peers = append(peers, &config.Peer{
 			Name:     peerName,
-			Url:      strings.Join([]string{"grpcs://10.0.61.22", strconv.Itoa(urlPort)}, ":"),
-			EventUrl: strings.Join([]string{"grpcs://10.0.61.22", strconv.Itoa(eventUrlPort)}, ":"),
+			Url:      strings.Join([]string{"grpcs://127.0.0.1", strconv.Itoa(urlPort)}, ":"),
+			EventUrl: strings.Join([]string{"grpcs://127.0.0.1", strconv.Itoa(eventUrlPort)}, ":"),
 			GrpcOptions: &config.GRPCOptions{
 				SslTargetNameOverride: strings.Join([]string{peerName, orgName, orgDomain}, "."),
 				KeepAliveTime:         "0s",

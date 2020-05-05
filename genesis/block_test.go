@@ -81,8 +81,20 @@ func TestGenesisBlock4Add(t *testing.T) {
 	}
 }
 
+func TestInspectBlock(t *testing.T) {
+	data, err := ioutil.ReadFile(utils.GenesisBlockFilePath(leagueDomain))
+	if nil != err {
+		t.Fatal(err)
+	}
+	dataStr, err := resource.InspectBlock(data)
+	if nil != err {
+		t.Fatal(err)
+	}
+	t.Log(dataStr)
+}
+
 func TestInspectChannelBlock(t *testing.T) {
-	data, err := ioutil.ReadFile(utils.ChannelUpdateTXFilePath(leagueDomain, channelID))
+	data, err := ioutil.ReadFile(utils.ChannelTXFilePath(leagueDomain, channelID))
 	if nil != err {
 		t.Fatal(err)
 	}

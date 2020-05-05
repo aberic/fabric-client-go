@@ -1,17 +1,23 @@
-PKGS_WITH_OUT_EXAMPLES := $(shell go list ./... | grep -v 'examples/')
-PKGS_WITH_OUT_EXAMPLES_AND_UTILS := $(shell go list ./... | grep -v 'examples/\|utils/')
+PKGS_WITH_OUT_EXAMPLES := $(shell go list ./... | grep -v 'example/')
+PKGS_WITH_OUT_EXAMPLES_AND_UTILS := $(shell go list ./... | grep -v 'example/\|utils/')
 GO_FILES := $(shell find . -name "*.go" -not -name "*_test.go" -not -path "./vendor/*" -not -path ".git/*" -print0 | xargs -0)
+BASE_VERSION = 1.4.4
+BASEIMAGE_RELEASE=0.4.18
+COMPOSE_FILE=$(GOPATH)/src/github.com/aberic/fabric-client-go/example/league.com/docker-compose.yaml
 
 export GOPROXY=https://goproxy.io
 export GO111MODULE=on
 
 checkTravis: overalls vet lint misspell staticcheck cyclo const veralls test
 
-checkLocal: fabricca overalls vet lint misspell staticcheck cyclo const test
+checkLocal: images overalls vet lint misspell staticcheck cyclo const test end
 
-fabricca:
-	@echo "docker run ca"
-	docker-compose -f ./example/ca/docker-ca-compose.yml up -d
+images:
+	@echo "docker pull images"
+    docker pull hyperledger/fabric-baseos:$(BASEIMAGE_RELEASE)
+    docker pull hyperledger/fabric-orderer:$(BASE_VERSION)
+    docker pull hyperledger/fabric-peer:$(BASE_VERSION)
+    docker pull hyperledger/fabric-ccenv:$(BASE_VERSION)
 
 overalls:
 	@echo "overalls"
@@ -53,3 +59,7 @@ traviscodecovtest:
 test:
 	@echo "test"
 	go test -v -cover $(PKGS_WITH_OUT_EXAMPLES)
+
+end:
+	@echo "end"
+	docker-compose -f $(COMPOSE_FILE) down

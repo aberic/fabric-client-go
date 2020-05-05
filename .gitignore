@@ -23,5 +23,13 @@ gen### Go template
 /example/ca/resource/IssuerPublicKey
 /example/ca/resource/msp/
 /example/genesis/
-/example/league.com/
 /example/test/
+/example/league.com/orderer3.example3.com/
+/example/league.com/org3.example3.com/
+/example/league.com/orderer1.example1.com/
+/example/league.com/orderer2.example2.com/
+/example/league.com/chaincode/
+/example/league.com/org1.example1.com/
+/example/league.com/org2.example2.com/
+/example/league.com/crypto-config/
+/example/league.com/channel-artifacts/

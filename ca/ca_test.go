@@ -150,7 +150,7 @@ func testStoreOrg(leagueDomain, orgName, orgDomain string, orc *ca.RespRootCrypt
 	}
 }
 
-func testChild(leagueDomain, orgName, orgDomain, childName string, isUser bool, rootCertBytes, priParentBytes, rootTlsCertBytes, tlsPriParentBytes []byte, t *testing.T) {
+func testChild(leagueDomain, orgName, orgDomain, childName string, isUser bool, rootCertBytes, priParentBytes, rootTLSCertBytes, tlsPriParentBytes []byte, t *testing.T) {
 	childRootFilePath := filepath.Join(utils.ObtainDataPath(), leagueDomain, strings.Join([]string{orgName, orgDomain}, "."), childName)
 	// ca
 	crypto, err := generateCrypto(&ca.ReqCrypto{
@@ -191,10 +191,10 @@ func testChild(leagueDomain, orgName, orgDomain, childName string, isUser bool, 
 	// 签名 ca 证书
 	testSignCA(leagueDomain, orgName, orgDomain, childName, isUser, false, rootCertBytes, priParentBytes, crypto.PubKeyBytes, t)
 	// 签名 tls ca 证书
-	testSignCA(leagueDomain, orgName, orgDomain, childName, isUser, true, rootTlsCertBytes, tlsPriParentBytes, tlsCrypto.PubKeyBytes, t)
+	testSignCA(leagueDomain, orgName, orgDomain, childName, isUser, true, rootTLSCertBytes, tlsPriParentBytes, tlsCrypto.PubKeyBytes, t)
 }
 
-func testSignCA(leagueDomain, orgName, orgDomain, childName string, isUser, isTls bool, rootTlsCertBytes, tlsPriParentBytes, tlsPubBytes []byte, t *testing.T) {
+func testSignCA(leagueDomain, orgName, orgDomain, childName string, isUser, isTLS bool, rootTLSCertBytes, tlsPriParentBytes, tlsPubBytes []byte, t *testing.T) {
 	var (
 		certFileName string
 		respSC       *ca.RespSignCertificate
@@ -205,7 +205,7 @@ func testSignCA(leagueDomain, orgName, orgDomain, childName string, isUser, isTl
 		OrgDomain:       orgDomain,
 		ChildName:       childName,
 		IsUser:          isUser,
-		ParentCertBytes: rootTlsCertBytes,
+		ParentCertBytes: rootTLSCertBytes,
 		ParentPriBytes:  tlsPriParentBytes,
 		PubBytes:        tlsPubBytes,
 		Subject: &ca.Subject{
@@ -220,7 +220,7 @@ func testSignCA(leagueDomain, orgName, orgDomain, childName string, isUser, isTl
 	}
 	t.Log(string(respSC.CertBytes))
 	childRootFilePath := filepath.Join(utils.ObtainDataPath(), leagueDomain, strings.Join([]string{orgName, orgDomain}, "."), childName)
-	if isTls {
+	if isTLS {
 		certFileName = "tls.crt"
 	} else {
 		certFileName = "ca.crt"
