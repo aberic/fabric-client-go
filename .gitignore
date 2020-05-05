@@ -33,3 +33,5 @@ gen### Go template
 /example/league.com/org2.example2.com/
 /example/league.com/crypto-config/
 /example/league.com/channel-artifacts/
+ca/example/
+example/league.com/.DS_Store
