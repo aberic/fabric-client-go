@@ -124,7 +124,7 @@ func httpListener() {
 	ca.Router(httpServe)
 	config.Router(httpServe)
 	genesis.Router(httpServe)
-	grope.ListenAndServe(strings.Join([]string{":", utils.HTTPPort}, ""), httpServe)
+	grope.ListenAndServe(":9865", httpServe)
 }
 
 func gRPCListener() {
@@ -133,7 +133,7 @@ func gRPCListener() {
 		err      error
 	)
 	//  创建server端监听端口
-	if listener, err = net.Listen("tcp", strings.Join([]string{":", utils.GRPCPort}, "")); nil != err {
+	if listener, err = net.Listen("tcp", ":9877"); nil != err {
 		panic(err)
 	}
 	//  创建grpc的server
@@ -147,7 +147,6 @@ func gRPCListener() {
 	gCore.RegisterChannelServer(rpcServer, &core.Channel{})
 	gCore.RegisterChaincodeServer(rpcServer, &core.ChainCode{})
 
-	log.Info(strings.Join([]string{"main gRPC listener start with port ", utils.GRPCPort}, ""))
 	//  启动grpc服务
 	if err = rpcServer.Serve(listener); nil != err {
 		log.Panic("main gRPC listener", log.Err(err))

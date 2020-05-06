@@ -8,13 +8,17 @@ COMPOSE_FILE=$(GOPATH)/src/github.com/aberic/fabric-client-go/example/league.com
 export GOPROXY=https://goproxy.io
 export GO111MODULE=on
 
-checkTravis: overalls vet lint misspell staticcheck cyclo const veralls test
+checkTravis: overallswithoutcore overallscore vet lint misspell staticcheck cyclo const veralls end
 
-checkLocal: overalls vet lint misspell staticcheck cyclo const test end
+checkLocal: overallswithoutcore overallscore vet lint misspell staticcheck cyclo const test end
 
-overalls:
+overallswithoutcore:
 	@echo "overalls"
-	overalls -project=github.com/aberic/fabric-client-go -covermode=count -ignore='.git,_vendor'
+	overalls -project=github.com/aberic/fabric-client-go -covermode=count -ignore='.git,_vendor,core'
+
+overallscore:
+	@echo "overalls"
+	overalls -project=github.com/aberic/fabric-client-go -covermode=count -ignore='.git,_vendor,ca,config,genesis'
 
 vet:
 	@echo "vet"

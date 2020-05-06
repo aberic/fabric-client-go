@@ -20,10 +20,6 @@ import (
 )
 
 var (
-	// GRPCPort GRPC端口
-	GRPCPort string
-	// HTTPPort HTTP端口
-	HTTPPort string
 	// dataPath 项目工作目录
 	dataPath string
 	// RaftStatus 是否启用raft
@@ -44,8 +40,6 @@ var (
 
 // 环境变量
 const (
-	GRPCPortEnv       = "GRPC_PORT"              // gRPC 开放端口
-	HTTPPortEnv       = "HTTP_PORT"              // http 开放端口
 	DataPath          = "DATA_PATH"              // DataPath 项目工作目录 [template]
 	raftStatusEnv     = "RAFT"                   // RAFT=true启用raft，否则不启用
 	K8sEnv            = "RAFT_K8S"               // K8S=true
@@ -66,8 +60,6 @@ const (
 
 func init() {
 	// self
-	GRPCPort = gnomon.EnvGetD(GRPCPortEnv, "9877")
-	HTTPPort = gnomon.EnvGetD(HTTPPortEnv, "9865")
 	dataPath = gnomon.EnvGetD(DataPath, gnomon.StringBuild(gnomon.EnvGet("GOPATH"), "/src/github.com/aberic/fabric-client-go/example"))
 	RaftStatus = gnomon.EnvGetBool(raftStatusEnv)
 	LogFileDir = gnomon.EnvGetD(LogDirEnv, os.TempDir())
