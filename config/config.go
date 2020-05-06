@@ -24,7 +24,6 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
-	"sync"
 )
 
 // Config 网络连接配置为客户端应用程序提供有关目标区块链网络的信息
@@ -47,7 +46,6 @@ type Config struct {
 	//
 	// 应用程序可以选择使用标准的证书颁发机构，而不是Fabric-CA，在这种情况下，不会指定此部分。
 	CertificateAuthorities map[string]*CertificateAuthority `yaml:"certificateAuthorities"`
-	lock                   sync.RWMutex
 }
 
 // ObtainOrders ObtainOrders
@@ -171,14 +169,13 @@ func (c *Config) setOrderers(configSet *config.ReqConfigSet) error {
 func (c *Config) setPeers(configSet *config.ReqConfigSet) error {
 	c.Peers = make(map[string]*Peer)
 	if nil != configSet.Org {
-
-	}
-	for _, peer := range configSet.Org.Peers {
-		p := &Peer{GRPCOptions: &PeerGRPCOptions{}, TLSCACerts: &PeerTLSCACerts{}}
-		if err := p.set(configSet.LeagueDomain, configSet.Org, peer); nil != err {
-			return fmt.Errorf("peers set error: %e", err)
+		for _, peer := range configSet.Org.Peers {
+			p := &Peer{GRPCOptions: &PeerGRPCOptions{}, TLSCACerts: &PeerTLSCACerts{}}
+			if err := p.set(configSet.LeagueDomain, configSet.Org, peer); nil != err {
+				return fmt.Errorf("peers set error: %e", err)
+			}
+			c.Peers[peer.Name] = p
 		}
-		c.Peers[peer.Name] = p
 	}
 	return nil
 }

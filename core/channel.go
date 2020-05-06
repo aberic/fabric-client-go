@@ -232,7 +232,9 @@ func channelSign(orgName, orgUser, channelID string, configBytes, envelopeBytes 
 	if channelHeaderBytes, err = proto.Marshal(channelHeader); nil != err {
 		return nil, err
 	}
-	_, signatureHeaderBytes, err = getSignatureHeader(ctx)
+	if _, signatureHeaderBytes, err = getSignatureHeader(ctx); nil != err {
+		return nil, err
+	}
 	payload.Data = configUpdateBytes
 	payload.Header = &common.Header{
 		ChannelHeader:   channelHeaderBytes,

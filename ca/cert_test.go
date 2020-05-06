@@ -59,8 +59,9 @@ func TestGenerateCryptoRootCrt(t *testing.T) {
 		CommonName:   "example.com",
 	}, x509.ECDSAWithSHA256, "/tmp/caRootCertBytes/cert.crt"); nil != err {
 		t.Error(err)
+	} else {
+		t.Log(string(caRootCertBytes))
 	}
-	t.Log(string(caRootCertBytes))
 
 	// TestGenerateCryptoRootCrtByteFail
 	if caRootCertBytes, err = cc.generateCryptoRootCrt([]byte{}, pkix.Name{
@@ -71,6 +72,8 @@ func TestGenerateCryptoRootCrt(t *testing.T) {
 		CommonName:   "example.com",
 	}, x509.ECDSAWithSHA256, "/tmp/caRootCertBytes/cert.crt"); nil != err {
 		t.Log(err)
+	} else {
+		t.Log(string(caRootCertBytes))
 	}
 
 	// TestGenerateCryptoRootCrtFileFail
@@ -82,6 +85,8 @@ func TestGenerateCryptoRootCrt(t *testing.T) {
 		CommonName:   "example.com",
 	}, x509.ECDSAWithSHA256, "/fabric"); nil != err {
 		t.Log(err)
+	} else {
+		t.Log(string(caRootCertBytes))
 	}
 }
 
@@ -99,8 +104,9 @@ func TestGenerateCryptoChildCrt(t *testing.T) {
 		CommonName:   "example.com",
 	}, x509.ECDSAWithSHA256); nil != err {
 		t.Error(err)
+	} else {
+		t.Log(string(certBytes))
 	}
-	t.Log(string(certBytes))
 
 	// TestGenerateCryptoChildCrtByteFail1
 	if certBytes, err = cc.generateCryptoChildCrt([]byte{}, []byte(priParentBytes), []byte(pubBytes), pkix.Name{
@@ -111,6 +117,8 @@ func TestGenerateCryptoChildCrt(t *testing.T) {
 		CommonName:   "example.com",
 	}, x509.ECDSAWithSHA256); nil != err {
 		t.Log(err)
+	} else {
+		t.Log(string(certBytes))
 	}
 
 	// TestGenerateCryptoChildCrtByteFail2
@@ -122,6 +130,8 @@ func TestGenerateCryptoChildCrt(t *testing.T) {
 		CommonName:   "example.com",
 	}, x509.ECDSAWithSHA256); nil != err {
 		t.Log(err)
+	} else {
+		t.Log(string(certBytes))
 	}
 
 	// TestGenerateCryptoChildCrtByteFail3
@@ -133,6 +143,8 @@ func TestGenerateCryptoChildCrt(t *testing.T) {
 		CommonName:   "example.com",
 	}, x509.ECDSAWithSHA256); nil != err {
 		t.Log(err)
+	} else {
+		t.Log(string(certBytes))
 	}
 
 	// TestGenerateCryptoChildCrtFileFail
@@ -144,5 +156,7 @@ func TestGenerateCryptoChildCrt(t *testing.T) {
 		CommonName:   "example.com",
 	}, x509.ECDSAWithSHA256); nil != err {
 		t.Error(err)
+	} else {
+		t.Log(string(certBytes))
 	}
 }

@@ -34,7 +34,7 @@ func init() {
 
 func setConfig(req *config.ReqConfigSet) (resp *config.RespConfigSet, err error) {
 	conf := &Config{}
-	if resp, err = conf.set(req); nil != err {
+	if _, err = conf.set(req); nil != err {
 		return &config.RespConfigSet{Code: config.Code_Fail, ErrMsg: err.Error()}, err
 	}
 	Set(req.LeagueDomain, req.Org.Domain, conf)

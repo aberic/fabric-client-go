@@ -16,7 +16,6 @@ package core
 
 import (
 	"github.com/aberic/gnomon/log"
-	"github.com/hyperledger/fabric-protos-go/common"
 	"github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/resmgmt"
 	"github.com/hyperledger/fabric-sdk-go/pkg/fabsdk"
@@ -61,14 +60,14 @@ func peerQueryInstantiated(orgName, orgUser, peerName, channelID string, configB
 // peerQueryCollectionsConfig
 //
 // Deprecated: Do not use.
-func peerQueryCollectionsConfig(orgName, orgUser, peerName, channelID, chaincodeID string, configBytes []byte, sdkOpts ...fabsdk.Option) (*common.CollectionConfigPackage, error) {
-	var (
-		resMgmtClient *resmgmt.Client
-		err           error
-	)
-	if _, resMgmtClient, _, err = resmgmtClient(orgName, orgUser, configBytes, sdkOpts...); nil != err {
-		log.Error("queryCollectionsConfig", log.Err(err))
-		return nil, err
-	}
-	return resMgmtClient.QueryCollectionsConfig(channelID, chaincodeID, resmgmt.WithTargetEndpoints(peerName))
-}
+//func peerQueryCollectionsConfig(orgName, orgUser, peerName, channelID, chaincodeID string, configBytes []byte, sdkOpts ...fabsdk.Option) (*common.CollectionConfigPackage, error) {
+//	var (
+//		resMgmtClient *resmgmt.Client
+//		err           error
+//	)
+//	if _, resMgmtClient, _, err = resmgmtClient(orgName, orgUser, configBytes, sdkOpts...); nil != err {
+//		log.Error("queryCollectionsConfig", log.Err(err))
+//		return nil, err
+//	}
+//	return resMgmtClient.QueryCollectionsConfig(channelID, chaincodeID, resmgmt.WithTargetEndpoints(peerName))
+//}

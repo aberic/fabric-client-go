@@ -1,5 +1,5 @@
-PKGS_WITH_OUT_EXAMPLES := $(shell go list ./... | grep -v 'example/')
-PKGS_WITH_OUT_EXAMPLES_AND_UTILS := $(shell go list ./... | grep -v 'example/\|utils/')
+PKGS_WITH_OUT_EXAMPLES := $(shell go list ./... | grep -v 'example/\|grpc/')
+PKGS_WITH_OUT_CUSTOM := $(shell go list ./... | grep -v 'example/\|core/*\|grpc/')
 GO_FILES := $(shell find . -name "*.go" -not -name "*_test.go" -not -path "./vendor/*" -not -path ".git/*" -print0 | xargs -0)
 BASE_VERSION = 1.4.4
 BASEIMAGE_RELEASE=0.4.18
@@ -29,7 +29,7 @@ vet:
 
 lint:
 	@echo "golint"
-	golint -set_exit_status $(PKGS_WITH_OUT_EXAMPLES_AND_UTILS)
+	golint -set_exit_status $(PKGS_WITH_OUT_EXAMPLES)
 
 misspell:
 	@echo "misspell"
@@ -37,7 +37,7 @@ misspell:
 
 staticcheck:
 	@echo "staticcheck"
-	staticcheck $(PKGS_WITH_OUT_EXAMPLES)
+	staticcheck $(PKGS_WITH_OUT_CUSTOM)
 
 cyclo:
 	@echo "gocyclo"
