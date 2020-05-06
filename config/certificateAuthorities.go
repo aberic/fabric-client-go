@@ -22,6 +22,7 @@ import (
 	"path/filepath"
 )
 
+// CertificateAuthority ca配置信息
 type CertificateAuthority struct {
 	URL        string                          `yaml:"url"`    // URL https://ca.org1.example.com:7054
 	CAName     string                          `yaml:"caName"` // CAName 可选参数，name of the CA
@@ -29,27 +30,32 @@ type CertificateAuthority struct {
 	Registrar  *CertificateAuthorityRegistrar  `yaml:"registrar"`
 }
 
+// CertificateAuthorityTLSCACerts ca CertificateAuthorityTLSCACerts
 type CertificateAuthorityTLSCACerts struct {
 	Path   string                                `yaml:"path"`
 	Client *CertificateAuthorityTLSCACertsClient `yaml:"client"`
 }
 
+// CertificateAuthorityTLSCACertsClient ca CertificateAuthorityTLSCACertsClient
 type CertificateAuthorityTLSCACertsClient struct {
 	Key  *CertificateAuthorityTLSCACertsClientKey  `yaml:"key"`
 	Cert *CertificateAuthorityTLSCACertsClientCert `yaml:"cert"`
 }
 
+// CertificateAuthorityTLSCACertsClientKey ca CertificateAuthorityTLSCACertsClientKey
 type CertificateAuthorityTLSCACertsClientKey struct {
 	Path string `yaml:"path"` // /fabric/crypto-config/peerOrganizations/org1.example.com/users/User1@org1.example.com/tls/client.key
 }
 
+// CertificateAuthorityTLSCACertsClientCert ca CertificateAuthorityTLSCACertsClientCert
 type CertificateAuthorityTLSCACertsClientCert struct {
 	Path string `yaml:"path"` // /fabric/crypto-config/peerOrganizations/org1.example.com/users/User1@org1.example.com/tls/client.crt
 }
 
+// CertificateAuthorityRegistrar ca CertificateAuthorityRegistrar
 type CertificateAuthorityRegistrar struct {
-	EnrollId     string `yaml:"enrollId"`
-	EnrollSecret string `yaml:"enrollSecret"`
+	EnrollID     string `yaml:"enrollId"`     // EnrollID ca EnrollID
+	EnrollSecret string `yaml:"enrollSecret"` // EnrollSecret ca EnrollSecret
 }
 
 func (c *CertificateAuthority) set(leagueDomain string, org *config.Org, ca *config.CertificateAuthority) error {
@@ -63,7 +69,7 @@ func (c *CertificateAuthority) set(leagueDomain string, org *config.Org, ca *con
 	} else {
 		return errors.New("ca name can't be empty")
 	}
-	c.Registrar.EnrollId = ca.Registrar.EnrollId
+	c.Registrar.EnrollID = ca.Registrar.EnrollId
 	c.Registrar.EnrollSecret = ca.Registrar.EnrollSecret
 
 	orgPath, userPath := utils.CryptoOrgAndUserPath(leagueDomain, org.Domain, org.Name, ca.Username, true)

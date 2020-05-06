@@ -41,16 +41,19 @@ type Organization struct {
 	CertificateAuthorities []string `yaml:"certificateAuthorities,omitempty"`
 }
 
+// User User
 type User struct {
 	IsAdmin bool
 	Key     *Key  `yaml:"key"`
 	Cert    *Cert `yaml:"cert"`
 }
 
+// Key Key
 type Key struct {
 	Path string `yaml:"path"`
 }
 
+// Cert Cert
 type Cert struct {
 	Path string `yaml:"path"`
 }

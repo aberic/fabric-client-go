@@ -16,6 +16,7 @@ package config
 
 import "github.com/aberic/fabric-client-go/grpc/proto/config"
 
+// CaCrypto CaCrypto
 type CaCrypto struct {
 	*config.Crypto
 	EnrollID, EnrollSecret          string
@@ -24,7 +25,7 @@ type CaCrypto struct {
 	Username                        string
 	IsAdmin                         bool
 	CaName, URL                     string
-	RootCertBytes, RootTlsCertBytes []byte
+	RootCertBytes, RootTLSCertBytes []byte
 }
 
 type orgCrypto struct {
@@ -45,11 +46,13 @@ type adminCrypto struct {
 	certBytes    []byte
 }
 
+// Order Order
 type Order struct {
 	OrgName  string
 	UserName string
 }
 
+// Org Org
 type Org struct {
 	OrgName  string
 	UserName string

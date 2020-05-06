@@ -28,7 +28,7 @@ import (
 func generateRootCrypto(org *ca.ReqRootCrypto) (*ca.RespRootCrypto, error) {
 	var (
 		caCommonName           = utils.CertOrgCaNameWithOutCert(org.Name, org.Domain)
-		tlscaCommonName        = utils.CertOrgTlsCaNameWithOutCert(org.Name, org.Domain)
+		tlscaCommonName        = utils.CertOrgTLSCaNameWithOutCert(org.Name, org.Domain)
 		crypto, tlsCrypto      *ca.RespCrypto
 		certBytes, tlsCertByte []byte
 		cc                     = &CertConfig{}

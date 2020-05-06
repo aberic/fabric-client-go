@@ -57,19 +57,23 @@ type ClientCryptoConfig struct {
 	Path string `yaml:"path"` // /Users/Documents/fabric/crypto-config
 }
 
+// ClientCredentialStore ClientCredentialStore
 type ClientCredentialStore struct {
 	Path        string                            `yaml:"path"` // /tmp/state-store"
 	CryptoStore *ClientCredentialStoreCryptoStore `yaml:"cryptoStore"`
 }
 
+// ClientCredentialStoreCryptoStore ClientCredentialStoreCryptoStore
 type ClientCredentialStoreCryptoStore struct {
 	Path string `yaml:"path"` // /tmp/msp
 }
 
+// ClientBCCSP ClientBCCSP
 type ClientBCCSP struct {
 	Security *ClientBCCSPSecurity `yaml:"security"`
 }
 
+// ClientBCCSPSecurity ClientBCCSPSecurity
 type ClientBCCSPSecurity struct {
 	Enabled       bool                        `yaml:"enabled"`
 	Default       *ClientBCCSPSecurityDefault `yaml:"default"`
@@ -78,10 +82,12 @@ type ClientBCCSPSecurity struct {
 	Level         int32                       `yaml:"level"`
 }
 
+// ClientBCCSPSecurityDefault ClientBCCSPSecurityDefault
 type ClientBCCSPSecurityDefault struct {
 	Provider string `yaml:"provider"`
 }
 
+// ClientTLSCerts ClientTLSCerts
 type ClientTLSCerts struct {
 	// SystemCertPool 是否开启TLS，默认false
 	SystemCertPool bool `yaml:"systemCertPool"`
@@ -89,29 +95,35 @@ type ClientTLSCerts struct {
 	Client *ClientTLSCertsClient `yaml:"client"`
 }
 
+// ClientTLSCertsClient ClientTLSCertsClient
 type ClientTLSCertsClient struct {
 	Key  *ClientTLSCertsClientKey  `yaml:"key"`
 	Cert *ClientTLSCertsClientCert `yaml:"cert"`
 }
 
+// ClientTLSCertsClientKey ClientTLSCertsClientKey
 type ClientTLSCertsClientKey struct {
 	Path string `yaml:"path"` // /fabric/crypto-config/peerOrganizations/org1.example.com/users/User1@org1.example.com/tls/client.key
 }
 
+// ClientTLSCertsClientCert ClientTLSCertsClientCert
 type ClientTLSCertsClientCert struct {
 	Path string `yaml:"path"` // /fabric/crypto-config/peerOrganizations/org1.example.com/users/User1@org1.example.com/tls/client.crt
 }
 
+// ClientPeer ClientPeer
 type ClientPeer struct {
 	Timeout *ClientPeerTimeout `yaml:"timeout"`
 }
 
+// ClientPeerTimeout ClientPeerTimeout
 type ClientPeerTimeout struct {
 	Connection string                      `yaml:"connection"`
 	Response   string                      `yaml:"response"`
 	Discovery  *ClientPeerTimeoutDiscovery `yaml:"discovery"`
 }
 
+// ClientPeerTimeoutDiscovery ClientPeerTimeoutDiscovery
 type ClientPeerTimeoutDiscovery struct {
 	// GreyListExpiry 发现服务失效列表筛选器的有效期。
 	//
@@ -121,34 +133,41 @@ type ClientPeerTimeoutDiscovery struct {
 	GreyListExpiry string `yaml:"greylistExpiry"`
 }
 
+// ClientEventService ClientEventService
 type ClientEventService struct {
 	Timeout *ClientEventServiceTimeout `yaml:"timeout"`
 }
 
+// ClientEventServiceTimeout ClientEventServiceTimeout
 type ClientEventServiceTimeout struct {
 	RegistrationResponse string `yaml:"registrationResponse"`
 }
 
+// ClientOrder ClientOrder
 type ClientOrder struct {
 	Timeout *ClientOrderTimeout `yaml:"timeout"`
 }
 
+// ClientOrderTimeout ClientOrderTimeout
 type ClientOrderTimeout struct {
 	Connection string `yaml:"connection"`
 	Response   string `yaml:"response"`
 }
 
+// ClientGlobal ClientGlobal
 type ClientGlobal struct {
 	Timeout *ClientGlobalTimeout `yaml:"timeout"`
 	Cache   *ClientGlobalCache   `yaml:"cache"`
 }
 
+// ClientGlobalTimeout ClientGlobalTimeout
 type ClientGlobalTimeout struct {
 	Query   string `yaml:"query"`
 	Execute string `yaml:"execute"`
 	Resmgmt string `yaml:"resmgmt"`
 }
 
+// ClientGlobalCache ClientGlobalCache
 type ClientGlobalCache struct {
 	ConnectionIdle    string `yaml:"connectionIdle"`
 	EventServiceIdle  string `yaml:"eventServiceIdle"`
@@ -158,6 +177,7 @@ type ClientGlobalCache struct {
 	Selection         string `yaml:"selection"`
 }
 
+// NewConfigClient go sdk 使用的客户端
 func NewConfigClient(leagueDomain string, org *config.Org) (*Client, string, error) {
 	if gnomon.StringIsEmpty(leagueDomain) || gnomon.StringIsEmpty(org.Domain) ||
 		gnomon.StringIsEmpty(org.Name) || gnomon.StringIsEmpty(org.Username) {

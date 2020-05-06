@@ -14,6 +14,7 @@
 
 package utils
 
+// RespImpl RespImpl
 type RespImpl struct {
 	// 请求返回结果：success=0；fail=1
 	Code int `json:"code,omitempty"`
@@ -21,15 +22,18 @@ type RespImpl struct {
 	ErrMsg string `json:"errMsg,omitempty"`
 }
 
+// Reset Reset
 func (r *RespImpl) Reset() {
 	r.Code = 0
 	r.ErrMsg = ""
 }
 
+// GetErrMsg GetErrMsg
 func (r *RespImpl) GetErrMsg() string {
 	return r.ErrMsg
 }
 
+// Fail Fail
 func (r *RespImpl) Fail(errMsg string) {
 	r.Code = 1
 	r.ErrMsg = errMsg

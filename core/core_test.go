@@ -455,22 +455,22 @@ func testOrgUsers(username, orgPath string, t *testing.T) []*config.User {
 func testOrgPeers(orgNum, orgName, orgDomain, orgPath string, t *testing.T) []*config.Peer {
 	var (
 		peers                 []*config.Peer
-		urlPort, eventUrlPort int
+		urlPort, eventURLPort int
 	)
 	switch orgNum {
 	default:
 		urlPort = 7051
-		eventUrlPort = 7053
+		eventURLPort = 7053
 	case "2":
 		urlPort = 8051
-		eventUrlPort = 8053
+		eventURLPort = 8053
 	case "3":
 		urlPort = 9051
-		eventUrlPort = 9053
+		eventURLPort = 9053
 	}
 	for i := 0; i < 3; i++ {
 		urlPort += i
-		eventUrlPort += i
+		eventURLPort += i
 		peerName := strings.Join([]string{"peer", strconv.Itoa(i)}, "")
 		peerPath := path.Join(orgPath, peerName)
 		keyBytes, err := ioutil.ReadFile(filepath.Join(peerPath, "ca.key"))
@@ -492,7 +492,7 @@ func testOrgPeers(orgNum, orgName, orgDomain, orgPath string, t *testing.T) []*c
 		peers = append(peers, &config.Peer{
 			Name:     peerName,
 			Url:      strings.Join([]string{"grpcs://127.0.0.1", strconv.Itoa(urlPort)}, ":"),
-			EventUrl: strings.Join([]string{"grpcs://127.0.0.1", strconv.Itoa(eventUrlPort)}, ":"),
+			EventUrl: strings.Join([]string{"grpcs://127.0.0.1", strconv.Itoa(eventURLPort)}, ":"),
 			GrpcOptions: &config.GRPCOptions{
 				SslTargetNameOverride: strings.Join([]string{peerName, orgName, orgDomain}, "."),
 				KeepAliveTime:         "0s",
@@ -513,7 +513,7 @@ func testOrgPeers(orgNum, orgName, orgDomain, orgPath string, t *testing.T) []*c
 			EndorsingPeer:  true,
 		})
 		urlPort += 1000
-		eventUrlPort += 1000
+		eventURLPort += 1000
 	}
 	return peers
 }

@@ -19,6 +19,7 @@ import (
 	"github.com/aberic/gnomon"
 )
 
+// Channel 账本配置结构
 type Channel struct {
 	Peers    map[string]*ChannelPeer `yaml:"peers"`    // Peers 可选参数，参与组织的节点列表
 	Policies *Policy                 `yaml:"policies"` // Policies 可选参数，应用程序可以使用这些选项来执行通道操作，如检索通道配置等。
@@ -139,6 +140,7 @@ type PolicyEventService struct {
 	PeerMonitorPeriod string `yaml:"peerMonitorPeriod"`
 }
 
+// NewConfigChannel 新建账本配置
 func NewConfigChannel() *Channel {
 	return &Channel{
 		Policies: &Policy{

@@ -20,6 +20,7 @@ import (
 	"net/http"
 )
 
+// Router HTTP路由
 func Router(hs *grope.GHttpServe) {
 	// 仓库相关路由设置
 	route := hs.Group("/config")

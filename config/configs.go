@@ -23,6 +23,7 @@ import (
 )
 
 var (
+	// Configs 网络连接配置为客户端应用程序提供有关目标区块链网络的信息集合
 	Configs    map[string]*Config
 	lockConfig sync.RWMutex
 )
@@ -79,6 +80,7 @@ func deleteConfig(req *config.ReqConfigDelete) (resp *config.RespConfigDelete, e
 	return &config.RespConfigDelete{Code: config.Code_Success}, nil
 }
 
+// Obtain Obtain
 func Obtain(leagueDomain, orgDomain string) (*Config, error) {
 	conf, ok := Configs[obtainConfigID(leagueDomain, orgDomain)]
 	if ok {
@@ -87,6 +89,7 @@ func Obtain(leagueDomain, orgDomain string) (*Config, error) {
 	return nil, errors.New("config doesn't exist")
 }
 
+// Mock Mock
 func Mock(req *config.ReqConfigSet) (*Config, error) {
 	conf := &Config{}
 	if _, err := conf.padding(req); nil != err {
@@ -95,6 +98,7 @@ func Mock(req *config.ReqConfigSet) (*Config, error) {
 	return conf, nil
 }
 
+// Set Set
 func Set(leagueDomain, orgDomain string, conf *Config) {
 	lockConfig.Lock()
 	Configs[obtainConfigID(leagueDomain, orgDomain)] = conf

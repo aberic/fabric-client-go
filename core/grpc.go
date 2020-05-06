@@ -19,60 +19,76 @@ import (
 	"github.com/aberic/fabric-client-go/grpc/proto/core"
 )
 
+// Peer Peer
 type Peer struct{}
 
-func (p *Peer) Installed(ctx context.Context, req *core.ReqPeerInstalled) (*core.RespPeerInstalled, error) {
+// Installed Installed
+func (p *Peer) Installed(_ context.Context, req *core.ReqPeerInstalled) (*core.RespPeerInstalled, error) {
 	return PeerQueryInstalled(req)
 }
 
-func (p *Peer) Instantiated(ctx context.Context, req *core.ReqPeerInstantiated) (*core.RespPeerInstantiated, error) {
+// Instantiated Instantiated
+func (p *Peer) Instantiated(_ context.Context, req *core.ReqPeerInstantiated) (*core.RespPeerInstantiated, error) {
 	return PeerQueryInstantiated(req)
 }
 
+// Channel Channel
 type Channel struct{}
 
-func (c *Channel) Create(ctx context.Context, req *core.ReqChannelCreate) (*core.RespChannelCreate, error) {
+// Create Create
+func (c *Channel) Create(_ context.Context, req *core.ReqChannelCreate) (*core.RespChannelCreate, error) {
 	return ChannelCreate(req)
 }
 
-func (c *Channel) Join(ctx context.Context, req *core.ReqChannelJoin) (*core.RespChannelJoin, error) {
+// Join Join
+func (c *Channel) Join(_ context.Context, req *core.ReqChannelJoin) (*core.RespChannelJoin, error) {
 	return ChannelJoin(req)
 }
 
-func (c *Channel) List(ctx context.Context, req *core.ReqChannelList) (*core.RespChannelList, error) {
+// List List
+func (c *Channel) List(_ context.Context, req *core.ReqChannelList) (*core.RespChannelList, error) {
 	return ChannelList(req)
 }
 
-func (c *Channel) Config(ctx context.Context, req *core.ReqChannelConfigBlock) (*core.RespChannelConfigBlock, error) {
+// Config Config
+func (c *Channel) Config(_ context.Context, req *core.ReqChannelConfigBlock) (*core.RespChannelConfigBlock, error) {
 	return ChannelConfigBlock(req)
 }
 
-func (c *Channel) Update(ctx context.Context, req *core.ReqChannelUpdateBlock) (*core.RespChannelUpdateBlock, error) {
+// Update Update
+func (c *Channel) Update(_ context.Context, req *core.ReqChannelUpdateBlock) (*core.RespChannelUpdateBlock, error) {
 	return ChannelUpdateConfigBlock(req)
 }
 
-func (c *Channel) Sign(ctx context.Context, req *core.ReqChannelSign) (*core.RespChannelSign, error) {
+// Sign Sign
+func (c *Channel) Sign(_ context.Context, req *core.ReqChannelSign) (*core.RespChannelSign, error) {
 	return ChannelSign(req)
 }
 
+// ChainCode ChainCode
 type ChainCode struct{}
 
-func (c *ChainCode) Install(ctx context.Context, req *core.ReqChainCodeInstall) (*core.RespChainCodeInstall, error) {
+// Install Install
+func (c *ChainCode) Install(_ context.Context, req *core.ReqChainCodeInstall) (*core.RespChainCodeInstall, error) {
 	return ChainCodeInstall(req)
 }
 
-func (c *ChainCode) Instantiate(ctx context.Context, req *core.ReqChainCodeInstantiate) (*core.RespChainCodeInstantiate, error) {
+// Instantiate Instantiate
+func (c *ChainCode) Instantiate(_ context.Context, req *core.ReqChainCodeInstantiate) (*core.RespChainCodeInstantiate, error) {
 	return ChainCodeInstantiate(req)
 }
 
-func (c *ChainCode) Upgrade(ctx context.Context, req *core.ReqChainCodeUpgrade) (*core.RespChainCodeUpgrade, error) {
+// Upgrade Upgrade
+func (c *ChainCode) Upgrade(_ context.Context, req *core.ReqChainCodeUpgrade) (*core.RespChainCodeUpgrade, error) {
 	return ChainCodeUpgrade(req)
 }
 
-func (c *ChainCode) Invoke(ctx context.Context, req *core.ReqChainCodeInvoke) (*core.RespChainCodeInvoke, error) {
+// Invoke Invoke
+func (c *ChainCode) Invoke(_ context.Context, req *core.ReqChainCodeInvoke) (*core.RespChainCodeInvoke, error) {
 	return ChainCodeInvoke(req)
 }
 
-func (c *ChainCode) Query(ctx context.Context, req *core.ReqChainCodeQuery) (*core.RespChainCodeQuery, error) {
+// Query Query
+func (c *ChainCode) Query(_ context.Context, req *core.ReqChainCodeQuery) (*core.RespChainCodeQuery, error) {
 	return ChainCodeQuery(req)
 }

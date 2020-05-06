@@ -36,9 +36,8 @@ func peerQueryInstalled(orgName, orgUser, peerName string, configBytes []byte, s
 	if err != nil {
 		log.Error("queryInstalled", log.Err(err))
 		return nil, err
-	} else {
-		return qiResponse.Chaincodes, nil
 	}
+	return qiResponse.Chaincodes, nil
 }
 
 // peer 参见peer.go Peer
@@ -55,9 +54,8 @@ func peerQueryInstantiated(orgName, orgUser, peerName, channelID string, configB
 	if err != nil {
 		log.Error("queryInstantiated", log.Err(err))
 		return nil, err
-	} else {
-		return qiResponse.Chaincodes, nil
 	}
+	return qiResponse.Chaincodes, nil
 }
 
 // peerQueryCollectionsConfig

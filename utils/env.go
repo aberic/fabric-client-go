@@ -20,16 +20,26 @@ import (
 )
 
 var (
-	GRPCPort       string
-	HttpPort       string
-	dataPath       string // dataPath 项目工作目录
-	RaftStatus     bool   // 是否启用raft
-	LogFileDir     string // 日志文件目录
-	LogFileMaxSize int    // 每个日志文件保存的最大尺寸 单位：M
-	LogFileMaxAge  int    // 文件最多保存多少天
-	LogUtc         bool   // CST & UTC 时间
-	LogLevel       string // 日志级别(debugLevel/infoLevel/warnLevel/ErrorLevel/panicLevel/fatalLevel)
-	LogProduction  bool   // 是否生产环境，在生产环境下控制台不会输出任何日志
+	// GRPCPort GRPC端口
+	GRPCPort string
+	// HTTPPort HTTP端口
+	HTTPPort string
+	// dataPath 项目工作目录
+	dataPath string
+	// RaftStatus 是否启用raft
+	RaftStatus bool
+	// LogFileDir 日志文件目录
+	LogFileDir string
+	// LogFileMaxSize 每个日志文件保存的最大尺寸 单位：M
+	LogFileMaxSize int
+	// LogFileMaxAge 文件最多保存多少天
+	LogFileMaxAge int
+	// LogUtc CST & UTC 时间
+	LogUtc bool
+	// LogLevel 日志级别(debugLevel/infoLevel/warnLevel/ErrorLevel/panicLevel/fatalLevel)
+	LogLevel string
+	// LogProduction 是否生产环境，在生产环境下控制台不会输出任何日志
+	LogProduction bool
 )
 
 // 环境变量
@@ -57,7 +67,7 @@ const (
 func init() {
 	// self
 	GRPCPort = gnomon.EnvGetD(GRPCPortEnv, "9877")
-	HttpPort = gnomon.EnvGetD(HTTPPortEnv, "9865")
+	HTTPPort = gnomon.EnvGetD(HTTPPortEnv, "9865")
 	dataPath = gnomon.EnvGetD(DataPath, gnomon.StringBuild(gnomon.EnvGet("GOPATH"), "/src/github.com/aberic/fabric-client-go/example"))
 	RaftStatus = gnomon.EnvGetBool(raftStatusEnv)
 	LogFileDir = gnomon.EnvGetD(LogDirEnv, os.TempDir())
@@ -68,6 +78,7 @@ func init() {
 	LogProduction = gnomon.EnvGetBool(LogProductionEnv)
 }
 
+// ObtainDataPath 项目工作目录
 func ObtainDataPath() string {
 	return dataPath
 }

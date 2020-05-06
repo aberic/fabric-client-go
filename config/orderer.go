@@ -30,6 +30,7 @@ type Orderer struct {
 	TLSCACerts  *OrdererTLSCACerts  `yaml:"tlsCACerts"`
 }
 
+// OrdererGRPCOptions OrdererGRPCOptions
 type OrdererGRPCOptions struct {
 	// SSLTargetNameOverride orderer.example.com
 	SSLTargetNameOverride string `yaml:"ssl-target-name-override"`
@@ -50,6 +51,7 @@ type OrdererGRPCOptions struct {
 	AllowInsecure bool `yaml:"allow-insecure"`
 }
 
+// OrdererTLSCACerts OrdererTLSCACerts
 type OrdererTLSCACerts struct {
 	// Path 证书位置绝对路径
 	Path string `yaml:"path"` // /fabric/crypto-config/ordererOrganizations/example.com/tlsca/tlsca.example.com-cert.pem

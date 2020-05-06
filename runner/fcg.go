@@ -124,7 +124,7 @@ func httpListener() {
 	ca.Router(httpServe)
 	config.Router(httpServe)
 	genesis.Router(httpServe)
-	grope.ListenAndServe(strings.Join([]string{":", utils.HttpPort}, ""), httpServe)
+	grope.ListenAndServe(strings.Join([]string{":", utils.HTTPPort}, ""), httpServe)
 }
 
 func gRPCListener() {

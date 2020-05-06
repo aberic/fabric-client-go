@@ -14,6 +14,7 @@
 
 package utils
 
+// Resp Resp
 type Resp interface {
 	Reset()
 	GetErrMsg() string

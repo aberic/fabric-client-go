@@ -111,24 +111,21 @@ func channelList(orgName, orgUser, peerName string, configBytes []byte) ([]*peer
 	if err != nil {
 		log.Error("queryChannels", log.Err(err))
 		return nil, errors.Errorf("Failed to query channels:  %v", err)
-	} else {
-		if nil != orgResMgmt {
-			qcResponse, err := orgResMgmt.QueryChannels(resmgmt.WithTargetEndpoints(peerName))
-			if err != nil {
-				log.Error("queryChannels", log.Err(err))
-				return nil, errors.Errorf("Failed to query channels: peer cannot be nil.  %v", err)
-			}
-			if nil == qcResponse {
-				log.Error("queryChannels", log.Err(err))
-				return nil, errors.Errorf("qcResponse error should be nil. ")
-			} else {
-				return qcResponse.Channels, nil
-			}
-		} else {
-			log.Error("queryChannels", log.Err(err))
-			return nil, errors.Errorf("orgResMgmt error should be nil. ")
-		}
 	}
+	if nil != orgResMgmt {
+		qcResponse, err := orgResMgmt.QueryChannels(resmgmt.WithTargetEndpoints(peerName))
+		if err != nil {
+			log.Error("queryChannels", log.Err(err))
+			return nil, errors.Errorf("Failed to query channels: peer cannot be nil.  %v", err)
+		}
+		if nil == qcResponse {
+			log.Error("queryChannels", log.Err(err))
+			return nil, errors.Errorf("qcResponse error should be nil. ")
+		}
+		return qcResponse.Channels, nil
+	}
+	log.Error("queryChannels", log.Err(err))
+	return nil, errors.Errorf("orgResMgmt error should be nil. ")
 }
 
 func channelConfigBlockFromOrderer(channelID, orgName, orgUser, peerName string, configBytes []byte) (block *common.Block, err error) {
@@ -145,14 +142,12 @@ func channelConfigBlockFromOrderer(channelID, orgName, orgUser, peerName string,
 	if err != nil {
 		log.Error("queryChannels", log.Err(err))
 		return nil, errors.Errorf("Failed to query channels:  %v", err)
-	} else {
-		if nil != orgResMgmt {
-			return orgResMgmt.QueryConfigBlockFromOrderer(channelID, resmgmt.WithTargetEndpoints(peerName))
-		} else {
-			log.Error("queryChannels", log.Err(err))
-			return nil, errors.Errorf("orgResMgmt error should be nil. ")
-		}
 	}
+	if nil != orgResMgmt {
+		return orgResMgmt.QueryConfigBlockFromOrderer(channelID, resmgmt.WithTargetEndpoints(peerName))
+	}
+	log.Error("queryChannels", log.Err(err))
+	return nil, errors.Errorf("orgResMgmt error should be nil. ")
 }
 
 func channelUpdateConfigBlock(channelID, consortium, orgName, orgUser, peerName, newOrgName string, configBytes, genesisBlockBytes []byte) ([]byte, error) {

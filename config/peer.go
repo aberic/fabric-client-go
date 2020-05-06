@@ -31,6 +31,7 @@ type Peer struct {
 	TLSCACerts  *PeerTLSCACerts  `yaml:"tlsCACerts"`
 }
 
+// PeerGRPCOptions PeerGRPCOptions
 type PeerGRPCOptions struct {
 	// SSLTargetNameOverride peer0.org1.example.com
 	SSLTargetNameOverride string `yaml:"ssl-target-name-override"`
@@ -56,6 +57,7 @@ type PeerGRPCOptions struct {
 	AllowInsecure   bool `yaml:"allow-insecure"`
 }
 
+// PeerTLSCACerts PeerTLSCACerts
 type PeerTLSCACerts struct {
 	Path string `yaml:"path"` // /fabric/crypto-config/ordererOrganizations/example.com/tlsca/tlsca.example.com-cert.pem
 }

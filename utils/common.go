@@ -14,4 +14,5 @@
 
 package utils
 
+// Version 版本号
 const Version string = "1.0"

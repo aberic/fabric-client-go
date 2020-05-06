@@ -110,8 +110,8 @@ func CertOrgCaNameWithOutCert(orgName, orgDomain string) string {
 	return strings.Join([]string{"ca", orgName, orgDomain}, ".")
 }
 
-// CertOrgTlsCaNameWithOutCert 组织下节点证书名称
-func CertOrgTlsCaNameWithOutCert(orgName, orgDomain string) string {
+// CertOrgTLSCaNameWithOutCert 组织下节点证书名称
+func CertOrgTLSCaNameWithOutCert(orgName, orgDomain string) string {
 	return strings.Join([]string{"tlsca", orgName, orgDomain}, ".")
 }
 
