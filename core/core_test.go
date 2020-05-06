@@ -21,7 +21,7 @@ import (
 	"github.com/aberic/fabric-client-go/grpc/proto/core"
 	"github.com/aberic/fabric-client-go/utils"
 	"github.com/aberic/gnomon"
-	"github.com/gogo/protobuf/proto"
+	"github.com/golang/protobuf/proto"
 	"github.com/hyperledger/fabric-protos-go/common"
 	pbMsp "github.com/hyperledger/fabric-protos-go/msp"
 	"github.com/hyperledger/fabric-sdk-go/pkg/fab/resource"
@@ -200,7 +200,7 @@ func TestPBMessage(t *testing.T) {
 
 func TestChainCodeInstall(t *testing.T) {
 	_ = testPaddingConfig(t)
-	resp, err := ChainCodeInstall(&core.ReqChainCodeInstall{
+	if resp, err := ChainCodeInstall(&core.ReqChainCodeInstall{
 		LeagueDomain: leagueDomain,
 		OrgDomain:    strings.Join([]string{"example", orgNum, ".com"}, ""),
 		OrgName:      strings.Join([]string{"org", orgNum}, ""),
@@ -210,13 +210,16 @@ func TestChainCodeInstall(t *testing.T) {
 		GoPath:       "/Users/aberic/Documents/path/go",
 		CcPath:       "github.com/aberic/fabric-client-go/example/chaincode/medical",
 		Version:      ccVersion,
-	})
-	t.Log(resp, err)
+	}); nil != err {
+		t.Error(err)
+	} else {
+		t.Log(resp)
+	}
 }
 
 func TestChainCodeInstantiate(t *testing.T) {
 	_ = testPaddingConfig(t)
-	resp, err := ChainCodeInstantiate(&core.ReqChainCodeInstantiate{
+	if resp, err := ChainCodeInstantiate(&core.ReqChainCodeInstantiate{
 		LeagueDomain: leagueDomain,
 		OrdererName:  "order1",
 		OrgDomain:    strings.Join([]string{"example", orgNum, ".com"}, ""),
@@ -229,33 +232,42 @@ func TestChainCodeInstantiate(t *testing.T) {
 		Version:      ccVersion,
 		//OrgPolicies:  []string{"Org1MSP", "Org2MSP", "Org3MSP"},
 		Args: [][]byte{[]byte("init"), []byte("A"), []byte("10000"), []byte("B"), []byte("10000")},
-	})
-	t.Log(resp, err)
+	}); nil != err {
+		t.Error(err)
+	} else {
+		t.Log(resp)
+	}
 }
 
 func TestPeerQueryInstalled(t *testing.T) {
 	_ = testPaddingConfig(t)
-	resp, err := PeerQueryInstalled(&core.ReqPeerInstalled{
+	if resp, err := PeerQueryInstalled(&core.ReqPeerInstalled{
 		LeagueDomain: leagueDomain,
 		OrgDomain:    strings.Join([]string{"example", orgNum, ".com"}, ""),
 		OrgName:      strings.Join([]string{"org", orgNum}, ""),
 		OrgUser:      "Admin",
 		PeerName:     "peer0",
-	})
-	t.Log(resp, err)
+	}); nil != err {
+		t.Error(err)
+	} else {
+		t.Log(resp)
+	}
 }
 
 func TestPeerQueryInstantiated(t *testing.T) {
 	_ = testPaddingConfig(t)
-	resp, err := PeerQueryInstantiated(&core.ReqPeerInstantiated{
+	if resp, err := PeerQueryInstantiated(&core.ReqPeerInstantiated{
 		LeagueDomain: leagueDomain,
 		OrgDomain:    strings.Join([]string{"example", orgNum, ".com"}, ""),
 		OrgName:      strings.Join([]string{"org", orgNum}, ""),
 		OrgUser:      "Admin",
 		PeerName:     "peer0",
 		ChannelID:    channelID,
-	})
-	t.Log(resp, err)
+	}); nil != err {
+		t.Error(err)
+	} else {
+		t.Log(resp)
+	}
 }
 
 func testPaddingConfig(t *testing.T) *config2.Config {
