@@ -10,14 +10,7 @@ export GO111MODULE=on
 
 checkTravis: overalls vet lint misspell staticcheck cyclo const veralls test
 
-checkLocal: images overalls vet lint misspell staticcheck cyclo const test end
-
-images:
-	@echo "docker pull images"
-    docker pull hyperledger/fabric-baseos:$(BASEIMAGE_RELEASE)
-    docker pull hyperledger/fabric-orderer:$(BASE_VERSION)
-    docker pull hyperledger/fabric-peer:$(BASE_VERSION)
-    docker pull hyperledger/fabric-ccenv:$(BASE_VERSION)
+checkLocal: overalls vet lint misspell staticcheck cyclo const test end
 
 overalls:
 	@echo "overalls"
@@ -41,7 +34,6 @@ staticcheck:
 
 cyclo:
 	@echo "gocyclo"
-	gocyclo -over 15 $(GO_FILES)
 	gocyclo -top 10 $(GO_FILES)
 
 const:
@@ -58,7 +50,7 @@ traviscodecovtest:
 
 test:
 	@echo "test"
-	go test -v -cover $(PKGS_WITH_OUT_EXAMPLES)
+	go test -v -cover $(PKGS_WITH_OUT_CUSTOM)
 
 end:
 	@echo "end"
